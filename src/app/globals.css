@@ -638,6 +638,13 @@ tbody td {
   gap: 12px;
 }
 
+.mobile-header-right {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
 .mobile-menu-toggle-btn {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.12);

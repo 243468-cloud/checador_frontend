@@ -945,15 +945,24 @@ export default function SchedulesPage() {
               <>
                 <Link
                   href="/checkin"
-                  className="btn btn-ghost flex items-center gap-2"
-                  style={{ color: '#60a5fa', borderColor: 'rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.1)' }}
+                  className="btn flex items-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    borderColor: '#10b981',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.88rem',
+                    padding: '8px 16px',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+                  }}
                 >
-                  <ArrowLeft size={16} />
-                  <span>Volver al Checador</span>
+                  <ArrowLeft size={18} />
+                  <span>⏱️ Marcar Entrada / Salida</span>
                 </Link>
                 <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }}>
                   <Clock size={15} />
-                  <span>Modo Solo Lectura (Empleado)</span>
+                  <span>Horario de Empleado</span>
                 </span>
               </>
             ) : (

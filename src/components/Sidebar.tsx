@@ -29,6 +29,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { href: '/checkin',    icon: <Clock           size={18} />, label: 'Marcar Entrada / Salida', roles: ['EMPLOYEE'] },
   { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Dashboard',           roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/employees',  icon: <Users           size={18} />, label: 'Empleados',            roles: ['SUPERUSER', 'ADMIN'] },
@@ -86,7 +87,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <div className="mobile-header-right">
+        <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {(user.role === 'SUPERUSER' || user.role === 'ADMIN') && (
             <NotificationBell />
           )}
@@ -96,7 +97,7 @@ export default function Sidebar() {
             title="Cerrar sesión"
           >
             <LogOut size={16} />
-            <span className="hide-mobile-sm">Cerrar Sesión</span>
+            <span className="hide-mobile-sm">Salir</span>
           </button>
         </div>
       </header>
