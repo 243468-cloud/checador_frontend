@@ -30,7 +30,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(form.username.trim().toLowerCase(), form.password.trim());
+      await login(form.username.trim(), form.password.trim());
       router.push('/');
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.');

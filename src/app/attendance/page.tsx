@@ -5,19 +5,37 @@ import { attendanceApi, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LA
 import Sidebar from '@/components/Sidebar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useAuth } from '@/lib/auth-context';
 import {
   CheckCircle2,
   AlertTriangle,
   Clock,
   UserX,
   ClipboardList,
+  Edit3,
+  Save,
+  X,
 } from 'lucide-react';
 
 export default function AttendancePage() {
+  const { user } = useAuth();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterStatus, setFilterStatus] = useState('ALL');
+
+  // Edit Modal State for Admin/Superadmin
+  const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
+  const [editForm, setEditForm] = useState({
+    checkInTime: '',
+    checkOutTime: '',
+    status: 'ON_TIME',
+    lateMinutes: 0,
+    notes: '',
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const isAdmin = user?.role === 'SUPERUSER' || user?.role === 'ADMIN';
 
   const load = () => {
     setLoading(true);
@@ -25,6 +43,39 @@ export default function AttendancePage() {
   };
 
   useEffect(() => { load(); }, [selectedDate]);
+
+  const handleOpenEdit = (rec: AttendanceRecord) => {
+    setEditingRecord(rec);
+    const checkInIso = rec.checkIn ? rec.checkIn.slice(0, 16) : '';
+    const checkOutIso = rec.checkOut ? rec.checkOut.slice(0, 16) : '';
+    setEditForm({
+      checkInTime: checkInIso,
+      checkOutTime: checkOutIso,
+      status: rec.status,
+      lateMinutes: rec.lateMinutes || 0,
+      notes: '',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRecord) return;
+    setSavingEdit(true);
+    try {
+      await attendanceApi.update(editingRecord.id, {
+        checkInTime: editForm.checkInTime ? editForm.checkInTime + ':00' : undefined,
+        checkOutTime: editForm.checkOutTime ? editForm.checkOutTime + ':00' : undefined,
+        status: editForm.status,
+        lateMinutes: Number(editForm.lateMinutes),
+        notes: editForm.notes,
+      });
+      setEditingRecord(null);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Error al actualizar asistencia');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const filtered = filterStatus === 'ALL'
     ? records
@@ -119,6 +170,7 @@ export default function AttendancePage() {
                     <th>Estado</th>
                     <th>Tardanza</th>
                     <th>Horas</th>
+                    {isAdmin && <th>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -153,6 +205,19 @@ export default function AttendancePage() {
                       <td style={{ fontWeight: 600 }}>
                         {rec.hoursWorked > 0 ? `${rec.hoursWorked.toFixed(1)}h` : '—'}
                       </td>
+                      {isAdmin && (
+                        <td>
+                          <button
+                            className="btn btn-ghost btn-sm flex items-center gap-1"
+                            onClick={() => handleOpenEdit(rec)}
+                            style={{ color: '#60a5fa', fontSize: '0.78rem' }}
+                            title="Modificar retardos y lapsos de tiempo"
+                          >
+                            <Edit3 size={14} />
+                            <span>Editar</span>
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -160,6 +225,92 @@ export default function AttendancePage() {
             </div>
           )}
         </div>
+
+        {/* MODAL EDICIÓN PARA ADMIN / SUPERADMIN */}
+        {editingRecord && (
+          <div className="modal-backdrop animate-fade-in" onClick={() => setEditingRecord(null)}>
+            <div className="modal-card animate-scale-up" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <div className="flex items-center gap-2">
+                  <Edit3 size={18} color="#60a5fa" />
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Modificar Asistencia & Retardos</h3>
+                </div>
+                <button className="btn-close" onClick={() => setEditingRecord(null)}><X size={18} /></button>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 16 }}>
+                Modificando registro de <strong>{editingRecord.employeeName}</strong> del {editingRecord.date}.
+              </p>
+
+              <div className="form-group-field mb-4">
+                <label className="form-label-text">Estado de Asistencia</label>
+                <select
+                  className="form-select"
+                  value={editForm.status}
+                  onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}
+                >
+                  <option value="ON_TIME">Puntual (ON_TIME)</option>
+                  <option value="LATE">Tardanza (LATE)</option>
+                  <option value="EXCUSED">Justificado / Excusado (EXCUSED)</option>
+                  <option value="ABSENT">Falta (ABSENT)</option>
+                  <option value="IN_SHIFT">En Turno (IN_SHIFT)</option>
+                </select>
+              </div>
+
+              <div className="form-group-field mb-4">
+                <label className="form-label-text">Minutos de Retardo (0 = Cero Retardos / Perdonar)</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="form-input"
+                  value={editForm.lateMinutes}
+                  onChange={e => setEditForm(p => ({ ...p, lateMinutes: Number(e.target.value) }))}
+                  placeholder="Minutos acumulados de tardanza"
+                />
+              </div>
+
+              <div className="grid-2 gap-3 mb-4">
+                <div className="form-group-field">
+                  <label className="form-label-text">Lapso Entrada (Check-In)</label>
+                  <input
+                    type="datetime-local"
+                    className="form-input"
+                    value={editForm.checkInTime}
+                    onChange={e => setEditForm(p => ({ ...p, checkInTime: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group-field">
+                  <label className="form-label-text">Lapso Salida (Check-Out)</label>
+                  <input
+                    type="datetime-local"
+                    className="form-input"
+                    value={editForm.checkOutTime}
+                    onChange={e => setEditForm(p => ({ ...p, checkOutTime: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group-field mb-6">
+                <label className="form-label-text">Notas / Justificación</label>
+                <textarea
+                  className="form-input"
+                  rows={2}
+                  value={editForm.notes}
+                  onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))}
+                  placeholder="Motivo de modificación o justificación..."
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <button className="btn btn-ghost" onClick={() => setEditingRecord(null)}>Cancelar</button>
+                <button className="btn btn-primary flex items-center gap-2" onClick={handleSaveEdit} disabled={savingEdit}>
+                  <Save size={16} />
+                  <span>{savingEdit ? 'Guardando...' : 'Guardar Cambios'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

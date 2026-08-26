@@ -875,6 +875,60 @@ export default function SchedulesPage() {
     doc.save(`Rol_Semanal_${user?.branchName || 'Empresa'}.pdf`);
   };
 
+  const exportIndividualPDF = (employeeName: string) => {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('VÍA GOURMET RESTAURANTE', 14, 14);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Horario Individual de Trabajo — ${employeeName}`, 14, 22);
+
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Empleado: ${employeeName}`, 14, 40);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Sucursal: Via Gourmet | Fecha de Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
+
+    const headers = [['Día', 'Fecha', 'Turno Asignado', 'Lapsos de Jornada', 'Estado / Tipo']];
+    const rows = daysHeader.map((d, i) => {
+      let shiftText = 'Descanso';
+      let timeText = '—';
+      rosterRows.forEach(r => {
+        const cells = r.employees[i] || [];
+        if (cells.some(c => c.text.toLowerCase().includes(employeeName.toLowerCase()))) {
+          shiftText = `${r.area} (${r.shiftTime})`;
+          timeText = r.shiftTime;
+        }
+      });
+      return [d.day, d.date, shiftText, timeText, shiftText.includes('Descanso') ? 'Día Libre' : 'Jornada Laboral'];
+    });
+
+    autoTable(doc, {
+      head: headers,
+      body: rows,
+      startY: 54,
+      theme: 'striped',
+      headStyles: { fillColor: [234, 88, 12], textColor: [255, 255, 255], fontStyle: 'bold' },
+      bodyStyles: { fontSize: 9, textColor: [30, 41, 59] },
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY || 140;
+    doc.setDrawColor(203, 213, 225);
+    doc.line(14, finalY + 25, 80, finalY + 25);
+    doc.text('Firma del Empleado', 14, finalY + 30);
+
+    doc.line(130, finalY + 25, 196, finalY + 25);
+    doc.text('Firma Supervisión / Admin', 130, finalY + 30);
+
+    doc.save(`Horario_Individual_${employeeName.replace(/\s+/g, '_')}.pdf`);
+  };
+
   return (
     <div className="app-wrapper">
       <Sidebar />
@@ -1130,6 +1184,96 @@ export default function SchedulesPage() {
             <div className="flex items-center gap-1.5" style={{ background: '#f97316', color: '#fff', padding: '3px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
               CAMBIO AREA
             </div>
+          </div>
+        </div>
+
+        {/* ----------------------------------------------------------------- */}
+        {/* HORARIOS INDIVIDUALES POR EMPLEADO (Visibles para Empleados y Administradores) */}
+        {/* ----------------------------------------------------------------- */}
+        <div className="card mb-8 animate-slide-up">
+          <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div className="flex items-center gap-3">
+              <Users size={20} color="#38bdf8" />
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Horarios Individuales por Empleado</h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Consulta o descarga en PDF el horario asignado de cada integrante del equipo</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid-2 gap-4">
+            {employeeBalances.map(b => (
+              <div
+                key={b.name}
+                className="p-4 rounded-xl"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: user?.fullName === b.name ? '2px solid #3b82f6' : '1px solid var(--color-border-light)',
+                  boxShadow: user?.fullName === b.name ? '0 0 15px rgba(59, 130, 246, 0.25)' : 'none',
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: 38, height: 38, borderRadius: 10,
+                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        color: '#fff', fontWeight: 800, fontSize: '0.88rem',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                    >
+                      {b.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontWeight: 800, color: '#ffffff', fontSize: '0.98rem' }}>{b.name}</span>
+                        {user?.fullName === b.name && (
+                          <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>TÚ</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>Área: {b.primaryArea}</div>
+                    </div>
+                  </div>
+
+                  <button
+                    className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                    onClick={() => exportIndividualPDF(b.name)}
+                    style={{ fontSize: '0.75rem', color: '#60a5fa', borderColor: 'rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.1)' }}
+                  >
+                    <FileText size={13} />
+                    <span>PDF Horario</span>
+                  </button>
+                </div>
+
+                <div className="grid-7 gap-1 mt-2 text-center" style={{ background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px' }}>
+                  {daysHeader.map((d, i) => {
+                    let assignedShift = 'Descanso';
+                    rosterRows.forEach(r => {
+                      const cells = r.employees[i] || [];
+                      if (cells.some(c => c.text.toLowerCase().includes(b.name.toLowerCase()))) {
+                        assignedShift = r.shiftTime || r.area;
+                      }
+                    });
+
+                    return (
+                      <div key={i} className="flex flex-col items-center">
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>{d.day}</span>
+                        <span
+                          style={{
+                            fontSize: '0.65rem', fontWeight: 700, marginTop: '2px', padding: '2px 4px', borderRadius: '4px', width: '100%',
+                            background: assignedShift === 'Descanso' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                            color: assignedShift === 'Descanso' ? '#34d399' : '#60a5fa',
+                            border: assignedShift === 'Descanso' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
+                          }}
+                        >
+                          {assignedShift === 'Descanso' ? 'Desc' : assignedShift}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
