@@ -228,80 +228,90 @@ export default function AttendancePage() {
 
         {/* MODAL EDICIÓN PARA ADMIN / SUPERADMIN */}
         {editingRecord && (
-          <div className="modal-backdrop animate-fade-in" onClick={() => setEditingRecord(null)}>
-            <div className="modal-card animate-scale-up" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
-              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <div className="flex items-center gap-2">
-                  <Edit3 size={18} color="#60a5fa" />
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Modificar Asistencia & Retardos</h3>
+          <div className="modal-overlay" onClick={() => setEditingRecord(null)}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
+              <div className="modal-header">
+                <div className="modal-header-title">
+                  <div className="modal-header-icon">
+                    <Edit3 size={18} />
+                  </div>
+                  <div>
+                    <span>Modificar Asistencia & Retardos</span>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 500, marginTop: 1 }}>
+                      Empleado: <strong>{editingRecord.employeeName}</strong> ({editingRecord.date})
+                    </p>
+                  </div>
                 </div>
-                <button className="btn-close" onClick={() => setEditingRecord(null)}><X size={18} /></button>
-              </div>
-
-              <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 16 }}>
-                Modificando registro de <strong>{editingRecord.employeeName}</strong> del {editingRecord.date}.
-              </p>
-
-              <div className="form-group-field mb-4">
-                <label className="form-label-text">Estado de Asistencia</label>
-                <select
-                  className="form-select"
-                  value={editForm.status}
-                  onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}
+                <button
+                  onClick={() => setEditingRecord(null)}
+                  style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}
                 >
-                  <option value="ON_TIME">Puntual (ON_TIME)</option>
-                  <option value="LATE">Tardanza (LATE)</option>
-                  <option value="EXCUSED">Justificado / Excusado (EXCUSED)</option>
-                  <option value="ABSENT">Falta (ABSENT)</option>
-                  <option value="IN_SHIFT">En Turno (IN_SHIFT)</option>
-                </select>
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="form-group-field mb-4">
-                <label className="form-label-text">Minutos de Retardo (0 = Cero Retardos / Perdonar)</label>
-                <input
-                  type="number"
-                  min="0"
-                  className="form-input"
-                  value={editForm.lateMinutes}
-                  onChange={e => setEditForm(p => ({ ...p, lateMinutes: Number(e.target.value) }))}
-                  placeholder="Minutos acumulados de tardanza"
-                />
-              </div>
-
-              <div className="grid-2 gap-3 mb-4">
+              <div className="modal-body">
                 <div className="form-group-field">
-                  <label className="form-label-text">Lapso Entrada (Check-In)</label>
+                  <label className="form-label-text">Estado de Asistencia</label>
+                  <select
+                    className="form-select"
+                    value={editForm.status}
+                    onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}
+                  >
+                    <option value="ON_TIME">Puntual (ON_TIME)</option>
+                    <option value="LATE">Tardanza (LATE)</option>
+                    <option value="EXCUSED">Justificado / Excusado (EXCUSED)</option>
+                    <option value="ABSENT">Falta (ABSENT)</option>
+                    <option value="IN_SHIFT">En Turno (IN_SHIFT)</option>
+                  </select>
+                </div>
+
+                <div className="form-group-field">
+                  <label className="form-label-text">Minutos de Retardo (0 = Perdonar Retardos)</label>
                   <input
-                    type="datetime-local"
+                    type="number"
+                    min="0"
                     className="form-input"
-                    value={editForm.checkInTime}
-                    onChange={e => setEditForm(p => ({ ...p, checkInTime: e.target.value }))}
+                    value={editForm.lateMinutes}
+                    onChange={e => setEditForm(p => ({ ...p, lateMinutes: Number(e.target.value) }))}
+                    placeholder="Minutos acumulados de tardanza"
                   />
                 </div>
+
+                <div className="grid-2 gap-3">
+                  <div className="form-group-field">
+                    <label className="form-label-text">Lapso Entrada (Check-In)</label>
+                    <input
+                      type="datetime-local"
+                      className="form-input"
+                      value={editForm.checkInTime}
+                      onChange={e => setEditForm(p => ({ ...p, checkInTime: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group-field">
+                    <label className="form-label-text">Lapso Salida (Check-Out)</label>
+                    <input
+                      type="datetime-local"
+                      className="form-input"
+                      value={editForm.checkOutTime}
+                      onChange={e => setEditForm(p => ({ ...p, checkOutTime: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
                 <div className="form-group-field">
-                  <label className="form-label-text">Lapso Salida (Check-Out)</label>
-                  <input
-                    type="datetime-local"
+                  <label className="form-label-text">Notas / Justificación</label>
+                  <textarea
                     className="form-input"
-                    value={editForm.checkOutTime}
-                    onChange={e => setEditForm(p => ({ ...p, checkOutTime: e.target.value }))}
+                    rows={2}
+                    value={editForm.notes}
+                    onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))}
+                    placeholder="Motivo de modificación o justificación..."
                   />
                 </div>
               </div>
 
-              <div className="form-group-field mb-6">
-                <label className="form-label-text">Notas / Justificación</label>
-                <textarea
-                  className="form-input"
-                  rows={2}
-                  value={editForm.notes}
-                  onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))}
-                  placeholder="Motivo de modificación o justificación..."
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3">
+              <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={() => setEditingRecord(null)}>Cancelar</button>
                 <button className="btn btn-primary flex items-center gap-2" onClick={handleSaveEdit} disabled={savingEdit}>
                   <Save size={16} />
