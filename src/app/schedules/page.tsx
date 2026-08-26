@@ -816,61 +816,63 @@ export default function SchedulesPage() {
     doc.text('Firma Gerente de Operaciones', 14, finalY1 + 26);
     doc.text('Firma y Sello Recursos Humanos', 200, finalY1 + 26);
 
-    // Page 2: Balance General & Horas Extra Table
-    doc.addPage();
-    doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, 297, 24, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('BALANCE GENERAL Y CONTROL DE HORAS EXTRA (CHECK-OUT)', 14, 14);
+    // Page 2: Balance General & Horas Extra Table (Solo ADMIN y SUPERUSER)
+    if (!isReadOnly) {
+      doc.addPage();
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 297, 24, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('BALANCE GENERAL Y CONTROL DE HORAS EXTRA (CHECK-OUT)', 14, 14);
 
-    const balanceHeaders = [
-      ['Empleado', 'Área Principal', 'Días Trab.', 'Descansos', 'Dobles', 'Horas Prog.', 'Horas Reales', 'Horas Extra (Checkout)', 'Balance Carga']
-    ];
+      const balanceHeaders = [
+        ['Empleado', 'Área Principal', 'Días Trab.', 'Descansos', 'Dobles', 'Horas Prog.', 'Horas Reales', 'Horas Extra (Checkout)', 'Balance Carga']
+      ];
 
-    const balanceRows = employeeBalances.map(b => [
-      b.name,
-      b.primaryArea,
-      `${b.workDays} d`,
-      `${b.restDays} d`,
-      `${b.doubleShifts}`,
-      `${b.totalScheduledHours}h`,
-      `${b.actualWorkedHours}h`,
-      `+${b.overtimeHours}h extra`,
-      b.statusBalance,
-    ]);
+      const balanceRows = employeeBalances.map(b => [
+        b.name,
+        b.primaryArea,
+        `${b.workDays} d`,
+        `${b.restDays} d`,
+        `${b.doubleShifts}`,
+        `${b.totalScheduledHours}h`,
+        `${b.actualWorkedHours}h`,
+        `+${b.overtimeHours}h extra`,
+        b.statusBalance,
+      ]);
 
-    autoTable(doc, {
-      head: balanceHeaders,
-      body: balanceRows,
-      startY: 28,
-      theme: 'striped',
-      headStyles: {
-        fillColor: [37, 99, 235],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 9,
-      },
-      bodyStyles: {
-        fontSize: 8,
-        textColor: [30, 41, 59],
-      },
-    });
+      autoTable(doc, {
+        head: balanceHeaders,
+        body: balanceRows,
+        startY: 28,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 9,
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [30, 41, 59],
+        },
+      });
 
-    const finalY2 = (doc as any).lastAutoTable.finalY || 160;
+      const finalY2 = (doc as any).lastAutoTable.finalY || 160;
 
-    doc.setDrawColor(203, 213, 225);
-    doc.line(14, finalY2 + 22, 90, finalY2 + 22);
-    doc.line(200, finalY2 + 22, 276, finalY2 + 22);
+      doc.setDrawColor(203, 213, 225);
+      doc.line(14, finalY2 + 22, 90, finalY2 + 22);
+      doc.line(200, finalY2 + 22, 276, finalY2 + 22);
 
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Firma Gerente de Operaciones', 14, finalY2 + 26);
-    doc.text('Firma y Sello Recursos Humanos', 200, finalY2 + 26);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Firma Gerente de Operaciones', 14, finalY2 + 26);
+      doc.text('Firma y Sello Recursos Humanos', 200, finalY2 + 26);
+    }
 
-    doc.save(`Rol_Semanal_y_Horas_Extra_${user?.branchName || 'Empresa'}.pdf`);
+    doc.save(`Rol_Semanal_${user?.branchName || 'Empresa'}.pdf`);
   };
 
   return (
