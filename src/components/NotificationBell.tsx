@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell } from 'lucide-react';
-import { attendanceApi } from '@/lib/api';
+import { Bell, CheckCheck, Smartphone, Volume2, ShieldAlert } from 'lucide-react';
 
 interface Notif {
   id: number;
@@ -77,16 +76,58 @@ function triggerVibration() {
   } catch (_) {}
 }
 
-export default function NotificationBell() {
-  const [open, setOpen]           = useState(false);
-  const [notifs, setNotifs]       = useState<Notif[]>([]);
-  const [unread, setUnread]       = useState(0);
-  const [loading, setLoading]     = useState(false);
-  const panelRef                  = useRef<HTMLDivElement>(null);
-  const prevUnreadRef             = useRef<number>(-1);
-  const POLL_INTERVAL             = 30_000; // 30 s
+function sendSystemNotification(title: string, body: string) {
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (Notification.permission === 'granted') {
+      try {
+        const notifOptions = {
+          body,
+          icon: '/logo.png',
+          badge: '/icons/icon-192x192.png',
+          tag: 'via-gourmet-notif-' + Date.now(),
+        };
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, notifOptions as NotificationOptions);
+          });
+        } else {
+          new Notification(title, notifOptions as NotificationOptions);
+        }
+      } catch (err) {
+        console.error('System notification display error:', err);
+      }
+    }
+  }
+}
 
-  // Obtener conteo de no-leídas (ligero, para polling)
+export default function NotificationBell() {
+  const [open, setOpen]             = useState(false);
+  const [notifs, setNotifs]         = useState<Notif[]>([]);
+  const [unread, setUnread]         = useState(0);
+  const [loading, setLoading]       = useState(false);
+  const [systemPerm, setSystemPerm] = useState<NotificationPermission>('default');
+  const panelRef                    = useRef<HTMLDivElement>(null);
+  const prevUnreadRef               = useRef<number>(-1);
+  const POLL_INTERVAL               = 30_000; // 30 s
+
+  // Detectar permiso de notificaciones del celular
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setSystemPerm(Notification.permission);
+    }
+  }, []);
+
+  const requestPermission = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const perm = await Notification.requestPermission();
+      setSystemPerm(perm);
+      if (perm === 'granted') {
+        sendSystemNotification('Vía Gourmet 🔔', '¡Notificaciones del celular activadas correctamente!');
+      }
+    }
+  };
+
+  // Obtener conteo de no-leídas (polling)
   const pollUnread = useCallback(async () => {
     try {
       const data = await notifApi.getUnreadCount();
@@ -94,6 +135,7 @@ export default function NotificationBell() {
       if (prevUnreadRef.current >= 0 && count > prevUnreadRef.current) {
         playNotificationSound();
         triggerVibration();
+        sendSystemNotification('Checador Vía Gourmet 🔔', `Tienes ${count} notificacion(es) de asistencia.`);
       }
       prevUnreadRef.current = count;
       setUnread(count);
@@ -161,29 +203,30 @@ export default function NotificationBell() {
         title="Notificaciones"
         style={{
           position: 'relative',
-          background: open ? 'rgba(96,165,250,0.15)' : 'transparent',
+          background: open ? 'rgba(225, 29, 72, 0.12)' : '#ffffff',
           border: '1px solid',
-          borderColor: open ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.1)',
+          borderColor: open ? 'rgba(225, 29, 72, 0.35)' : 'rgba(225, 29, 72, 0.15)',
           borderRadius: '10px',
           padding: '8px 10px',
           cursor: 'pointer',
-          color: '#e2e8f0',
+          color: '#e11d48',
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          transition: 'all 0.2s',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          transition: 'all 0.2s ease',
         }}
       >
-        <Bell size={18} />
+        <Bell size={18} color="#e11d48" />
         {unread > 0 && (
           <span style={{
             position: 'absolute',
             top: '-6px',
             right: '-6px',
-            background: '#ef4444',
+            background: '#e11d48',
             color: '#fff',
             fontSize: '11px',
-            fontWeight: 700,
+            fontWeight: 800,
             borderRadius: '999px',
             minWidth: '18px',
             height: '18px',
@@ -191,7 +234,7 @@ export default function NotificationBell() {
             alignItems: 'center',
             justifyContent: 'center',
             padding: '0 4px',
-            boxShadow: '0 0 0 2px #1e293b',
+            boxShadow: '0 0 0 2px #ffffff, 0 2px 6px rgba(225, 29, 72, 0.4)',
             animation: 'pulse 2s infinite',
           }}>
             {unread > 99 ? '99+' : unread}
@@ -199,42 +242,52 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {/* Dropdown panel */}
+      {/* Dropdown Panel Modern Cream & White */}
       {open && (
         <div style={{
           position: 'absolute',
           top: 'calc(100% + 10px)',
           right: 0,
-          width: '340px',
+          width: '360px',
           maxWidth: 'calc(100vw - 24px)',
-          background: 'linear-gradient(135deg, #1a2035 0%, #1e293b 100%)',
-          border: '1px solid rgba(96,165,250,0.2)',
-          borderRadius: '16px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+          background: '#ffffff',
+          border: '1px solid rgba(225, 29, 72, 0.18)',
+          borderRadius: '18px',
+          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.12), 0 0 24px rgba(225, 29, 72, 0.08)',
           zIndex: 1000,
           overflow: 'hidden',
+          animation: 'scaleUp 0.18s ease-out',
         }}>
           {/* Header */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 16px',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            padding: '14px 18px',
+            background: 'linear-gradient(135deg, #fdfbf7, #f6f2ea)',
+            borderBottom: '1px solid rgba(225, 29, 72, 0.12)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Bell size={16} color="#60a5fa" />
-              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#e2e8f0' }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: 'rgba(225, 29, 72, 0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#e11d48',
+              }}>
+                <Bell size={15} />
+              </div>
+              <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', letterSpacing: '-0.2px' }}>
                 Notificaciones
               </span>
               {unread > 0 && (
                 <span style={{
-                  background: 'rgba(239,68,68,0.2)',
-                  color: '#f87171',
+                  background: 'rgba(225, 29, 72, 0.1)',
+                  color: '#e11d48',
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 800,
                   borderRadius: '6px',
-                  padding: '1px 6px',
+                  padding: '2px 8px',
+                  border: '1px solid rgba(225, 29, 72, 0.2)',
                 }}>
                   {unread} nueva{unread !== 1 ? 's' : ''}
                 </span>
@@ -245,36 +298,80 @@ export default function NotificationBell() {
                 onClick={handleMarkAll}
                 style={{
                   fontSize: '11px',
-                  color: '#60a5fa',
-                  background: 'transparent',
-                  border: 'none',
+                  color: '#e11d48',
+                  background: 'rgba(225, 29, 72, 0.08)',
+                  border: '1px solid rgba(225, 29, 72, 0.2)',
                   cursor: 'pointer',
-                  fontWeight: 600,
-                  padding: '2px 6px',
+                  fontWeight: 700,
+                  padding: '4px 8px',
                   borderRadius: '6px',
-                  transition: 'background 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s',
                 }}
               >
-                Marcar todo leído
+                <CheckCheck size={13} />
+                <span>Leér todas</span>
               </button>
             )}
           </div>
 
-          {/* List */}
-          <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
+          {/* Banner para Activar Notificaciones del Celular */}
+          {systemPerm !== 'granted' && (
+            <div style={{
+              margin: '12px 14px 4px',
+              padding: '12px 14px',
+              background: 'linear-gradient(135deg, #fdfbf7, #f7efe2)',
+              border: '1px dashed rgba(225, 29, 72, 0.3)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Smartphone size={18} color="#e11d48" />
+                <div style={{ fontSize: '0.74rem', color: '#0f172a', fontWeight: 600 }}>
+                  Activar notificaciones en la pantalla de tu celular
+                </div>
+              </div>
+              <button
+                onClick={requestPermission}
+                style={{
+                  background: '#e11d48',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
+                }}
+              >
+                Activar 📲
+              </button>
+            </div>
+          )}
+
+          {/* Notification List */}
+          <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
             {loading ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
-                Cargando...
+              <div style={{ padding: '28px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                Cargando notificaciones...
               </div>
             ) : notifs.length === 0 ? (
               <div style={{
-                padding: '32px 16px',
+                padding: '36px 16px',
                 textAlign: 'center',
                 color: '#64748b',
                 fontSize: '0.85rem',
               }}>
-                <Bell size={28} style={{ opacity: 0.3, marginBottom: 8 }} />
-                <div>Sin notificaciones</div>
+                <Bell size={32} style={{ opacity: 0.2, marginBottom: 8, color: '#e11d48' }} />
+                <div style={{ fontWeight: 700, color: '#0f172a' }}>Sin notificaciones pendientes</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: 2 }}>Estás al día con el control de asistencia</div>
               </div>
             ) : (
               notifs.map(n => (
@@ -283,12 +380,13 @@ export default function NotificationBell() {
                   onClick={() => !n.read && handleMarkOne(n.id)}
                   style={{
                     padding: '12px 16px',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    borderBottom: '1px solid #f1ece1',
                     cursor: n.read ? 'default' : 'pointer',
-                    background: n.read ? 'transparent' : 'rgba(96,165,250,0.06)',
-                    transition: 'background 0.2s',
+                    background: n.read ? '#ffffff' : 'rgba(225, 29, 72, 0.04)',
+                    borderLeft: n.read ? '3px solid transparent' : '3px solid #e11d48',
+                    transition: 'all 0.15s ease',
                     display: 'flex',
-                    gap: '10px',
+                    gap: '12px',
                     alignItems: 'flex-start',
                   }}
                 >
@@ -300,17 +398,17 @@ export default function NotificationBell() {
                   {/* Content */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontWeight: n.read ? 500 : 700,
-                      fontSize: '0.82rem',
-                      color: n.read ? '#94a3b8' : '#e2e8f0',
+                      fontWeight: n.read ? 600 : 800,
+                      fontSize: '0.84rem',
+                      color: n.read ? '#475569' : '#0f172a',
                       marginBottom: '3px',
                       lineHeight: 1.3,
                     }}>
                       {n.title}
                     </div>
                     <div style={{
-                      fontSize: '0.75rem',
-                      color: '#64748b',
+                      fontSize: '0.76rem',
+                      color: '#475569',
                       lineHeight: 1.4,
                       whiteSpace: 'pre-wrap',
                     }}>
@@ -318,7 +416,8 @@ export default function NotificationBell() {
                     </div>
                     <div style={{
                       fontSize: '0.7rem',
-                      color: '#475569',
+                      color: '#94a3b8',
+                      fontWeight: 600,
                       marginTop: '4px',
                     }}>
                       {timeAgo(n.createdAt)}
@@ -331,9 +430,10 @@ export default function NotificationBell() {
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      background: '#60a5fa',
+                      background: '#e11d48',
                       flexShrink: 0,
-                      marginTop: '5px',
+                      marginTop: '6px',
+                      boxShadow: '0 0 6px rgba(225, 29, 72, 0.4)',
                     }} />
                   )}
                 </div>
@@ -344,12 +444,14 @@ export default function NotificationBell() {
           {/* Footer */}
           <div style={{
             padding: '10px 16px',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
+            background: '#faf8f5',
+            borderTop: '1px solid #f1ece1',
             textAlign: 'center',
             fontSize: '11px',
-            color: '#475569',
+            color: '#64748b',
+            fontWeight: 600,
           }}>
-            Se actualiza cada 30 segundos • Mostrando últimas 50
+            Vía Gourmet System • Sincronizado con notificaciones del celular
           </div>
         </div>
       )}
