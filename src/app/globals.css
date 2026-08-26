@@ -513,51 +513,73 @@ a:hover { color: #60a5fa; }
 .form-select option { background: #ffffff; color: var(--color-text); }
 
 /* ═══════════════════════════════════════════════════
-   ENTERPRISE DATA TABLE
+   ENTERPRISE DATA TABLE (Estilo Vía Gourmet)
    ═══════════════════════════════════════════════════ */
 
 .table-wrapper {
   overflow-x: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  border: 1px solid #f1ece1;
   background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.86rem;
+  font-family: inherit;
 }
 
 thead {
-  background: #f8f6f0;
-  border-bottom: 1px solid #e5e1da;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 thead th {
-  padding: 12px 18px;
+  padding: 14px 18px;
   text-align: left;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   white-space: nowrap;
+  border-bottom: 2px solid rgba(225, 29, 72, 0.4);
+}
+
+thead th:first-child {
+  border-top-left-radius: 15px;
+}
+
+thead th:last-child {
+  border-top-right-radius: 15px;
 }
 
 tbody tr {
+  background: #ffffff;
   border-bottom: 1px solid #f1ece1;
-  transition: background var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
-tbody tr:last-child { border-bottom: none; }
+tbody tr:nth-child(even) {
+  background: #fdfbf7;
+}
 
-tbody tr:hover { background: #fbf9f4; }
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: rgba(225, 29, 72, 0.05) !important;
+}
 
 tbody td {
   padding: 14px 18px;
-  color: var(--color-text);
+  color: #0f172a;
+  font-weight: 600;
   vertical-align: middle;
+  border-bottom: 1px solid #f1ece1;
 }
 
 /* ═══════════════════════════════════════════════════
