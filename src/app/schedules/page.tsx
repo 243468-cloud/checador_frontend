@@ -921,8 +921,6 @@ export default function SchedulesPage() {
     const finalY = (doc as any).lastAutoTable.finalY || 140;
     doc.setDrawColor(203, 213, 225);
     doc.line(14, finalY + 25, 80, finalY + 25);
-    doc.text('Firma del Empleado', 14, finalY + 30);
-
     doc.line(130, finalY + 25, 196, finalY + 25);
     doc.text('Firma Supervisión / Admin', 130, finalY + 30);
 
@@ -933,39 +931,16 @@ export default function SchedulesPage() {
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        {/* Page Header */}
-        <div className="page-header">
+        {/* Header */}
+        <div className="page-header mb-6">
           <div>
-            <h1 className="page-title">Rol Semanal y Control de Horas Extra</h1>
-            <p className="page-subtitle">Programación oficial de turnos y balance de horas extra registradas en check-out</p>
+            <h1 className="page-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+              Rol Semanal y Control de Horas Extra
+            </h1>
           </div>
 
           <div className="page-actions">
-            {isReadOnly ? (
-              <>
-                <Link
-                  href="/checkin"
-                  className="btn flex items-center gap-2"
-                  style={{
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    borderColor: '#10b981',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '0.88rem',
-                    padding: '8px 16px',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
-                  }}
-                >
-                  <ArrowLeft size={18} />
-                  <span>Marcar Entrada / Salida</span>
-                </Link>
-                <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(225,29,72,0.1)', color: '#e11d48', border: '1px solid rgba(225,29,72,0.25)' }}>
-                  <Clock size={15} />
-                  <span>Horario de Empleado</span>
-                </span>
-              </>
-            ) : (
+            {!isReadOnly && (
               <>
                 <button
                   id="btn-open-global-modal"
@@ -988,24 +963,33 @@ export default function SchedulesPage() {
                   <Plus size={16} color="#e11d48" />
                   <span>Nueva Área / Turno</span>
                 </button>
+
+                <button
+                  id="btn-export-excel-roster"
+                  className="btn btn-ghost flex items-center gap-2"
+                  onClick={exportRosterToExcel}
+                >
+                  <FileSpreadsheet size={16} color="#059669" />
+                  <span>Exportar Excel</span>
+                </button>
               </>
             )}
-
-            <button
-              id="btn-export-excel-roster"
-              className="btn btn-ghost flex items-center gap-2"
-              onClick={exportRosterToExcel}
-            >
-              <FileSpreadsheet size={16} color="#059669" />
-              <span>Exportar Excel</span>
-            </button>
 
             <button
               id="btn-export-pdf-roster"
               className="btn btn-primary flex items-center gap-2"
               onClick={exportRosterToPDF}
+              style={{
+                background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.88rem',
+                padding: '10px 18px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 14px rgba(225, 29, 72, 0.35)',
+              }}
             >
-              <FileText size={16} />
+              <FileText size={18} />
               <span>Exportar PDF</span>
             </button>
           </div>
@@ -1025,27 +1009,11 @@ export default function SchedulesPage() {
             }}>
               {syncStatus === 'saving' && <span>Guardando en servidor...</span>}
               {syncStatus === 'saved'  && <span>Guardado en servidor</span>}
-              {syncStatus === 'error'  && <span>Sin conexión — guardado localmente</span>}
             </div>
           )}
         </div>
 
-        {/* Tip Banner */}
-        <div
-          className="card mb-4 flex items-center justify-between gap-4 flex-wrap"
-          style={{ padding: '12px 18px', background: 'rgba(37, 99, 235, 0.08)', borderColor: 'rgba(37, 99, 235, 0.2)' }}
-        >
-          <div className="flex items-center gap-3">
-            <Sparkles size={18} color="#60a5fa" />
-            <span style={{ fontSize: '0.84rem', color: '#f8fafc', fontWeight: 600 }}>
-              {isReadOnly ? (
-                <><strong>Horario Oficial de la Semana:</strong> Consulta tus turnos y días de descanso asignados. Puedes guardar una copia oficial en tu dispositivo usando el botón <strong>Exportar PDF</strong>.</>
-              ) : (
-                <><strong>Control de Horas Extra y Colores:</strong> La exportación a PDF aplica automáticamente el color verde para descansos, azul para cambios de turno, amarillo para dobles turnos y naranja para cambios de área junto con la barra de convenciones.</>
-              )}
-            </span>
-          </div>
-        </div>
+        {/* Official Roster Matrix Card */}
 
         {/* Official Roster Matrix Card */}
         <div className="card mb-6 overflow-hidden">
