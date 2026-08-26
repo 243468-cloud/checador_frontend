@@ -1132,116 +1132,118 @@ export default function SchedulesPage() {
         </div>
 
         {/* ----------------------------------------------------------------- */}
-        {/* BALANCE GENERAL Y CONTROL DE HORAS EXTRA (CHECKOUT) */}
+        {/* BALANCE GENERAL Y CONTROL DE HORAS EXTRA (CHECKOUT) - Solo ADMIN y SUPERUSER */}
         {/* ----------------------------------------------------------------- */}
-        <div className="card mb-8 animate-slide-up">
-          <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
-            <div className="flex items-center gap-3">
-              <Scale size={20} color="#60a5fa" />
-              <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Balance General: Empleado vs. Horarios y Horas Extra</h3>
-                <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Desglose de horas programadas, horas reales trabajadas y horas extra tras check-out</p>
+        {!isReadOnly && (
+          <div className="card mb-8 animate-slide-up">
+            <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <div className="flex items-center gap-3">
+                <Scale size={20} color="#60a5fa" />
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Balance General: Empleado vs. Horarios y Horas Extra</h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Desglose de horas programadas, horas reales trabajadas y horas extra tras check-out</p>
+                </div>
+              </div>
+              <span className="badge badge-primary flex items-center gap-1">
+                <Timer size={12} />
+                {totalOvertimeHours}h Extra Totales
+              </span>
+            </div>
+
+            {/* Balance KPI Cards */}
+            <div className="grid-4 gap-4 mb-6">
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Promedio Horas / Empleado</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#60a5fa' }}>{avgHours}h / sem</div>
+              </div>
+
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Horas Extra (Checkout)</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c084fc' }}>+{totalOvertimeHours}h extra</div>
+              </div>
+
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Turnos Dobles Detectados</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24' }}>{totalDoubleShifts} dobles</div>
+              </div>
+
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Descansos Programados</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399' }}>{totalRestDays} descansos</div>
               </div>
             </div>
-            <span className="badge badge-primary flex items-center gap-1">
-              <Timer size={12} />
-              {totalOvertimeHours}h Extra Totales
-            </span>
-          </div>
 
-          {/* Balance KPI Cards */}
-          <div className="grid-4 gap-4 mb-6">
-            <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Promedio Horas / Empleado</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#60a5fa' }}>{avgHours}h / sem</div>
-            </div>
-
-            <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Horas Extra (Checkout)</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c084fc' }}>+{totalOvertimeHours}h extra</div>
-            </div>
-
-            <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Turnos Dobles Detectados</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24' }}>{totalDoubleShifts} dobles</div>
-            </div>
-
-            <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Descansos Programados</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399' }}>{totalRestDays} descansos</div>
-            </div>
-          </div>
-
-          {/* Balance Table with Overtime column */}
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Empleado</th>
-                  <th>Área Principal</th>
-                  <th>Días Trab.</th>
-                  <th>Descansos</th>
-                  <th>Horas Programadas</th>
-                  <th>Horas Reales Trab.</th>
-                  <th>Horas Extra (Checkout)</th>
-                  <th>Balance Carga</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employeeBalances.map(b => (
-                  <tr key={b.name}>
-                    <td style={{ fontWeight: 800, color: '#ffffff' }}>{b.name}</td>
-                    <td style={{ fontSize: '0.82rem', color: '#94a3b8' }}>{b.primaryArea}</td>
-                    <td style={{ fontWeight: 700 }}>{b.workDays} días</td>
-                    <td>
-                      <span style={{ color: '#34d399', fontWeight: 700 }}>{b.restDays} días</span>
-                    </td>
-                    <td style={{ fontWeight: 800, color: '#60a5fa' }}>{b.totalScheduledHours}h</td>
-                    <td style={{ fontWeight: 700 }}>{b.actualWorkedHours}h</td>
-                    <td>
-                      {b.overtimeHours > 0 ? (
-                        <span
-                          style={{
-                            background: 'rgba(192, 132, 252, 0.18)',
-                            border: '1px solid rgba(192, 132, 252, 0.4)',
-                            color: '#c084fc',
-                            fontWeight: 800,
-                            padding: '3px 10px',
-                            borderRadius: 12,
-                            fontSize: '0.78rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          <Timer size={12} />
-                          +{b.overtimeHours}h extra
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--color-text-faint)' }}>0.0h</span>
-                      )}
-                    </td>
-                    <td>
-                      {b.statusBalance === 'ELEVADO' ? (
-                        <span className="badge badge-warning flex items-center gap-1" style={{ width: 'fit-content' }}>
-                          <AlertTriangle size={12} /> Carga Elevada
-                        </span>
-                      ) : b.statusBalance === 'REDUCIDO' ? (
-                        <span className="badge badge-info flex items-center gap-1" style={{ width: 'fit-content' }}>
-                          Baja Carga
-                        </span>
-                      ) : (
-                        <span className="badge badge-success flex items-center gap-1" style={{ width: 'fit-content' }}>
-                          <CheckCircle2 size={12} /> Equilibrado
-                        </span>
-                      )}
-                    </td>
+            {/* Balance Table with Overtime column */}
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Empleado</th>
+                    <th>Área Principal</th>
+                    <th>Días Trab.</th>
+                    <th>Descansos</th>
+                    <th>Horas Programadas</th>
+                    <th>Horas Reales Trab.</th>
+                    <th>Horas Extra (Checkout)</th>
+                    <th>Balance Carga</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {employeeBalances.map(b => (
+                    <tr key={b.name}>
+                      <td style={{ fontWeight: 800, color: '#ffffff' }}>{b.name}</td>
+                      <td style={{ fontSize: '0.82rem', color: '#94a3b8' }}>{b.primaryArea}</td>
+                      <td style={{ fontWeight: 700 }}>{b.workDays} días</td>
+                      <td>
+                        <span style={{ color: '#34d399', fontWeight: 700 }}>{b.restDays} días</span>
+                      </td>
+                      <td style={{ fontWeight: 800, color: '#60a5fa' }}>{b.totalScheduledHours}h</td>
+                      <td style={{ fontWeight: 700 }}>{b.actualWorkedHours}h</td>
+                      <td>
+                        {b.overtimeHours > 0 ? (
+                          <span
+                            style={{
+                              background: 'rgba(192, 132, 252, 0.18)',
+                              border: '1px solid rgba(192, 132, 252, 0.4)',
+                              color: '#c084fc',
+                              fontWeight: 800,
+                              padding: '3px 10px',
+                              borderRadius: 12,
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                          >
+                            <Timer size={12} />
+                            +{b.overtimeHours}h extra
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--color-text-faint)' }}>0.0h</span>
+                        )}
+                      </td>
+                      <td>
+                        {b.statusBalance === 'ELEVADO' ? (
+                          <span className="badge badge-warning flex items-center gap-1" style={{ width: 'fit-content' }}>
+                            <AlertTriangle size={12} /> Carga Elevada
+                          </span>
+                        ) : b.statusBalance === 'REDUCIDO' ? (
+                          <span className="badge badge-info flex items-center gap-1" style={{ width: 'fit-content' }}>
+                            Baja Carga
+                          </span>
+                        ) : (
+                          <span className="badge badge-success flex items-center gap-1" style={{ width: 'fit-content' }}>
+                            <CheckCircle2 size={12} /> Equilibrado
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ----------------------------------------------------------------- */}
         {/* MODAL 1: EDICIÓN INDIVIDUAL CON BOTONES DE COLOR POR EMPLEADO */}
