@@ -1084,13 +1084,34 @@ tbody td {
   flex-wrap: wrap;
 }
 
-@media (max-width: 1024px) {
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+.notification-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  background: #ffffff;
+  border: 1px solid rgba(225, 29, 72, 0.18);
+  border-radius: 18px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.14), 0 0 24px rgba(225, 29, 72, 0.08);
+  z-index: 1000;
+  overflow: hidden;
+  animation: scaleUp 0.18s ease-out;
 }
 
 @media (max-width: 768px) {
   :root { --sidebar-width: 0px; }
+
+  .notification-popover {
+    position: fixed !important;
+    top: 70px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: 92vw !important;
+    max-width: 380px !important;
+    z-index: 10000 !important;
+  }
 
   .sidebar {
     transform: translateX(-100%);

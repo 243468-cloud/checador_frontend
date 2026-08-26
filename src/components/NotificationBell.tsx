@@ -244,20 +244,7 @@ export default function NotificationBell() {
 
       {/* Dropdown Panel Modern Cream & White */}
       {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 10px)',
-          right: 0,
-          width: '360px',
-          maxWidth: 'calc(100vw - 24px)',
-          background: '#ffffff',
-          border: '1px solid rgba(225, 29, 72, 0.18)',
-          borderRadius: '18px',
-          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.12), 0 0 24px rgba(225, 29, 72, 0.08)',
-          zIndex: 1000,
-          overflow: 'hidden',
-          animation: 'scaleUp 0.18s ease-out',
-        }}>
+        <div className="notification-popover">
           {/* Header */}
           <div style={{
             display: 'flex',
@@ -351,7 +338,7 @@ export default function NotificationBell() {
                   boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
                 }}
               >
-                Activar 📲
+                Activar
               </button>
             </div>
           )}
@@ -391,9 +378,15 @@ export default function NotificationBell() {
                   }}
                 >
                   {/* Icon */}
-                  <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0, marginTop: 2 }}>
-                    {n.icon || '🔔'}
-                  </span>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    background: n.read ? 'rgba(0,0,0,0.04)' : 'rgba(225, 29, 72, 0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, marginTop: 2,
+                    color: n.read ? '#64748b' : '#e11d48',
+                  }}>
+                    <Bell size={16} />
+                  </div>
 
                   {/* Content */}
                   <div style={{ flex: 1, minWidth: 0 }}>

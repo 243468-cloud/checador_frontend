@@ -958,9 +958,9 @@ export default function SchedulesPage() {
                   }}
                 >
                   <ArrowLeft size={18} />
-                  <span>⏱️ Marcar Entrada / Salida</span>
+                  <span>Marcar Entrada / Salida</span>
                 </Link>
-                <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }}>
+                <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(225,29,72,0.1)', color: '#e11d48', border: '1px solid rgba(225,29,72,0.25)' }}>
                   <Clock size={15} />
                   <span>Horario de Empleado</span>
                 </span>
@@ -985,7 +985,7 @@ export default function SchedulesPage() {
                   className="btn btn-ghost flex items-center gap-2"
                   onClick={() => setShowAddRowModal(true)}
                 >
-                  <Plus size={16} color="#60a5fa" />
+                  <Plus size={16} color="#e11d48" />
                   <span>Nueva Área / Turno</span>
                 </button>
               </>
@@ -996,7 +996,7 @@ export default function SchedulesPage() {
               className="btn btn-ghost flex items-center gap-2"
               onClick={exportRosterToExcel}
             >
-              <FileSpreadsheet size={16} color="#34d399" />
+              <FileSpreadsheet size={16} color="#059669" />
               <span>Exportar Excel</span>
             </button>
 
@@ -1016,16 +1016,16 @@ export default function SchedulesPage() {
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '6px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600,
               background: syncStatus === 'saved'  ? 'rgba(16,185,129,0.15)'
-                        : syncStatus === 'saving' ? 'rgba(99,102,241,0.15)'
+                        : syncStatus === 'saving' ? 'rgba(225,29,72,0.15)'
                         : 'rgba(239,68,68,0.15)',
-              color: syncStatus === 'saved'  ? '#10b981'
-                   : syncStatus === 'saving' ? '#818cf8'
-                   : '#ef4444',
-              border: `1px solid ${syncStatus === 'saved' ? 'rgba(16,185,129,0.3)' : syncStatus === 'saving' ? 'rgba(99,102,241,0.3)' : 'rgba(239,68,68,0.3)'}`,
+              color: syncStatus === 'saved'  ? '#059669'
+                   : syncStatus === 'saving' ? '#e11d48'
+                   : '#dc2626',
+              border: `1px solid ${syncStatus === 'saved' ? 'rgba(16,185,129,0.3)' : syncStatus === 'saving' ? 'rgba(225,29,72,0.3)' : 'rgba(239,68,68,0.3)'}`,
             }}>
-              {syncStatus === 'saving' && <span>⏳ Guardando en servidor...</span>}
-              {syncStatus === 'saved'  && <span>✓ Guardado en servidor</span>}
-              {syncStatus === 'error'  && <span>⚠ Sin conexión — guardado localmente</span>}
+              {syncStatus === 'saving' && <span>Guardando en servidor...</span>}
+              {syncStatus === 'saved'  && <span>Guardado en servidor</span>}
+              {syncStatus === 'error'  && <span>Sin conexión — guardado localmente</span>}
             </div>
           )}
         </div>

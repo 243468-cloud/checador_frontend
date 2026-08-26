@@ -145,26 +145,26 @@ export default function Sidebar() {
 
         {/* User Card + Logout */}
         <div className="sidebar-footer">
-          {(user.role === 'SUPERUSER' || user.role === 'ADMIN') && (
-            <div style={{ padding: '8px 12px 4px' }}>
-              <NotificationBell />
-            </div>
-          )}
-          <div className="user-card">
+          <div className="user-card" style={{ gap: '10px' }}>
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
               <div className="user-name">{user.fullName}</div>
               <div className="user-role">{ROLE_LABELS[user.role] || user.role}</div>
             </div>
-            <button
-              id="btn-logout"
-              onClick={logout}
-              title="Cerrar sesión"
-              className="sidebar-logout-btn"
-            >
-              <LogOut size={16} />
-              <span className="logout-text-mobile">Salir</span>
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {(user.role === 'SUPERUSER' || user.role === 'ADMIN') && (
+                <NotificationBell />
+              )}
+              <button
+                id="btn-logout"
+                onClick={logout}
+                title="Cerrar sesión"
+                className="sidebar-logout-btn"
+              >
+                <LogOut size={16} />
+                <span className="logout-text-mobile">Salir</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
