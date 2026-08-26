@@ -111,12 +111,12 @@ export default function Sidebar() {
       <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon" style={{ background: '#ffffff', padding: '3px', width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <div className="sidebar-logo-icon" style={{ background: '#ffffff', padding: '3px', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)' }}>
             <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div className="sidebar-logo-text">
-            <span className="sidebar-logo-title" style={{ fontSize: '0.98rem', fontWeight: 800 }}>Vía Gourmet</span>
-            <span className="sidebar-logo-sub">{user.branchName || 'Checador de Asistencia'}</span>
+            <span className="sidebar-logo-title" style={{ fontSize: '1.02rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.3px' }}>Vía Gourmet</span>
+            <span className="sidebar-logo-sub" style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 700, letterSpacing: '0.5px' }}>SABORES • AROMAS • TEXTURAS</span>
           </div>
           <button
             className="mobile-drawer-close"

@@ -176,25 +176,25 @@ export default function LoginPage() {
 
         .bg-glow-center {
           position: absolute;
-          width: 450px;
-          height: 450px;
+          width: 500px;
+          height: 500px;
           border-radius: 50%;
           filter: blur(140px);
-          background: radial-gradient(circle, rgba(59, 130, 246, 0.25), transparent 70%);
+          background: radial-gradient(circle, rgba(225, 29, 72, 0.25), rgba(217, 119, 6, 0.12) 70%);
           pointer-events: none;
         }
 
         .login-centered-card {
           width: 100%;
           max-width: 420px;
-          background: rgba(15, 23, 42, 0.88);
+          background: rgba(17, 23, 38, 0.92);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(59, 130, 246, 0.18);
+          border: 1px solid rgba(225, 29, 72, 0.25);
           border-radius: 20px;
           padding: 44px 36px 32px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65),
-                      0 0 30px rgba(59, 130, 246, 0.12);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                      0 0 30px rgba(225, 29, 72, 0.18);
           position: relative;
           z-index: 10;
         }
@@ -209,13 +209,13 @@ export default function LoginPage() {
           height: 56px;
           margin: 0 auto 16px;
           border-radius: 14px;
-          background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          color: #60a5fa;
+          background: linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(225, 29, 72, 0.05));
+          border: 1px solid rgba(225, 29, 72, 0.3);
+          color: #fb7185;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+          box-shadow: 0 8px 24px rgba(225, 29, 72, 0.25);
         }
 
         .brand-title {

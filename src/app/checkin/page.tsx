@@ -212,9 +212,9 @@ export default function CheckInPage() {
               borderRadius: '8px',
               fontSize: '0.8rem',
               fontWeight: 700,
-              background: 'rgba(96,165,250,0.15)',
-              color: '#60a5fa',
-              border: '1px solid rgba(96,165,250,0.3)',
+              background: 'rgba(225, 29, 72, 0.15)',
+              color: '#fb7185',
+              border: '1px solid rgba(225, 29, 72, 0.35)',
               textDecoration: 'none',
               transition: 'all 0.2s',
             }}
