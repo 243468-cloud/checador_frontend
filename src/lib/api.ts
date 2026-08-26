@@ -167,6 +167,47 @@ export const attendanceApi = {
   },
 };
 
+// ─── Ranking & Rewards ────────────────────────────────────────────────────────
+
+export interface RankingResponse {
+  fortnightRank: {
+    id: number;
+    name: string;
+    username: string;
+    branch: string;
+    shift: string;
+    attendances: number;
+    lateMinutes: number;
+    onTimeCount: number;
+  }[];
+  monthlyRank: {
+    id: number;
+    name: string;
+    username: string;
+    branch: string;
+    shift: string;
+    attendances: number;
+    lateMinutes: number;
+    onTimeCount: number;
+  }[];
+  config: {
+    fortnightReward: string;
+    monthlyReward: string;
+    fortnightMinAttendance: number;
+    monthlyMaxLateMinutes: number;
+  };
+}
+
+export const rankingApi = {
+  getRanking: () => apiFetch<RankingResponse>('/api/ranking'),
+  getConfig: () => apiFetch<RankingResponse['config']>('/api/ranking/config'),
+  updateConfig: (config: Partial<RankingResponse['config']>) =>
+    apiFetch<RankingResponse['config']>('/api/ranking/config', {
+      method: 'PUT',
+      body: JSON.stringify(config),
+    }),
+};
+
 // ─── Employees ────────────────────────────────────────────────────────────────
 
 export interface Employee {

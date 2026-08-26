@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Trophy, Award, Wine, UtensilsCrossed, Settings, Sparkles, CheckCircle2, Clock, Medal, X, Save } from 'lucide-react';
-import { employeeApi, attendanceApi } from '@/lib/api';
+import { rankingApi, RankingResponse } from '@/lib/api';
 
 export interface RewardsConfig {
   fortnightReward: string;
@@ -24,79 +24,27 @@ export default function RewardsLeaderboard() {
   const [config, setConfig] = useState<RewardsConfig>(DEFAULT_CONFIG);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [editForm, setEditForm] = useState<RewardsConfig>(DEFAULT_CONFIG);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [fortnightRank, setFortnightRank] = useState<any[]>([]);
+  const [monthlyRank, setMonthlyRank] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load configuration from localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('via_gourmet_rewards_config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setConfig(parsed);
-        setEditForm(parsed);
-      }
-    } catch (e) {
-      console.error('Error loading rewards config:', e);
-    }
-  }, []);
-
-  // Fetch 100% real employee ranking data from database
+  // Fetch 100% real backend ranking data
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
       try {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-
-        const [empList, monthlyLogs] = await Promise.all([
-          employeeApi.getAll().catch(() => []),
-          attendanceApi.getMonthly(year, month).catch(() => []),
-        ]);
-
+        const res = await rankingApi.getRanking();
         if (!isMounted) return;
-
-        // Map real database records per employee
-        const logMap: Record<number, { attendances: number; lateMinutes: number; onTime: number }> = {};
-
-        if (Array.isArray(monthlyLogs)) {
-          monthlyLogs.forEach((rec: any) => {
-            const empId = rec.employeeId;
-            if (!empId) return;
-            if (!logMap[empId]) {
-              logMap[empId] = { attendances: 0, lateMinutes: 0, onTime: 0 };
-            }
-            if (rec.checkIn && rec.status !== 'ABSENT') {
-              logMap[empId].attendances += 1;
-            }
-            if (rec.status === 'ON_TIME') {
-              logMap[empId].onTime += 1;
-            }
-            if (rec.lateMinutes && rec.lateMinutes > 0) {
-              logMap[empId].lateMinutes += rec.lateMinutes;
-            }
-          });
+        if (res) {
+          setFortnightRank(res.fortnightRank || []);
+          setMonthlyRank(res.monthlyRank || []);
+          if (res.config) {
+            setConfig(res.config);
+            setEditForm(res.config);
+          }
         }
-
-        // Create 100% real employee objects
-        const list = (empList || []).map((e: any) => {
-          const stats = logMap[e.id] || { attendances: 0, lateMinutes: 0, onTime: 0 };
-          return {
-            id: e.id,
-            name: e.fullName || e.username || `Empleado #${e.id}`,
-            username: e.username,
-            branch: e.branchName || 'Vía Gourmet',
-            shift: e.shiftType || 'MATUTINO',
-            attendances: stats.attendances,
-            lateMinutes: stats.lateMinutes,
-            onTimeCount: stats.onTime,
-          };
-        });
-
-        setEmployees(list);
       } catch (err) {
-        console.error('Error loading real ranking data:', err);
+        console.error('Error fetching backend ranking:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -105,26 +53,17 @@ export default function RewardsLeaderboard() {
     return () => { isMounted = false; };
   }, []);
 
-  const handleSaveConfig = (e: React.FormEvent) => {
+  const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
-    setConfig(editForm);
     try {
-      localStorage.setItem('via_gourmet_rewards_config', JSON.stringify(editForm));
+      const updatedConfig = await rankingApi.updateConfig(editForm);
+      setConfig(updatedConfig);
     } catch (e) {
-      console.error('Error saving rewards config:', e);
+      console.error('Error saving rewards config to backend:', e);
+      setConfig(editForm);
     }
     setShowConfigModal(false);
   };
-
-  // Sort Top 3 for Fortnight (100% Real - Most Attendances)
-  const fortnightRank = [...employees]
-    .sort((a, b) => b.attendances - a.attendances || b.onTimeCount - a.onTimeCount)
-    .slice(0, 3);
-
-  // Sort Top 3 for Month (100% Real - Lowest Late Minutes)
-  const monthlyRank = [...employees]
-    .sort((a, b) => a.lateMinutes - b.lateMinutes || b.attendances - a.attendances)
-    .slice(0, 3);
 
   const isSuperUser = user?.role === 'SUPERUSER';
 
