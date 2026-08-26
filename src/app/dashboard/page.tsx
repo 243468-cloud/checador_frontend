@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { attendanceApi, employeeApi, DashboardStats, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
+import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -68,6 +69,9 @@ export default function DashboardPage() {
           <KPICard icon={<AlertTriangle size={24} />} label="Tardanzas" value={stats?.late ?? 0} color="#f59e0b" bg="rgba(245,158,11,0.12)" />
           <KPICard icon={<UserX size={24} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#ef4444" bg="rgba(239,68,68,0.12)" />
         </div>
+
+        {/* Ranking & Recompensas Vía Gourmet */}
+        <RewardsLeaderboard />
 
         {/* Daily Attendance Table */}
         <div className="card animate-slide-up">

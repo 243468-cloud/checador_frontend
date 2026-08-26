@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { attendanceApi, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
+import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/lib/auth-context';
@@ -145,6 +146,9 @@ export default function AttendancePage() {
             </div>
           ))}
         </div>
+
+        {/* Ranking & Recompensas Vía Gourmet */}
+        <RewardsLeaderboard />
 
         {/* Table */}
         <div className="card">

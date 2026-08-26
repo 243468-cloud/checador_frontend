@@ -123,43 +123,49 @@ export default function AdminsPage() {
 
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-card" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
-                <h2 className="modal-title">{editTarget ? 'Editar Admin' : 'Nuevo Administrador'}</h2>
-                <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+                <div className="modal-header-title">
+                  <ShieldCheck size={20} color="#e11d48" />
+                  <span>{editTarget ? 'Editar Admin' : 'Nuevo Administrador'}</span>
+                </div>
+                <button className="btn btn-ghost" style={{ padding: '6px' }} onClick={() => setShowModal(false)}><X size={18} /></button>
               </div>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                {!editTarget && (
-                  <>
-                    <div className="form-group">
-                      <label className="form-label">Usuario *</label>
-                      <input className="form-input" placeholder="Nombre de usuario" value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} required />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Contraseña *</label>
-                      <input type="password" className="form-input" placeholder="Contraseña segura" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Sucursal *</label>
-                      <select className="form-select" value={form.branchId} onChange={e => setForm(p => ({ ...p, branchId: e.target.value }))} required>
-                        <option value="">Seleccionar sucursal...</option>
-                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                      </select>
-                    </div>
-                  </>
-                )}
-                <div className="form-group">
-                  <label className="form-label">Nombre Completo *</label>
-                  <input className="form-input" placeholder="Nombre completo" value={form.fullName} onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} required />
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body">
+                  {!editTarget && (
+                    <>
+                      <div className="form-group">
+                        <label>Usuario *</label>
+                        <input className="form-input" placeholder="Nombre de usuario" value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} required />
+                      </div>
+                      <div className="form-group">
+                        <label>Contraseña *</label>
+                        <input type="password" className="form-input" placeholder="Contraseña segura" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required />
+                      </div>
+                      <div className="form-group">
+                        <label>Sucursal *</label>
+                        <select className="form-select" value={form.branchId} onChange={e => setForm(p => ({ ...p, branchId: e.target.value }))} required>
+                          <option value="">Seleccionar sucursal...</option>
+                          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        </select>
+                      </div>
+                    </>
+                  )}
+                  <div className="form-group">
+                    <label>Nombre Completo *</label>
+                    <input className="form-input" placeholder="Nombre completo" value={form.fullName} onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Correo</label>
+                    <input type="email" className="form-input" placeholder="correo@empresa.com" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+                  </div>
+                  {error && <div className="alert alert-danger">{error}</div>}
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Correo</label>
-                  <input type="email" className="form-input" placeholder="correo@empresa.com" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
-                </div>
-                {error && <div className="alert alert-danger">{error}</div>}
-                <div className="flex gap-3" style={{ marginTop: 4 }}>
-                  <button type="button" className="btn btn-ghost flex-1" onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button type="submit" id="btn-save-admin" className="btn btn-primary flex-1 flex items-center justify-center gap-2" disabled={saving}>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancelar</button>
+                  <button type="submit" id="btn-save-admin" className="btn btn-primary flex items-center gap-2" disabled={saving}>
                     {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Actualizar' : 'Crear Admin')}
                   </button>
                 </div>

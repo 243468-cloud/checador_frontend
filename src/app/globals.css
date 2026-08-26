@@ -984,10 +984,10 @@ tbody td {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 1000;
+  background: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  z-index: 9999 !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -997,34 +997,36 @@ tbody td {
 
 .modal-card {
   width: 100%;
-  max-width: 540px;
-  background: #ffffff;
-  border: 1px solid rgba(225, 29, 72, 0.18);
-  border-radius: 20px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.18), 0 0 25px rgba(225, 29, 72, 0.08);
+  max-width: 520px;
+  background: #ffffff !important;
+  border: 1px solid rgba(225, 29, 72, 0.2) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 25px rgba(225, 29, 72, 0.12) !important;
   overflow: hidden;
   position: relative;
-  z-index: 1001;
+  z-index: 10000 !important;
   animation: scaleUp 0.22s ease-out;
+  color: #0f172a !important;
 }
 
 .modal-header {
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #fdfbf7, #f6f2ea);
-  border-bottom: 1px solid rgba(225, 29, 72, 0.12);
+  padding: 20px 24px !important;
+  background: linear-gradient(135deg, #fdfbf7, #f6f2ea) !important;
+  border-bottom: 1px solid rgba(225, 29, 72, 0.12) !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .modal-header-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
   display: flex;
   align-items: center;
   gap: 10px;
   letter-spacing: -0.3px;
+  font-family: var(--font-montserrat, 'Montserrat'), sans-serif !important;
 }
 
 .modal-header-icon {
@@ -1040,18 +1042,59 @@ tbody td {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 24px !important;
+  background: #ffffff !important;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-height: 80vh;
+  max-height: 75vh;
   overflow-y: auto;
+  color: #0f172a !important;
+}
+
+.modal-body label,
+.modal-card label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 0.76rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.modal-body input,
+.modal-body select,
+.modal-body textarea,
+.modal-card input,
+.modal-card select,
+.modal-card textarea {
+  background: #fdfbf7 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  width: 100% !important;
+}
+
+.modal-body input:focus,
+.modal-body select:focus,
+.modal-body textarea:focus,
+.modal-card input:focus,
+.modal-card select:focus,
+.modal-card textarea:focus {
+  border-color: #e11d48 !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12) !important;
+  outline: none !important;
 }
 
 .modal-footer {
-  padding: 16px 24px;
-  background: #faf8f5;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 16px 24px !important;
+  background: #faf8f5 !important;
+  border-top: 1px solid #f1ece1 !important;
   display: flex;
   align-items: center;
   justify-content: flex-end;

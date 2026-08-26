@@ -147,48 +147,54 @@ export default function BranchesPage() {
 
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-card" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
               <div className="modal-header">
-                <h2 className="modal-title">{editTarget ? 'Editar Sucursal' : 'Nueva Sucursal'}</h2>
-                <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+                <div className="modal-header-title">
+                  <Building2 size={20} color="#e11d48" />
+                  <span>{editTarget ? 'Editar Sucursal' : 'Nueva Sucursal'}</span>
+                </div>
+                <button className="btn btn-ghost" style={{ padding: '6px' }} onClick={() => setShowModal(false)}><X size={18} /></button>
               </div>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="form-group">
-                  <label className="form-label">Nombre *</label>
-                  <input className="form-input" placeholder="Ej: Sucursal Norte" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Dirección</label>
-                  <input className="form-input" placeholder="Dirección completa" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
-                </div>
-                <div className="grid-2">
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body">
                   <div className="form-group">
-                    <label className="form-label">Latitud *</label>
-                    <input type="number" step="any" className="form-input" placeholder="19.4326" value={form.latitude} onChange={e => setForm(p => ({ ...p, latitude: e.target.value }))} required />
+                    <label>Nombre *</label>
+                    <input className="form-input" placeholder="Ej: Sucursal Norte" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Longitud *</label>
-                    <input type="number" step="any" className="form-input" placeholder="-99.1332" value={form.longitude} onChange={e => setForm(p => ({ ...p, longitude: e.target.value }))} required />
+                    <label>Dirección</label>
+                    <input className="form-input" placeholder="Dirección completa" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
                   </div>
-                </div>
-                <div className="grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Radio GPS (metros)</label>
-                    <input type="number" className="form-input" min="10" max="5000" value={form.radiusMeters} onChange={e => setForm(p => ({ ...p, radiusMeters: e.target.value }))} />
+                  <div className="grid-2">
+                    <div className="form-group">
+                      <label>Latitud *</label>
+                      <input type="number" step="any" className="form-input" placeholder="19.4326" value={form.latitude} onChange={e => setForm(p => ({ ...p, latitude: e.target.value }))} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Longitud *</label>
+                      <input type="number" step="any" className="form-input" placeholder="-99.1332" value={form.longitude} onChange={e => setForm(p => ({ ...p, longitude: e.target.value }))} required />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Tolerancia (minutos)</label>
-                    <input type="number" className="form-input" min="0" max="60" value={form.toleranceMinutes} onChange={e => setForm(p => ({ ...p, toleranceMinutes: e.target.value }))} />
+                  <div className="grid-2">
+                    <div className="form-group">
+                      <label>Radio GPS (metros)</label>
+                      <input type="number" className="form-input" min="10" max="5000" value={form.radiusMeters} onChange={e => setForm(p => ({ ...p, radiusMeters: e.target.value }))} />
+                    </div>
+                    <div className="form-group">
+                      <label>Tolerancia (minutos)</label>
+                      <input type="number" className="form-input" min="0" max="60" value={form.toleranceMinutes} onChange={e => setForm(p => ({ ...p, toleranceMinutes: e.target.value }))} />
+                    </div>
                   </div>
+                  <div className="alert alert-info flex items-start gap-2" style={{ fontSize: '0.8rem' }}>
+                    <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span><strong>Tip:</strong> Puedes obtener las coordenadas de Google Maps haciendo clic derecho en la ubicación de tu sucursal.</span>
+                  </div>
+                  {error && <div className="alert alert-danger">{error}</div>}
                 </div>
-                <div className="alert alert-info flex items-start gap-2" style={{ fontSize: '0.8rem' }}>
-                  <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                  <span><strong>Tip:</strong> Puedes obtener las coordenadas de Google Maps haciendo clic derecho en la ubicación de tu sucursal.</span>
-                </div>
-                {error && <div className="alert alert-danger">{error}</div>}
-                <div className="flex gap-3" style={{ marginTop: 4 }}>
-                  <button type="button" className="btn btn-ghost flex-1" onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button type="submit" id="btn-save-branch" className="btn btn-primary flex-1 flex items-center justify-center gap-2" disabled={saving}>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancelar</button>
+                  <button type="submit" id="btn-save-branch" className="btn btn-primary flex items-center gap-2" disabled={saving}>
                     {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Actualizar' : 'Crear Sucursal')}
                   </button>
                 </div>
