@@ -210,26 +210,20 @@ export default function LoginPage() {
           margin: 0 auto 16px;
           border-radius: 14px;
           background: linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(225, 29, 72, 0.05));
-          border: 1px solid rgba(225, 29, 72, 0.3);
-          color: #fb7185;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 8px 24px rgba(225, 29, 72, 0.25);
-        }
-
         .brand-title {
           font-size: 1.65rem;
           font-weight: 800;
-          color: #f8fafc;
+          color: #0f172a !important;
           letter-spacing: -0.5px;
           margin: 0;
+          font-family: var(--font-montserrat, 'Montserrat'), sans-serif;
         }
 
         .brand-subtitle {
           font-size: 0.82rem;
-          color: #94a3b8;
+          color: #475569 !important;
           margin-top: 4px;
+          font-weight: 600;
         }
 
         .login-form {
@@ -246,10 +240,10 @@ export default function LoginPage() {
 
         .form-label-text {
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          color: #94a3b8;
+          color: #475569 !important;
         }
 
         .input-field-wrapper {
@@ -261,7 +255,7 @@ export default function LoginPage() {
         .input-field-icon {
           position: absolute;
           left: 14px;
-          color: #64748b;
+          color: #e11d48 !important;
           display: flex;
           align-items: center;
           pointer-events: none;
@@ -270,12 +264,13 @@ export default function LoginPage() {
 
         .form-input-element {
           width: 100%;
-          background: rgba(30, 41, 59, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #fdfbf7 !important;
+          border: 1px solid #e2e8f0 !important;
           border-radius: 12px;
           padding: 13px 14px 13px 42px;
           font-size: 0.88rem;
-          color: #f8fafc;
+          color: #0f172a !important;
+          font-weight: 600;
           font-family: inherit;
           outline: none;
           transition: all 0.2s ease;
@@ -286,17 +281,18 @@ export default function LoginPage() {
         }
 
         .form-input-element::placeholder {
-          color: #475569;
+          color: #94a3b8 !important;
+          font-weight: 500;
         }
 
         .input-field-wrapper:focus-within .input-field-icon {
-          color: #38bdf8;
+          color: #e11d48 !important;
         }
 
         .form-input-element:focus {
-          border-color: #3b82f6;
-          background: rgba(30, 41, 59, 0.95);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+          border-color: #e11d48 !important;
+          background: #ffffff !important;
+          box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12) !important;
         }
 
         .toggle-password-btn {
@@ -315,20 +311,21 @@ export default function LoginPage() {
         }
 
         .toggle-password-btn:hover {
-          color: #f8fafc;
+          color: #0f172a;
         }
 
         .login-error-banner {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-          background: rgba(244, 63, 94, 0.12);
-          border: 1px solid rgba(244, 63, 94, 0.3);
-          color: #fb7185;
+          background: rgba(225, 29, 72, 0.1);
+          border: 1px solid rgba(225, 29, 72, 0.25);
+          color: #e11d48;
           padding: 12px 14px;
           border-radius: 10px;
           font-size: 0.82rem;
           line-height: 1.4;
+          font-weight: 600;
         }
 
         .error-icon {
@@ -342,23 +339,23 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           gap: 10px;
-          background: linear-gradient(135deg, #2563eb, #1d4ed8);
-          color: #ffffff;
+          background: linear-gradient(135deg, #e11d48, #be123c) !important;
+          color: #ffffff !important;
           border: none;
           border-radius: 12px;
           padding: 14px 20px;
           font-size: 0.92rem;
-          font-weight: 700;
+          font-weight: 800;
           font-family: inherit;
           cursor: pointer;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+          box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35) !important;
           margin-top: 4px;
         }
 
         .login-action-btn:hover:not(:disabled) {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          box-shadow: 0 8px 24px rgba(37, 99, 235, 0.55);
+          background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
+          box-shadow: 0 8px 24px rgba(225, 29, 72, 0.5) !important;
           transform: translateY(-1px);
         }
 
@@ -374,7 +371,7 @@ export default function LoginPage() {
         .login-card-footer {
           margin-top: 32px;
           padding-top: 20px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          border-top: 1px solid #f1ece1;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -384,13 +381,14 @@ export default function LoginPage() {
 
         .register-prompt {
           font-size: 0.82rem;
-          color: #94a3b8;
+          color: #475569 !important;
           margin: 0;
+          font-weight: 600;
         }
 
         .register-link {
-          color: #60a5fa;
-          font-weight: 600;
+          color: #e11d48 !important;
+          font-weight: 800;
           text-decoration: none;
           transition: color 0.15s ease;
         }
