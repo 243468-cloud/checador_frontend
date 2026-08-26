@@ -111,19 +111,25 @@ export default function Sidebar() {
       <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon" style={{ background: '#ffffff', padding: '3px', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)' }}>
+          <div className="sidebar-logo-icon" style={{ background: '#ffffff', padding: '3px', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)', flexShrink: 0 }}>
             <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <div className="sidebar-logo-text">
+          <div className="sidebar-logo-text" style={{ flex: 1, minWidth: 0 }}>
             <span className="sidebar-logo-title" style={{ fontSize: '1.02rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Vía Gourmet</span>
             <span className="sidebar-logo-sub" style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 700, letterSpacing: '0.5px' }}>SABORES • AROMAS • TEXTURAS</span>
           </div>
-          <button
-            className="mobile-drawer-close"
-            onClick={() => setMobileOpen(false)}
-          >
-            <X size={18} />
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+            {(user.role === 'SUPERUSER' || user.role === 'ADMIN') && (
+              <NotificationBell />
+            )}
+            <button
+              className="mobile-drawer-close"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -145,26 +151,23 @@ export default function Sidebar() {
 
         {/* User Card + Logout */}
         <div className="sidebar-footer">
-          <div className="user-card" style={{ gap: '10px' }}>
-            <div className="user-avatar">{initials}</div>
-            <div className="user-info">
-              <div className="user-name">{user.fullName}</div>
-              <div className="user-role">{ROLE_LABELS[user.role] || user.role}</div>
+          <div className="user-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+              <div className="user-avatar">{initials}</div>
+              <div className="user-info">
+                <div className="user-name">{user.fullName}</div>
+                <div className="user-role">{ROLE_LABELS[user.role] || user.role}</div>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {(user.role === 'SUPERUSER' || user.role === 'ADMIN') && (
-                <NotificationBell />
-              )}
-              <button
-                id="btn-logout"
-                onClick={logout}
-                title="Cerrar sesión"
-                className="sidebar-logout-btn"
-              >
-                <LogOut size={16} />
-                <span className="logout-text-mobile">Salir</span>
-              </button>
-            </div>
+            <button
+              id="btn-logout"
+              onClick={logout}
+              title="Cerrar sesión"
+              className="sidebar-logout-btn"
+            >
+              <LogOut size={16} />
+              <span className="logout-text-mobile">Salir</span>
+            </button>
           </div>
         </div>
       </aside>
