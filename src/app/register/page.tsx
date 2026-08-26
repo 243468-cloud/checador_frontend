@@ -67,8 +67,8 @@ export default function RegisterPage() {
 
     try {
       const res = await registerEmployee({
-        username: form.username.trim(),
-        password: form.password,
+        username: form.username.trim().toLowerCase(),
+        password: form.password.trim(),
         fullName: form.fullName.trim(),
         email: form.email.trim() || undefined,
         branchId: Number(form.branchId),
