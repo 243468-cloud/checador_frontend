@@ -619,9 +619,9 @@ export default function SchedulesPage() {
     switch (type) {
       case 'DESCANSO':     return { bg: '#10b981', color: '#ffffff' };
       case 'CAMBIO_TURNO': return { bg: '#0284c7', color: '#ffffff' };
-      case 'DOBLE_TURNO':  return { bg: '#eab308', color: '#000000' };
-      case 'CAMBIO_AREA':  return { bg: '#f97316', color: '#ffffff' };
-      default:             return { bg: 'rgba(255,255,255,0.08)', color: '#f8fafc' };
+      case 'DOBLE_TURNO':  return { bg: '#d97706', color: '#ffffff' };
+      case 'CAMBIO_AREA':  return { bg: '#ea580c', color: '#ffffff' };
+      default:             return { bg: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1' };
     }
   };
 
@@ -1170,7 +1170,7 @@ export default function SchedulesPage() {
           <div
             className="flex items-center gap-3 p-3 flex-wrap"
             style={{
-              background: 'rgba(15, 23, 42, 0.95)',
+              background: '#f8f6f0',
               borderTop: '1px solid var(--color-border)',
             }}
           >
@@ -1186,12 +1186,16 @@ export default function SchedulesPage() {
               CAMBIO TURNO
             </div>
 
-            <div className="flex items-center gap-1.5" style={{ background: '#eab308', color: '#000', padding: '3px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
+            <div className="flex items-center gap-1.5" style={{ background: '#d97706', color: '#fff', padding: '3px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
               DOBLE TURNO
             </div>
 
-            <div className="flex items-center gap-1.5" style={{ background: '#f97316', color: '#fff', padding: '3px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
+            <div className="flex items-center gap-1.5" style={{ background: '#ea580c', color: '#fff', padding: '3px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
               CAMBIO AREA
+            </div>
+
+            <div className="flex items-center gap-1.5" style={{ background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', padding: '3px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 800 }}>
+              TURNO NORMAL
             </div>
           </div>
         </div>
@@ -1202,7 +1206,7 @@ export default function SchedulesPage() {
         <div className="card mb-8 animate-slide-up">
           <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
             <div className="flex items-center gap-3">
-              <Users size={20} color="#38bdf8" />
+              <Users size={20} color="#e11d48" />
               <div>
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Horarios Individuales por Empleado</h3>
                 <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Consulta o descarga en PDF el horario asignado de cada integrante del equipo</p>
@@ -1216,9 +1220,9 @@ export default function SchedulesPage() {
                 key={b.name}
                 className="p-4 rounded-xl"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: user?.fullName === b.name ? '2px solid #3b82f6' : '1px solid var(--color-border-light)',
-                  boxShadow: user?.fullName === b.name ? '0 0 15px rgba(59, 130, 246, 0.25)' : 'none',
+                  background: '#ffffff',
+                  border: user?.fullName === b.name ? '2px solid #e11d48' : '1px solid var(--color-border)',
+                  boxShadow: user?.fullName === b.name ? '0 0 15px rgba(225, 29, 72, 0.2)' : '0 4px 14px rgba(0,0,0,0.03)',
                 }}
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1226,35 +1230,36 @@ export default function SchedulesPage() {
                     <div
                       style={{
                         width: 38, height: 38, borderRadius: 10,
-                        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        background: 'linear-gradient(135deg, #e11d48, #be123c)',
                         color: '#fff', fontWeight: 800, fontSize: '0.88rem',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 3px 10px rgba(225, 29, 72, 0.25)',
                       }}
                     >
                       {b.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span style={{ fontWeight: 800, color: '#ffffff', fontSize: '0.98rem' }}>{b.name}</span>
+                        <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem' }}>{b.name}</span>
                         {user?.fullName === b.name && (
                           <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>TÚ</span>
                         )}
                       </div>
-                      <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>Área: {b.primaryArea}</div>
+                      <div style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>Área: {b.primaryArea}</div>
                     </div>
                   </div>
 
                   <button
                     className="btn btn-ghost btn-sm flex items-center gap-1.5"
                     onClick={() => exportIndividualPDF(b.name)}
-                    style={{ fontSize: '0.75rem', color: '#60a5fa', borderColor: 'rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.1)' }}
+                    style={{ fontSize: '0.75rem', color: '#e11d48', borderColor: 'rgba(225,29,72,0.3)', background: 'rgba(225,29,72,0.08)', fontWeight: 700 }}
                   >
                     <FileText size={13} />
                     <span>PDF Horario</span>
                   </button>
                 </div>
 
-                <div className="grid-7 gap-1 mt-2 text-center" style={{ background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px' }}>
+                <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8f6f0', padding: '8px', borderRadius: '8px', border: '1px solid #e5e1da' }}>
                   {daysHeader.map((d, i) => {
                     let assignedShift = 'Descanso';
                     rosterRows.forEach(r => {
@@ -1266,13 +1271,13 @@ export default function SchedulesPage() {
 
                     return (
                       <div key={i} className="flex flex-col items-center">
-                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>{d.day}</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#475569' }}>{d.day}</span>
                         <span
                           style={{
                             fontSize: '0.65rem', fontWeight: 700, marginTop: '2px', padding: '2px 4px', borderRadius: '4px', width: '100%',
-                            background: assignedShift === 'Descanso' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                            color: assignedShift === 'Descanso' ? '#34d399' : '#60a5fa',
-                            border: assignedShift === 'Descanso' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
+                            background: assignedShift === 'Descanso' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(225, 29, 72, 0.12)',
+                            color: assignedShift === 'Descanso' ? '#047857' : '#be123c',
+                            border: assignedShift === 'Descanso' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(225, 29, 72, 0.3)',
                           }}
                         >
                           {assignedShift === 'Descanso' ? 'Desc' : assignedShift}
@@ -1293,7 +1298,7 @@ export default function SchedulesPage() {
           <div className="card mb-8 animate-slide-up">
             <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-3">
-                <Scale size={20} color="#60a5fa" />
+                <Scale size={20} color="#e11d48" />
                 <div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Balance General: Empleado vs. Horarios y Horas Extra</h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Desglose de horas programadas, horas reales trabajadas y horas extra tras check-out</p>
@@ -1305,26 +1310,21 @@ export default function SchedulesPage() {
               </span>
             </div>
 
-            {/* Balance KPI Cards */}
-            <div className="grid-4 gap-4 mb-6">
-              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Promedio Horas / Empleado</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#60a5fa' }}>{avgHours}h / sem</div>
+            {/* KPI Row for Balance */}
+            <div className="grid-3 gap-3 mb-6">
+              <div className="p-3 rounded-lg" style={{ background: '#f8f6f0', border: '1px solid #e5e1da' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Horas Extra Registradas</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#e11d48' }}>+{totalOvertimeHours}h extra</div>
               </div>
 
-              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Horas Extra (Checkout)</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c084fc' }}>+{totalOvertimeHours}h extra</div>
+              <div className="p-3 rounded-lg" style={{ background: '#f8f6f0', border: '1px solid #e5e1da' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Turnos Dobles Detectados</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#d97706' }}>{totalDoubleShifts} dobles</div>
               </div>
 
-              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Turnos Dobles Detectados</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24' }}>{totalDoubleShifts} dobles</div>
-              </div>
-
-              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border-light)' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Descansos Programados</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399' }}>{totalRestDays} descansos</div>
+              <div className="p-3 rounded-lg" style={{ background: '#f8f6f0', border: '1px solid #e5e1da' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Descansos Programados</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#059669' }}>{totalRestDays} descansos</div>
               </div>
             </div>
 
@@ -1346,14 +1346,14 @@ export default function SchedulesPage() {
                 <tbody>
                   {employeeBalances.map(b => (
                     <tr key={b.name}>
-                      <td style={{ fontWeight: 800, color: '#ffffff' }}>{b.name}</td>
-                      <td style={{ fontSize: '0.82rem', color: '#94a3b8' }}>{b.primaryArea}</td>
-                      <td style={{ fontWeight: 700 }}>{b.workDays} días</td>
+                      <td style={{ fontWeight: 800, color: '#0f172a' }}>{b.name}</td>
+                      <td style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>{b.primaryArea}</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{b.workDays} días</td>
                       <td>
-                        <span style={{ color: '#34d399', fontWeight: 700 }}>{b.restDays} días</span>
+                        <span style={{ color: '#059669', fontWeight: 700 }}>{b.restDays} días</span>
                       </td>
-                      <td style={{ fontWeight: 800, color: '#60a5fa' }}>{b.totalScheduledHours}h</td>
-                      <td style={{ fontWeight: 700 }}>{b.actualWorkedHours}h</td>
+                      <td style={{ fontWeight: 800, color: '#e11d48' }}>{b.totalScheduledHours}h</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{b.actualWorkedHours}h</td>
                       <td>
                         {b.overtimeHours > 0 ? (
                           <span

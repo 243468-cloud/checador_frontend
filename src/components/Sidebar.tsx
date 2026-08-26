@@ -115,7 +115,7 @@ export default function Sidebar() {
             <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div className="sidebar-logo-text">
-            <span className="sidebar-logo-title" style={{ fontSize: '1.02rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.3px' }}>Vía Gourmet</span>
+            <span className="sidebar-logo-title" style={{ fontSize: '1.02rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Vía Gourmet</span>
             <span className="sidebar-logo-sub" style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 700, letterSpacing: '0.5px' }}>SABORES • AROMAS • TEXTURAS</span>
           </div>
           <button
