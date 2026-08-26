@@ -11,7 +11,7 @@ export interface LoginResponse {
   userId: number;
   branchId: number | null;
   branchName: string | null;
-  shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | null;
+  shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED' | null;
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
@@ -37,7 +37,7 @@ export interface RegisterData {
   fullName: string;
   email?: string;
   branchId: number;
-  shiftType: 'MORNING' | 'EVENING' | 'SUNDAY';
+  shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED';
 }
 
 export async function registerEmployee(data: RegisterData): Promise<LoginResponse> {
@@ -101,7 +101,7 @@ export interface AttendanceRecord {
   employeeId: number;
   employeeName: string;
   date: string;
-  shift: 'MORNING' | 'EVENING' | 'SUNDAY';
+  shift: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED';
   checkIn: string;
   checkOut: string;
   status: 'ON_TIME' | 'LATE' | 'ABSENT' | 'IN_SHIFT' | 'EXCUSED';
@@ -172,7 +172,7 @@ export interface Employee {
   fullName: string;
   email: string;
   role: string;
-  shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | '';
+  shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED' | '';
   active: boolean;
   profilePicture: string;
   branchId: number;
@@ -364,6 +364,7 @@ export const SHIFT_LABELS: Record<string, string> = {
   MORNING: 'Matutino (7:00–15:00)',
   EVENING: 'Vespertino (15:00–23:00)',
   SUNDAY:  'Dominical (8:00–18:00)',
+  MIXED:   'Mixto (11:00–19:00)',
 };
 
 export const STATUS_LABELS: Record<string, string> = {

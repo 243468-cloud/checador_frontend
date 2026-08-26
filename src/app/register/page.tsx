@@ -228,14 +228,15 @@ export default function RegisterPage() {
                   onChange={e =>
                     setForm(p => ({
                       ...p,
-                      shiftType: e.target.value as 'MORNING' | 'EVENING' | 'SUNDAY',
+                      shiftType: e.target.value as 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED',
                     }))
                   }
                   required
                 >
-                  <option value="MORNING">Matutino (Mañana)</option>
-                  <option value="EVENING">Vespertino (Tarde)</option>
-                  <option value="SUNDAY">Dominical (Domingo)</option>
+                  <option value="MORNING">Matutino (Mañana 7:00-15:00)</option>
+                  <option value="EVENING">Vespertino (Tarde 15:00-23:00)</option>
+                  <option value="SUNDAY">Dominical (Domingo 8:00-18:00)</option>
+                  <option value="MIXED">Mixto (Intermedio 11:00-19:00)</option>
                 </select>
               </div>
             </div>

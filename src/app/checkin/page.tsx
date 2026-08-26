@@ -28,18 +28,21 @@ const SHIFT_TIMES: Record<string, string> = {
   MORNING: '7:00 – 15:00',
   EVENING: '15:00 – 23:00',
   SUNDAY:  '8:00 – 18:00',
+  MIXED:   '11:00 – 19:00',
 };
 
 const SHIFT_NAMES: Record<string, string> = {
   MORNING: 'Matutino',
   EVENING: 'Vespertino',
   SUNDAY:  'Dominical',
+  MIXED:   'Mixto',
 };
 
 const SHIFT_ICONS: Record<string, React.ReactNode> = {
   MORNING: <Sun size={13} />,
   EVENING: <Sunset size={13} />,
   SUNDAY:  <Calendar size={13} />,
+  MIXED:   <Clock3 size={13} />,
 };
 
 const SARCASTIC_LATE_COMMENTS = [

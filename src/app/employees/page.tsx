@@ -19,6 +19,7 @@ const SHIFTS = [
   { value: 'MORNING', label: 'Matutino (7:00–15:00)' },
   { value: 'EVENING', label: 'Vespertino (15:00–23:00)' },
   { value: 'SUNDAY',  label: 'Dominical (8:00–18:00)' },
+  { value: 'MIXED',   label: 'Mixto (11:00–19:00)' },
 ];
 
 export default function EmployeesPage() {
