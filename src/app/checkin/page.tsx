@@ -189,18 +189,36 @@ export default function CheckInPage() {
     <div className="checkin-screen">
 
       {/* Top Navbar Header */}
-      <header className="checkin-top-header">
-        <div className="checkin-user-badge" style={{ gap: '10px' }}>
-          <div style={{ background: '#ffffff', padding: '2px', width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <header className="checkin-top-header" style={{
+        width: '100%',
+        maxWidth: 460,
+        margin: '0 auto 16px',
+        padding: '12px 16px',
+        background: '#ffffff',
+        border: '1px solid rgba(225, 29, 72, 0.18)',
+        borderRadius: '16px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        flexWrap: 'wrap',
+      }}>
+        <div className="checkin-user-badge" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+          <div style={{ background: '#ffffff', padding: '3px', width: '38px', height: '38px', borderRadius: '10px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(225,29,72,0.2)', flexShrink: 0 }}>
             <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <div className="user-name-box">
-            <span className="user-name-text">{user?.fullName}</span>
-            <span className="user-branch-text">{user?.branchName || 'Vía Gourmet'}</span>
+          <div className="user-name-box" style={{ minWidth: 0 }}>
+            <div className="user-name-text" style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.fullName}
+            </div>
+            <div className="user-branch-text" style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
+              {user?.branchName || 'Vía Gourmet'}
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <Link
             href="/schedules"
             className="checkin-schedule-btn"
@@ -208,69 +226,107 @@ export default function CheckInPage() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              background: 'rgba(225, 29, 72, 0.15)',
-              color: '#fb7185',
-              border: '1px solid rgba(225, 29, 72, 0.35)',
+              padding: '7px 12px',
+              borderRadius: '10px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              background: 'rgba(225, 29, 72, 0.08)',
+              color: '#e11d48',
+              border: '1px solid rgba(225, 29, 72, 0.25)',
               textDecoration: 'none',
               transition: 'all 0.2s',
             }}
           >
-            <Calendar size={15} />
+            <Calendar size={14} />
             <span>Ver Mi Horario</span>
           </Link>
 
-          <button id="btn-logout-employee" className="checkin-logout-btn" onClick={logout} title="Cerrar sesión">
-            <LogOut size={16} />
+          <button
+            id="btn-logout-employee"
+            className="checkin-logout-btn"
+            onClick={logout}
+            title="Cerrar sesión"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '7px 12px',
+              borderRadius: '10px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              background: '#faf8f5',
+              color: '#e11d48',
+              border: '1px solid #f1ece1',
+              cursor: 'pointer',
+            }}
+          >
+            <LogOut size={14} />
             <span>Salir</span>
           </button>
         </div>
       </header>
 
-      <div style={{ width: '100%', maxWidth: 440, marginBottom: 12 }}>
+      <div style={{ width: '100%', maxWidth: 460, marginBottom: 16 }}>
         <InstallPwaCard />
       </div>
 
-      <div className="checkin-card animate-slide-up">
+      <div className="checkin-card animate-slide-up" style={{ width: '100%', maxWidth: 460 }}>
 
         {/* ── Header: date + clock + shift ── */}
-        <div className="checkin-header-card">
+        <div className="checkin-header-card" style={{
+          background: '#ffffff',
+          border: '1px solid rgba(225, 29, 72, 0.18)',
+          borderRadius: '20px',
+          padding: '24px 28px',
+          boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
+        }}>
           <div className="checkin-top-line" />
 
-          <p className="checkin-date">{date}</p>
+          <p className="checkin-date" style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 700, textTransform: 'capitalize' }}>
+            {date}
+          </p>
 
-          <div className="clock-display">{time}</div>
+          <div className="clock-display" style={{ fontSize: '3.2rem', fontWeight: 800, color: '#0f172a', margin: '8px 0', letterSpacing: '-1.5px' }}>
+            {time}
+          </div>
 
-          <div className="checkin-meta">
+          <div className="checkin-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
             {shiftType && (
-              <span className="badge badge-primary">
+              <span className="badge badge-primary flex items-center gap-1.5" style={{
+                background: 'rgba(225, 29, 72, 0.1)',
+                color: '#e11d48',
+                border: '1px solid rgba(225, 29, 72, 0.25)',
+                padding: '6px 14px',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                borderRadius: '20px',
+              }}>
                 {SHIFT_ICONS[shiftType]}
-                {SHIFT_NAMES[shiftType]} &middot; {SHIFT_TIMES[shiftType]}
+                <span>{SHIFT_NAMES[shiftType]} &middot; {SHIFT_TIMES[shiftType]}</span>
               </span>
             )}
-            <span className="checkin-greeting">
+            <span className="checkin-greeting" style={{ fontSize: '1.05rem', color: '#0f172a', fontWeight: 800 }}>
               Hola, {user?.fullName?.split(' ')[0]}
             </span>
           </div>
 
           {/* ACCUMULATED TARDIES COUNTER BADGE */}
           <div
-            className="flex items-center justify-center gap-2 mt-3"
+            className="flex items-center justify-center gap-2"
             style={{
               background: monthlyTardiesCount > 0 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
               border: `1px solid ${monthlyTardiesCount > 0 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
-              padding: '6px 14px',
+              padding: '8px 16px',
               borderRadius: 20,
               width: 'fit-content',
-              margin: '12px auto 0 auto',
+              margin: '14px auto 0 auto',
             }}
           >
-            <AlertTriangle size={14} color={monthlyTardiesCount > 0 ? '#f59e0b' : '#10b981'} />
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: monthlyTardiesCount > 0 ? '#fbbf24' : '#34d399' }}>
-              {monthlyTardiesCount > 0 ? `Llevas ${monthlyTardiesCount} retardo${monthlyTardiesCount > 1 ? 's' : ''} acumulado${monthlyTardiesCount > 1 ? 's' : ''} este mes` : '¡Sin retardos acumulados este mes! 🏆'}
+            {monthlyTardiesCount > 0 ? <AlertTriangle size={16} color="#d97706" /> : <CheckCircle2 size={16} color="#059669" />}
+            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: monthlyTardiesCount > 0 ? '#b45309' : '#059669' }}>
+              {monthlyTardiesCount > 0
+                ? `Llevas ${monthlyTardiesCount} retardo${monthlyTardiesCount > 1 ? 's' : ''} acumulado${monthlyTardiesCount > 1 ? 's' : ''} este mes`
+                : '¡Sin retardos acumulados este mes! Excelente puntualidad'}
             </span>
           </div>
         </div>
