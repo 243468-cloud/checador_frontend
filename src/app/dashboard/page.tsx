@@ -1,0 +1,195 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { attendanceApi, employeeApi, DashboardStats, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
+import Sidebar from '@/components/Sidebar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import {
+  Users,
+  CheckCircle2,
+  AlertTriangle,
+  UserX,
+  ClipboardList,
+  ArrowRight,
+  Activity,
+} from 'lucide-react';
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [daily, setDaily] = useState<AttendanceRecord[]>([]);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const today = new Date();
+  const todayStr = format(today, "EEEE d 'de' MMMM, yyyy", { locale: es });
+
+  useEffect(() => {
+    Promise.all([
+      attendanceApi.getStats(),
+      attendanceApi.getDaily(),
+      employeeApi.getAll().catch(() => []),
+    ]).then(([s, d, emps]) => {
+      setStats(s);
+      setDaily(d);
+      setTotalEmployees(emps.length);
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const present = (stats?.onTime ?? 0) + (stats?.late ?? 0);
+  const absent = totalEmployees - present;
+
+  if (loading) return <DashboardSkeleton />;
+
+  return (
+    <div className="app-wrapper">
+      <Sidebar />
+      <main className="main-content animate-fade-in">
+        {/* Header */}
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Dashboard</h1>
+            <p className="page-subtitle" style={{ textTransform: 'capitalize' }}>{todayStr}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="badge badge-success flex items-center gap-2">
+              <Activity size={12} />
+              Sistema activo
+            </span>
+          </div>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid-4 stagger" style={{ marginBottom: 32 }}>
+          <KPICard icon={<Users size={24} />} label="Total Empleados" value={totalEmployees} color="#6366f1" bg="rgba(99,102,241,0.12)" />
+          <KPICard icon={<CheckCircle2 size={24} />} label="Presentes" value={present} color="#10b981" bg="rgba(16,185,129,0.12)" />
+          <KPICard icon={<AlertTriangle size={24} />} label="Tardanzas" value={stats?.late ?? 0} color="#f59e0b" bg="rgba(245,158,11,0.12)" />
+          <KPICard icon={<UserX size={24} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#ef4444" bg="rgba(239,68,68,0.12)" />
+        </div>
+
+        {/* Daily Attendance Table */}
+        <div className="card animate-slide-up">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Asistencia de Hoy</h2>
+              <p className="text-sm text-muted mt-2">{daily.length} registros</p>
+            </div>
+            <a href="/attendance" className="btn btn-ghost btn-sm flex items-center gap-2">
+              <span>Ver todo</span>
+              <ArrowRight size={14} />
+            </a>
+          </div>
+
+          {daily.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <ClipboardList size={40} />
+              </div>
+              <p>Aún no hay registros de asistencia hoy</p>
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Empleado</th>
+                    <th>Turno</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Estado</th>
+                    <th>Tardanza</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {daily.slice(0, 8).map(rec => (
+                    <tr key={rec.id}>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div style={{
+                            width: 32, height: 32,
+                            borderRadius: '50%',
+                            background: `linear-gradient(135deg, ${STATUS_COLORS[rec.status]}, ${STATUS_COLORS[rec.status]}aa)`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0
+                          }}>
+                            {rec.employeeName.split(' ').map(w => w[0]).join('').slice(0,2)}
+                          </div>
+                          <span style={{ fontWeight: 500 }}>{rec.employeeName}</span>
+                        </div>
+                      </td>
+                      <td><span className="text-sm text-muted">{SHIFT_LABELS[rec.shift]}</span></td>
+                      <td style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {rec.checkIn ? rec.checkIn.split('T')[1]?.slice(0,5) : <span className="text-muted">—</span>}
+                      </td>
+                      <td style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {rec.checkOut ? rec.checkOut.split('T')[1]?.slice(0,5) : <span className="text-muted">—</span>}
+                      </td>
+                      <td>
+                        <StatusBadge status={rec.status} />
+                      </td>
+                      <td>
+                        {rec.lateMinutes > 0
+                          ? <span style={{ color: '#f59e0b', fontWeight: 600 }}>+{rec.lateMinutes} min</span>
+                          : <span className="text-muted">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function KPICard({ icon, label, value, color, bg }: { icon: React.ReactNode; label: string; value: number; color: string; bg: string }) {
+  return (
+    <div className="card animate-slide-up">
+      <div className="stat-card">
+        <div className="stat-card-body">
+          <div className="stat-card-label">{label}</div>
+          <div className="stat-card-value" style={{ color }}>{value}</div>
+        </div>
+        <div className="stat-card-icon" style={{ background: bg, color: color }}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const cls: Record<string, string> = {
+    ON_TIME: 'badge-success',
+    LATE:    'badge-warning',
+    ABSENT:  'badge-danger',
+    IN_SHIFT:'badge-primary',
+    EXCUSED: 'badge-info',
+  };
+  return <span className={`badge ${cls[status] || 'badge-muted'}`}>{STATUS_LABELS[status] || status}</span>;
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="app-wrapper">
+      <Sidebar />
+      <main className="main-content">
+        <div style={{ height: 64, borderRadius: 12 }} className="skeleton mb-8" />
+        <div className="grid-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card">
+              <div className="skeleton" style={{ height: 80 }} />
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="skeleton" style={{ height: 300 }} />
+        </div>
+      </main>
+    </div>
+  );
+}
