@@ -23,6 +23,8 @@ import {
   Laugh,
 } from 'lucide-react';
 import InstallPwaCard from '@/components/InstallPwaCard';
+import Sidebar from '@/components/Sidebar';
+import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 
 type LocationStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -186,91 +188,15 @@ export default function CheckInPage() {
   const shiftType     = user?.shiftType ?? '';
 
   return (
-    <div className="checkin-screen">
+    <div className="app-wrapper">
+      <Sidebar />
+      <main className="main-content animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-      {/* Top Navbar Header */}
-      <header className="checkin-top-header" style={{
-        width: '100%',
-        maxWidth: 460,
-        margin: '0 auto 16px',
-        padding: '12px 16px',
-        background: '#ffffff',
-        border: '1px solid rgba(225, 29, 72, 0.18)',
-        borderRadius: '16px',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        flexWrap: 'wrap',
-      }}>
-        <div className="checkin-user-badge" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-          <div style={{ background: '#ffffff', padding: '3px', width: '38px', height: '38px', borderRadius: '10px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(225,29,72,0.2)', flexShrink: 0 }}>
-            <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <div className="user-name-box" style={{ minWidth: 0 }}>
-            <div className="user-name-text" style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user?.fullName}
-            </div>
-            <div className="user-branch-text" style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
-              {user?.branchName || 'Vía Gourmet'}
-            </div>
-          </div>
+        <div style={{ width: '100%', maxWidth: 500, marginBottom: 16 }}>
+          <InstallPwaCard />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <Link
-            href="/schedules"
-            className="checkin-schedule-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '10px',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              background: 'rgba(225, 29, 72, 0.08)',
-              color: '#e11d48',
-              border: '1px solid rgba(225, 29, 72, 0.25)',
-              textDecoration: 'none',
-              transition: 'all 0.2s',
-            }}
-          >
-            <Calendar size={14} />
-            <span>Ver Mi Horario</span>
-          </Link>
-
-          <button
-            id="btn-logout-employee"
-            className="checkin-logout-btn"
-            onClick={logout}
-            title="Cerrar sesión"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '7px 12px',
-              borderRadius: '10px',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              background: '#faf8f5',
-              color: '#e11d48',
-              border: '1px solid #f1ece1',
-              cursor: 'pointer',
-            }}
-          >
-            <LogOut size={14} />
-            <span>Salir</span>
-          </button>
-        </div>
-      </header>
-
-      <div style={{ width: '100%', maxWidth: 460, marginBottom: 16 }}>
-        <InstallPwaCard />
-      </div>
-
-      <div className="checkin-card animate-slide-up" style={{ width: '100%', maxWidth: 460 }}>
+        <div className="checkin-card animate-slide-up" style={{ width: '100%', maxWidth: 500, marginBottom: 32 }}>
 
         {/* ── Header: date + clock + shift ── */}
         <div className="checkin-header-card" style={{
@@ -463,7 +389,13 @@ export default function CheckInPage() {
           Se requiere GPS para registrar asistencia
         </p>
       </div>
-    </div>
+
+      {/* Real-time Rewards & Attendance Ranking Summary */}
+      <div style={{ width: '100%', maxWidth: 700, marginTop: 16 }}>
+        <RewardsLeaderboard />
+      </div>
+    </main>
+  </div>
   );
 }
 

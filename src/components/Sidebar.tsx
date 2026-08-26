@@ -6,18 +6,20 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import {
   LayoutDashboard,
-  CalendarCheck,
   Users,
-  BarChart3,
+  CalendarCheck,
   Building2,
   ShieldCheck,
+  FileText,
+  BarChart3,
   ClipboardList,
   Settings,
-  LogOut,
   Clock,
   Menu,
   X,
-  FileText,
+  LogOut,
+  Trophy,
+  CheckSquare,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -29,17 +31,17 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/checkin',    icon: <Clock           size={18} />, label: 'Marcar Entrada / Salida', roles: ['EMPLOYEE'] },
-  { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Dashboard',           roles: ['SUPERUSER', 'ADMIN'] },
+  { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Inicio (Home)',       roles: ['SUPERUSER', 'ADMIN'] },
+  { href: '/checkin',    icon: <Clock           size={18} />, label: 'Inicio / Checador',   roles: ['EMPLOYEE'] },
+  { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
+  { href: '/settings',   icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
+  { href: '/leaves',     icon: <FileText        size={18} />, label: 'Permisos / Faltas',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
   { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/employees',  icon: <Users           size={18} />, label: 'Empleados',            roles: ['SUPERUSER', 'ADMIN'] },
-  { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
-  { href: '/leaves',     icon: <FileText        size={18} />, label: 'Permisos / Faltas',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
   { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER'] },
   { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Administradores',      roles: ['SUPERUSER'] },
   { href: '/audit',      icon: <ClipboardList   size={18} />, label: 'Auditoría',            roles: ['SUPERUSER'] },
-  { href: '/settings',   icon: <Settings        size={18} />, label: 'Configuración',        roles: ['SUPERUSER', 'ADMIN'] },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
