@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Inicio (Home)',       roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/checkin',    icon: <Clock           size={18} />, label: 'Inicio / Checador',   roles: ['EMPLOYEE'] },
   { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
-  { href: '/settings',   icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
+  { href: '/ranking',    icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
   { href: '/leaves',     icon: <FileText        size={18} />, label: 'Permisos / Faltas',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
   { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/employees',  icon: <Users           size={18} />, label: 'Empleados',            roles: ['SUPERUSER', 'ADMIN'] },
@@ -42,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER'] },
   { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Administradores',      roles: ['SUPERUSER'] },
   { href: '/audit',      icon: <ClipboardList   size={18} />, label: 'Auditoría',            roles: ['SUPERUSER'] },
+  { href: '/settings',   icon: <Settings        size={18} />, label: 'Configuración',        roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
 ];
 
 const ROLE_LABELS: Record<string, string> = {

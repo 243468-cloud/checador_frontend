@@ -163,10 +163,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 2. REWARDS & LEADERBOARD MODULE */}
-        <RewardsLeaderboard />
-
-        {/* 3. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
+        {/* 2. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
         {user?.role !== 'EMPLOYEE' && (
           <div className="grid-2 gap-6">
             {/* Turnos Oficiales */}
