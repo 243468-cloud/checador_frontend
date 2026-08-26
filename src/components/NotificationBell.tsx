@@ -45,19 +45,58 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 86400)} d`;
 }
 
+function playNotificationSound() {
+  try {
+    if (typeof window === 'undefined') return;
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch (_) {}
+}
+
+function triggerVibration() {
+  try {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate([250, 120, 250]);
+    }
+  } catch (_) {}
+}
+
 export default function NotificationBell() {
   const [open, setOpen]           = useState(false);
   const [notifs, setNotifs]       = useState<Notif[]>([]);
   const [unread, setUnread]       = useState(0);
   const [loading, setLoading]     = useState(false);
   const panelRef                  = useRef<HTMLDivElement>(null);
+  const prevUnreadRef             = useRef<number>(-1);
   const POLL_INTERVAL             = 30_000; // 30 s
 
   // Obtener conteo de no-leídas (ligero, para polling)
   const pollUnread = useCallback(async () => {
     try {
       const data = await notifApi.getUnreadCount();
-      setUnread(data.count ?? 0);
+      const count = data.count ?? 0;
+      if (prevUnreadRef.current >= 0 && count > prevUnreadRef.current) {
+        playNotificationSound();
+        triggerVibration();
+      }
+      prevUnreadRef.current = count;
+      setUnread(count);
     } catch { /* silencioso */ }
   }, []);
 
