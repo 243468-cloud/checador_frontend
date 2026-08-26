@@ -34,7 +34,7 @@ export default function RegisterPage() {
     password: '',
     email: '',
     branchId: '',
-    shiftType: 'MORNING' as 'MORNING' | 'EVENING' | 'SUNDAY',
+    shiftType: 'MORNING' as 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED',
   });
 
   const [showPassword, setShowPassword] = useState(false);
