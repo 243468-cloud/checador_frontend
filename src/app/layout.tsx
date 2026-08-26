@@ -36,6 +36,7 @@ export default function RootLayout({
     <html lang="es" className={inter.variable}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
       </head>
       <body>
         <AuthProvider>{children}</AuthProvider>
