@@ -15,6 +15,7 @@ import {
   AlertCircle,
   ShieldCheck,
 } from 'lucide-react';
+import InstallPwaCard from '@/components/InstallPwaCard';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -146,6 +147,8 @@ export default function LoginPage() {
             <ShieldCheck size={14} className="emerald-icon" />
             <span>Acceso seguro al sistema empresarial</span>
           </div>
+
+          <InstallPwaCard />
         </div>
       </div>
 

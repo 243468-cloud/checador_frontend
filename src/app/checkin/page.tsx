@@ -21,6 +21,7 @@ import {
   Flame,
   Laugh,
 } from 'lucide-react';
+import InstallPwaCard from '@/components/InstallPwaCard';
 
 type LocationStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -203,6 +204,10 @@ export default function CheckInPage() {
           <span>Cerrar Sesión</span>
         </button>
       </header>
+
+      <div style={{ width: '100%', maxWidth: 440, marginBottom: 12 }}>
+        <InstallPwaCard />
+      </div>
 
       <div className="checkin-card animate-slide-up">
 
