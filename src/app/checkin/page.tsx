@@ -100,7 +100,7 @@ export default function CheckInPage() {
 
     // Fetch monthly logs to count tardies for current user
     const now = new Date();
-    attendanceApi.getMonthly(now.getFullYear(), now.getMonth() + 1)
+    attendanceApi.getMyHistory(now.getFullYear(), now.getMonth() + 1)
       .then(logs => {
         if (Array.isArray(logs)) {
           const userTardies = logs.filter(r => r.status === 'LATE' || r.lateMinutes > 0).length;

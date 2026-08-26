@@ -131,6 +131,9 @@ export const attendanceApi = {
 
   getToday: () => apiFetch<AttendanceRecord | null>('/api/attendance/today'),
 
+  getMyHistory: (year: number, month: number) =>
+    apiFetch<AttendanceRecord[]>(`/api/attendance/my-history?year=${year}&month=${month}`),
+
   getDaily: (date?: string) =>
     apiFetch<AttendanceRecord[]>(`/api/attendance/admin/daily${date ? `?date=${date}` : ''}`),
 
