@@ -446,12 +446,16 @@ export default function SchedulesPage() {
   const totalDoubleShifts = employeeBalances.reduce((s, e) => s + e.doubleShifts, 0);
   const totalOvertimeHours= Number(employeeBalances.reduce((s, e) => s + e.overtimeHours, 0).toFixed(1));
 
+  const isReadOnly = user?.role === 'EMPLOYEE';
+
   const openCellModal = (rowId: string, dayIndex: number, area: string, shiftTime: string, dayLabel: string) => {
+    if (isReadOnly) return;
     setEditModal({ rowId, dayIndex, area, shiftTime, dayLabel });
     setCustomInput('');
   };
 
   const openGlobalModalForRow = (rowId: string) => {
+    if (isReadOnly) return;
     setGlobalScope('ROW');
     setSelectedRowId(rowId);
     setGlobalText('DESCANSO');
@@ -460,6 +464,7 @@ export default function SchedulesPage() {
   };
 
   const openGlobalModalForDay = (dayIdx: number) => {
+    if (isReadOnly) return;
     setGlobalScope('DAY');
     setSelectedDayIdx(dayIdx);
     setGlobalText('DESCANSO');
@@ -878,27 +883,36 @@ export default function SchedulesPage() {
           </div>
 
           <div className="page-actions">
-            <button
-              id="btn-open-global-modal"
-              className="btn btn-warning flex items-center gap-2"
-              onClick={() => {
-                setGlobalScope('ROW');
-                if (rosterRows.length > 0) setSelectedRowId(rosterRows[0].id);
-                setShowGlobalModal(true);
-              }}
-            >
-              <Zap size={16} />
-              <span>Cambio Global / Masivo</span>
-            </button>
+            {isReadOnly ? (
+              <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }}>
+                <Clock size={15} />
+                <span>Modo Solo Lectura (Empleado)</span>
+              </span>
+            ) : (
+              <>
+                <button
+                  id="btn-open-global-modal"
+                  className="btn btn-warning flex items-center gap-2"
+                  onClick={() => {
+                    setGlobalScope('ROW');
+                    if (rosterRows.length > 0) setSelectedRowId(rosterRows[0].id);
+                    setShowGlobalModal(true);
+                  }}
+                >
+                  <Zap size={16} />
+                  <span>Cambio Global / Masivo</span>
+                </button>
 
-            <button
-              id="btn-add-area-row"
-              className="btn btn-ghost flex items-center gap-2"
-              onClick={() => setShowAddRowModal(true)}
-            >
-              <Plus size={16} color="#60a5fa" />
-              <span>Nueva Área / Turno</span>
-            </button>
+                <button
+                  id="btn-add-area-row"
+                  className="btn btn-ghost flex items-center gap-2"
+                  onClick={() => setShowAddRowModal(true)}
+                >
+                  <Plus size={16} color="#60a5fa" />
+                  <span>Nueva Área / Turno</span>
+                </button>
+              </>
+            )}
 
             <button
               id="btn-export-excel-roster"
@@ -947,7 +961,11 @@ export default function SchedulesPage() {
           <div className="flex items-center gap-3">
             <Sparkles size={18} color="#60a5fa" />
             <span style={{ fontSize: '0.84rem', color: '#f8fafc', fontWeight: 600 }}>
-              <strong>Control de Horas Extra y Colores:</strong> La exportación a PDF aplica automáticamente el color verde para descansos, azul para cambios de turno, amarillo para dobles turnos y naranja para cambios de área junto con la barra de convenciones.
+              {isReadOnly ? (
+                <><strong>Horario Oficial de la Semana:</strong> Consulta tus turnos y días de descanso asignados. Puedes guardar una copia oficial en tu dispositivo usando el botón <strong>Exportar PDF</strong>.</>
+              ) : (
+                <><strong>Control de Horas Extra y Colores:</strong> La exportación a PDF aplica automáticamente el color verde para descansos, azul para cambios de turno, amarillo para dobles turnos y naranja para cambios de área junto con la barra de convenciones.</>
+              )}
             </span>
           </div>
         </div>
