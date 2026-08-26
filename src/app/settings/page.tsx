@@ -166,77 +166,79 @@ export default function SettingsPage() {
         {/* 2. REWARDS & LEADERBOARD MODULE */}
         <RewardsLeaderboard />
 
-        {/* 3. SHIFTS & PWA & SYSTEM STATUS GRID */}
-        <div className="grid-2 gap-6">
-          {/* Turnos Oficiales */}
-          <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '24px' }}>
-            <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-              <Clock size={20} color="#e11d48" />
-              <span>Horarios de Turnos Oficiales</span>
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                { name: 'Turno Matutino', time: '7:00 – 15:00', days: 'Lunes a Sábado', color: '#e11d48', icon: <Sun size={20} /> },
-                { name: 'Turno Vespertino', time: '15:00 – 23:00', days: 'Lunes a Sábado', color: '#d97706', icon: <Sunset size={20} /> },
-                { name: 'Turno Dominical', time: '8:00 – 18:00', days: 'Solo Domingo', color: '#059669', icon: <Calendar size={20} /> },
-              ].map(shift => (
-                <div key={shift.name} style={{
-                  background: '#fdfbf7',
-                  border: '1px solid #f1ece1',
-                  borderRadius: '14px',
-                  padding: '14px 18px',
-                  display: 'flex', alignItems: 'center', gap: 14,
-                }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: `${shift.color}15`, color: shift.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {shift.icon}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', marginBottom: 2 }}>{shift.name}</div>
-                    <div style={{ fontSize: '0.84rem', color: shift.color, fontWeight: 800 }}>{shift.time}</div>
-                    <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>{shift.days}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="alert alert-info flex items-start gap-2" style={{ marginTop: 18, fontSize: '0.78rem' }}>
-              <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span>Los horarios se aplican globalmente. Para ajustar tolerancias GPS o retardo por sucursal, consulta al administrador.</span>
-            </div>
-          </div>
-
-          {/* Aplicación PWA & Estado */}
-          <div className="card animate-slide-up" style={{ animationDelay: '0.1s', borderRadius: '20px', padding: '24px' }}>
-            <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-              <Smartphone size={20} color="#e11d48" />
-              <span>Aplicación Móvil PWA & Sistema</span>
-            </h3>
-            <div className="alert alert-success flex items-center gap-2 mb-4" style={{ padding: '12px 14px' }}>
-              <CheckCircle2 size={16} />
-              <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>PWA instalada y lista para funcionar en segundo plano.</span>
-            </div>
-
-            <div className="p-4 rounded-xl mb-4" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a', marginBottom: '8px' }}>
-                Servicios del Sistema Vía Gourmet:
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* 3. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
+        {user?.role !== 'EMPLOYEE' && (
+          <div className="grid-2 gap-6">
+            {/* Turnos Oficiales */}
+            <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '24px' }}>
+              <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                <Clock size={20} color="#e11d48" />
+                <span>Horarios de Turnos Oficiales</span>
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
-                  { label: 'Servidor Backend API', status: 'En Línea', ok: true },
-                  { label: 'Base de Datos MySQL', status: 'Activa', ok: true },
-                  { label: 'Validación GPS Sucursal', status: 'Habilitada', ok: true },
-                  { label: 'Push Notifications Móvil', status: 'Sincronizado', ok: true },
-                ].map(item => (
-                  <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>{item.label}</span>
-                    <span className="badge badge-success" style={{ fontSize: '10px', padding: '2px 8px', fontWeight: 800 }}>
-                      {item.status}
-                    </span>
+                  { name: 'Turno Matutino', time: '7:00 – 15:00', days: 'Lunes a Sábado', color: '#e11d48', icon: <Sun size={20} /> },
+                  { name: 'Turno Vespertino', time: '15:00 – 23:00', days: 'Lunes a Sábado', color: '#d97706', icon: <Sunset size={20} /> },
+                  { name: 'Turno Dominical', time: '8:00 – 18:00', days: 'Solo Domingo', color: '#059669', icon: <Calendar size={20} /> },
+                ].map(shift => (
+                  <div key={shift.name} style={{
+                    background: '#fdfbf7',
+                    border: '1px solid #f1ece1',
+                    borderRadius: '14px',
+                    padding: '14px 18px',
+                    display: 'flex', alignItems: 'center', gap: 14,
+                  }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: `${shift.color}15`, color: shift.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {shift.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', marginBottom: 2 }}>{shift.name}</div>
+                      <div style={{ fontSize: '0.84rem', color: shift.color, fontWeight: 800 }}>{shift.time}</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>{shift.days}</div>
+                    </div>
                   </div>
                 ))}
               </div>
+              <div className="alert alert-info flex items-start gap-2" style={{ marginTop: 18, fontSize: '0.78rem' }}>
+                <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span>Los horarios se aplican globalmente. Para ajustar tolerancias GPS o retardo por sucursal, consulta al administrador.</span>
+              </div>
+            </div>
+
+            {/* Aplicación PWA & Estado */}
+            <div className="card animate-slide-up" style={{ animationDelay: '0.1s', borderRadius: '20px', padding: '24px' }}>
+              <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                <Smartphone size={20} color="#e11d48" />
+                <span>Aplicación Móvil PWA & Sistema</span>
+              </h3>
+              <div className="alert alert-success flex items-center gap-2 mb-4" style={{ padding: '12px 14px' }}>
+                <CheckCircle2 size={16} />
+                <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>PWA instalada y lista para funcionar en segundo plano.</span>
+              </div>
+
+              <div className="p-4 rounded-xl mb-4" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a', marginBottom: '8px' }}>
+                  Servicios del Sistema Vía Gourmet:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {[
+                    { label: 'Servidor Backend API', status: 'En Línea', ok: true },
+                    { label: 'Base de Datos MySQL', status: 'Activa', ok: true },
+                    { label: 'Validación GPS Sucursal', status: 'Habilitada', ok: true },
+                    { label: 'Push Notifications Móvil', status: 'Sincronizado', ok: true },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>{item.label}</span>
+                      <span className="badge badge-success" style={{ fontSize: '10px', padding: '2px 8px', fontWeight: 800 }}>
+                        {item.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* CHANGE PASSWORD MODAL */}
         {showPasswordModal && (
