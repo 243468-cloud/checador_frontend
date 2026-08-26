@@ -41,41 +41,62 @@ export default function RewardsLeaderboard() {
     }
   }, []);
 
-  // Fetch real employee ranking data
+  // Fetch 100% real employee ranking data from database
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
       try {
-        const [empList, statsList] = await Promise.all([
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+
+        const [empList, monthlyLogs] = await Promise.all([
           employeeApi.getAll().catch(() => []),
-          attendanceApi.getDaily().catch(() => []),
+          attendanceApi.getMonthly(year, month).catch(() => []),
         ]);
 
         if (!isMounted) return;
 
-        // Process realistic ranking based on employees
-        const list = (empList || []).map((e: any, index: number) => {
-          // Generate deterministic realistic scores for active demo ranking
-          const totalDays = 14;
-          const attendances = Math.max(10, totalDays - (index % 3));
-          const lateMinutes = index === 0 ? 0 : index === 1 ? 5 : (index + 1) * 12;
-          const punctualityRate = Math.max(85, 100 - lateMinutes);
+        // Map real database records per employee
+        const logMap: Record<number, { attendances: number; lateMinutes: number; onTime: number }> = {};
 
+        if (Array.isArray(monthlyLogs)) {
+          monthlyLogs.forEach((rec: any) => {
+            const empId = rec.employeeId;
+            if (!empId) return;
+            if (!logMap[empId]) {
+              logMap[empId] = { attendances: 0, lateMinutes: 0, onTime: 0 };
+            }
+            if (rec.checkIn && rec.status !== 'ABSENT') {
+              logMap[empId].attendances += 1;
+            }
+            if (rec.status === 'ON_TIME') {
+              logMap[empId].onTime += 1;
+            }
+            if (rec.lateMinutes && rec.lateMinutes > 0) {
+              logMap[empId].lateMinutes += rec.lateMinutes;
+            }
+          });
+        }
+
+        // Create 100% real employee objects
+        const list = (empList || []).map((e: any) => {
+          const stats = logMap[e.id] || { attendances: 0, lateMinutes: 0, onTime: 0 };
           return {
-            id: e.id || index + 1,
-            name: e.fullName || e.username || `Empleado ${index + 1}`,
+            id: e.id,
+            name: e.fullName || e.username || `Empleado #${e.id}`,
             username: e.username,
             branch: e.branchName || 'Vía Gourmet',
             shift: e.shiftType || 'MATUTINO',
-            attendances,
-            lateMinutes,
-            punctualityRate,
+            attendances: stats.attendances,
+            lateMinutes: stats.lateMinutes,
+            onTimeCount: stats.onTime,
           };
         });
 
         setEmployees(list);
       } catch (err) {
-        console.error('Error loading ranking:', err);
+        console.error('Error loading real ranking data:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -95,11 +116,15 @@ export default function RewardsLeaderboard() {
     setShowConfigModal(false);
   };
 
-  // Sort Top 3 for Fortnight (Most Attendances)
-  const fortnightRank = [...employees].sort((a, b) => b.attendances - a.attendances).slice(0, 3);
+  // Sort Top 3 for Fortnight (100% Real - Most Attendances)
+  const fortnightRank = [...employees]
+    .sort((a, b) => b.attendances - a.attendances || b.onTimeCount - a.onTimeCount)
+    .slice(0, 3);
 
-  // Sort Top 3 for Month (Punctuality / Lowest Late Minutes)
-  const monthlyRank = [...employees].sort((a, b) => a.lateMinutes - b.lateMinutes).slice(0, 3);
+  // Sort Top 3 for Month (100% Real - Lowest Late Minutes)
+  const monthlyRank = [...employees]
+    .sort((a, b) => a.lateMinutes - b.lateMinutes || b.attendances - a.attendances)
+    .slice(0, 3);
 
   const isSuperUser = user?.role === 'SUPERUSER';
 
