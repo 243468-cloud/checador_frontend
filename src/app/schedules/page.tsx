@@ -1201,21 +1201,34 @@ export default function SchedulesPage() {
         </div>
 
         {/* ----------------------------------------------------------------- */}
-        {/* HORARIOS INDIVIDUALES POR EMPLEADO (Visibles para Empleados y Administradores) */}
+        {/* HORARIOS INDIVIDUALES POR EMPLEADO (Filtrado por rol de usuario) */}
         {/* ----------------------------------------------------------------- */}
         <div className="card mb-8 animate-slide-up">
           <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
             <div className="flex items-center gap-3">
               <Users size={20} color="#e11d48" />
               <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Horarios Individuales por Empleado</h3>
-                <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Consulta o descarga en PDF el horario asignado de cada integrante del equipo</p>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>
+                  {user?.role === 'EMPLOYEE' ? 'Mi Horario Individual' : 'Horarios Individuales por Empleado'}
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                  {user?.role === 'EMPLOYEE'
+                    ? 'Consulta tu horario individual asignado esta semana en Vía Gourmet'
+                    : 'Consulta o descarga en PDF el horario asignado de cada integrante del equipo'}
+                </p>
               </div>
             </div>
           </div>
 
           <div className="grid-2 gap-4">
-            {employeeBalances.map(b => (
+            {(user?.role === 'EMPLOYEE'
+              ? employeeBalances.filter(b =>
+                  b.name.toLowerCase().trim() === (user?.fullName || '').toLowerCase().trim() ||
+                  (user?.fullName || '').toLowerCase().includes(b.name.toLowerCase()) ||
+                  b.name.toLowerCase().includes((user?.fullName || '').toLowerCase())
+                )
+              : employeeBalances
+            ).map(b => (
               <div
                 key={b.name}
                 className="p-4 rounded-xl"
