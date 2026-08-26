@@ -119,17 +119,12 @@ export default function Sidebar() {
             <span className="sidebar-logo-sub" style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 700, letterSpacing: '0.5px' }}>SABORES • AROMAS • TEXTURAS</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-            {(user.role === 'SUPERUSER' || user.role === 'ADMIN') && (
-              <NotificationBell />
-            )}
-            <button
-              className="mobile-drawer-close"
-              onClick={() => setMobileOpen(false)}
-            >
-              <X size={18} />
-            </button>
-          </div>
+          <button
+            className="mobile-drawer-close"
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Navigation */}
