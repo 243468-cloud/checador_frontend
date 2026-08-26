@@ -210,6 +210,12 @@ export default function LoginPage() {
           margin: 0 auto 16px;
           border-radius: 14px;
           background: linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(225, 29, 72, 0.05));
+          border: 1px solid rgba(225, 29, 72, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
         .brand-title {
           font-size: 1.65rem;
           font-weight: 800;
