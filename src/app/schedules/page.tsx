@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { employeeApi, reportApi, scheduleApi, AttendanceRecord, Employee, RosterCell as ApiRosterCell } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -12,6 +13,7 @@ import {
   Plus,
   FileSpreadsheet,
   FileText,
+  ArrowLeft,
   Users,
   Check,
   X,
@@ -884,10 +886,20 @@ export default function SchedulesPage() {
 
           <div className="page-actions">
             {isReadOnly ? (
-              <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }}>
-                <Clock size={15} />
-                <span>Modo Solo Lectura (Empleado)</span>
-              </span>
+              <>
+                <Link
+                  href="/checkin"
+                  className="btn btn-ghost flex items-center gap-2"
+                  style={{ color: '#60a5fa', borderColor: 'rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.1)' }}
+                >
+                  <ArrowLeft size={16} />
+                  <span>Volver al Checador</span>
+                </Link>
+                <span className="badge badge-info flex items-center gap-1.5" style={{ padding: '8px 14px', fontSize: '0.82rem', background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }}>
+                  <Clock size={15} />
+                  <span>Modo Solo Lectura (Empleado)</span>
+                </span>
+              </>
             ) : (
               <>
                 <button

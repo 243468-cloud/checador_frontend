@@ -48,11 +48,11 @@ export default function LoginPage() {
       <div className="login-centered-card animate-slide-up">
         {/* Brand logo & title */}
         <div className="login-brand-header">
-          <div className="brand-icon-box">
-            <Clock size={28} strokeWidth={2.4} />
+          <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '130px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+            <img src="/logo.png" alt="Vía Gourmet Restaurante" style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
-          <h1 className="brand-title">Checador</h1>
-          <p className="brand-subtitle">Control de Asistencia & Horarios</p>
+          <h1 className="brand-title" style={{ fontSize: '1.4rem', fontWeight: 800 }}>Checador de Asistencia</h1>
+          <p className="brand-subtitle">Control de Asistencia & Turnos — Vía Gourmet</p>
         </div>
 
         {/* Login Form */}

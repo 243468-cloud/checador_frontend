@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { getCurrentPosition, attendanceApi, AttendanceRecord, STATUS_LABELS } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import Link from 'next/link';
 import {
   Play,
   Square,
@@ -189,20 +190,44 @@ export default function CheckInPage() {
 
       {/* Top Navbar Header */}
       <header className="checkin-top-header">
-        <div className="checkin-user-badge">
-          <div className="user-avatar-sm">
-            {user?.fullName ? user.fullName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U'}
+        <div className="checkin-user-badge" style={{ gap: '10px' }}>
+          <div style={{ background: '#ffffff', padding: '2px', width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div className="user-name-box">
             <span className="user-name-text">{user?.fullName}</span>
-            <span className="user-branch-text">{user?.branchName || 'Empleado'}</span>
+            <span className="user-branch-text">{user?.branchName || 'Vía Gourmet'}</span>
           </div>
         </div>
 
-        <button id="btn-logout-employee" className="checkin-logout-btn" onClick={logout} title="Cerrar sesión">
-          <LogOut size={16} />
-          <span>Cerrar Sesión</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Link
+            href="/schedules"
+            className="checkin-schedule-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              background: 'rgba(96,165,250,0.15)',
+              color: '#60a5fa',
+              border: '1px solid rgba(96,165,250,0.3)',
+              textDecoration: 'none',
+              transition: 'all 0.2s',
+            }}
+          >
+            <Calendar size={15} />
+            <span>Ver Mi Horario</span>
+          </Link>
+
+          <button id="btn-logout-employee" className="checkin-logout-btn" onClick={logout} title="Cerrar sesión">
+            <LogOut size={16} />
+            <span>Salir</span>
+          </button>
+        </div>
       </header>
 
       <div style={{ width: '100%', maxWidth: 440, marginBottom: 12 }}>

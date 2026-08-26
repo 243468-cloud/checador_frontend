@@ -110,12 +110,12 @@ export default function Sidebar() {
       <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">
-            <Clock size={20} strokeWidth={2.5} color="#fff" />
+          <div className="sidebar-logo-icon" style={{ background: '#ffffff', padding: '3px', width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div className="sidebar-logo-text">
-            <span className="sidebar-logo-title">Checador</span>
-            <span className="sidebar-logo-sub">{user.branchName || 'Sistema Central'}</span>
+            <span className="sidebar-logo-title" style={{ fontSize: '0.98rem', fontWeight: 800 }}>Vía Gourmet</span>
+            <span className="sidebar-logo-sub">{user.branchName || 'Checador de Asistencia'}</span>
           </div>
           <button
             className="mobile-drawer-close"

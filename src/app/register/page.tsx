@@ -106,11 +106,11 @@ export default function RegisterPage() {
 
         {/* Header */}
         <div className="register-brand-header">
-          <div className="brand-icon-box">
-            <UserPlus size={26} strokeWidth={2.2} />
+          <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '120px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+            <img src="/logo.png" alt="Vía Gourmet Restaurante" style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
-          <h1 className="brand-title">Registro de Empleado</h1>
-          <p className="brand-subtitle">Crea tu cuenta para comenzar a registrar asistencia</p>
+          <h1 className="brand-title" style={{ fontSize: '1.35rem', fontWeight: 800 }}>Registro de Empleado</h1>
+          <p className="brand-subtitle">Crea tu cuenta oficial para Vía Gourmet</p>
         </div>
 
         {/* Form */}
