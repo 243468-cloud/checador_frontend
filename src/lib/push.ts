@@ -44,7 +44,11 @@ export async function subscribeUserToPush(): Promise<boolean> {
 
     // Fetch VAPID Public Key from Backend
     const token = localStorage.getItem('token');
-    const resKey = await fetch(`${API_BASE}/api/push/public-key`);
+    const resKey = await fetch(`${API_BASE}/api/push/public-key`, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    });
     if (!resKey.ok) throw new Error('Error al obtener la clave VAPID pública.');
     const { publicKey } = await resKey.json();
 
@@ -76,6 +80,22 @@ export async function subscribeUserToPush(): Promise<boolean> {
     return true;
   } catch (err) {
     console.error('Error suscribiendo a notificaciones Push:', err);
+    return false;
+  }
+}
+
+export async function sendTestPushNotification(): Promise<boolean> {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/api/push/test`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    });
+    return res.ok;
+  } catch {
     return false;
   }
 }

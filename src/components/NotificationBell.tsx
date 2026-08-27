@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, CheckCheck, Smartphone, Volume2, ShieldAlert } from 'lucide-react';
 import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
-import { subscribeUserToPush, registerServiceWorker } from '@/lib/push';
+import { subscribeUserToPush, registerServiceWorker, sendTestPushNotification } from '@/lib/push';
 
 interface Notif {
   id: number;
@@ -323,8 +323,8 @@ export default function NotificationBell() {
             )}
           </div>
 
-          {/* Banner para Activar Notificaciones del Celular */}
-          {systemPerm !== 'granted' && (
+          {/* Banner para Activar / Probar Notificaciones del Celular */}
+          {systemPerm !== 'granted' ? (
             <div style={{
               margin: '12px 14px 4px',
               padding: '12px 14px',
@@ -358,6 +358,45 @@ export default function NotificationBell() {
                 }}
               >
                 Activar
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              margin: '8px 14px 4px',
+              padding: '8px 12px',
+              background: 'rgba(34, 197, 94, 0.08)',
+              border: '1px solid rgba(34, 197, 94, 0.25)',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+            }}>
+              <div style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Smartphone size={14} color="#15803d" />
+                <span>Notificaciones Push Activas</span>
+              </div>
+              <button
+                onClick={async () => {
+                  const sent = await sendTestPushNotification();
+                  if (sent) {
+                    sendSystemNotification('Vía Gourmet 🔔', '¡Prueba despachada a tu celular!');
+                  } else {
+                    alert('No se pudo despachar la notificación de prueba. Asegúrate de haber iniciado sesión.');
+                  }
+                }}
+                style={{
+                  background: '#15803d',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Probar Notificación
               </button>
             </div>
           )}
