@@ -25,7 +25,10 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
     let reconnectTimeout: any = null;
 
     function connect() {
+      if (eventSource && eventSource.readyState !== EventSource.CLOSED) return;
+
       try {
+        if (eventSource) eventSource.close();
         eventSource = new EventSource(eventSourceUrl);
 
         const handleMessage = (e: MessageEvent) => {
@@ -45,19 +48,34 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
 
         eventSource.onerror = () => {
           if (eventSource) eventSource.close();
-          // Auto-reconnect after 5 seconds if connection drops
-          reconnectTimeout = setTimeout(connect, 5000);
+          if (reconnectTimeout) clearTimeout(reconnectTimeout);
+          // Auto-reconnect after 3 seconds if connection drops
+          reconnectTimeout = setTimeout(connect, 3000);
         };
       } catch (err) {
         console.error('Error iniciando conexión SSE en vivo:', err);
       }
     }
 
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+          if (reconnectTimeout) clearTimeout(reconnectTimeout);
+          connect();
+        }
+      }
+    };
+
     connect();
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
 
     return () => {
       if (eventSource) eventSource.close();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
     };
   }, []);
 }

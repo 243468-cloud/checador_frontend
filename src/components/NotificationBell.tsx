@@ -111,18 +111,6 @@ export default function NotificationBell() {
   const panelRef                    = useRef<HTMLDivElement>(null);
   const prevUnreadRef               = useRef<number>(-1);
 
-  // Registrar Service Worker y auto-suscribir a Web Push al cargar el componente
-  useEffect(() => {
-    registerServiceWorker().then(() => {
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        setSystemPerm(Notification.permission);
-        if (Notification.permission === 'granted') {
-          subscribeUserToPush().catch(() => {});
-        }
-      }
-    });
-  }, []);
-
   const requestPermission = async () => {
     const success = await subscribeUserToPush();
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -154,6 +142,37 @@ export default function NotificationBell() {
     } catch { /* silencioso */ }
     finally { setLoading(false); }
   }, []);
+
+  // Registrar Service Worker y auto-suscribir a Web Push al cargar el componente
+  useEffect(() => {
+    const initPush = () => {
+      registerServiceWorker().then(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          setSystemPerm(Notification.permission);
+          if (Notification.permission === 'granted') {
+            subscribeUserToPush().catch(() => {});
+          }
+        }
+      });
+    };
+
+    initPush();
+
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUnreadCount();
+        initPush();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleFocusOrVisible);
+    window.addEventListener('focus', handleFocusOrVisible);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleFocusOrVisible);
+      window.removeEventListener('focus', handleFocusOrVisible);
+    };
+  }, [fetchUnreadCount]);
 
   useEffect(() => {
     fetchUnreadCount();

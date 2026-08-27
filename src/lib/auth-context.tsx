@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { login as apiLogin, LoginResponse } from '@/lib/api';
+import { registerServiceWorker, subscribeUserToPush } from '@/lib/push';
 
 interface AuthContextType {
   user: LoginResponse | null;
@@ -18,6 +19,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LoginResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const autoSubscribePush = () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      registerServiceWorker().then(() => {
+        subscribeUserToPush().catch(() => {});
+      });
+    }
+  };
+
   useEffect(() => {
     // Restaurar sesión desde localStorage
     const stored = localStorage.getItem('user');
@@ -25,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored && token) {
       try {
         setUser(JSON.parse(stored));
+        autoSubscribePush();
       } catch {
         localStorage.clear();
       }
@@ -50,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data));
     setUser(data);
+    autoSubscribePush();
   };
 
   const setTokenAndUser = (token: string, userData: LoginResponse) => {
