@@ -111,12 +111,16 @@ export default function NotificationBell() {
   const panelRef                    = useRef<HTMLDivElement>(null);
   const prevUnreadRef               = useRef<number>(-1);
 
-  // Registrar Service Worker al cargar el componente
+  // Registrar Service Worker y auto-suscribir a Web Push al cargar el componente
   useEffect(() => {
-    registerServiceWorker();
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setSystemPerm(Notification.permission);
-    }
+    registerServiceWorker().then(() => {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setSystemPerm(Notification.permission);
+        if (Notification.permission === 'granted') {
+          subscribeUserToPush().catch(() => {});
+        }
+      }
+    });
   }, []);
 
   const requestPermission = async () => {
