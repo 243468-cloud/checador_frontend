@@ -181,6 +181,10 @@ export default function RewardsLeaderboard() {
           <div className="flex flex-col gap-2.5">
             {loading ? (
               <div style={{ textAlign: 'center', padding: '16px', color: '#94a3b8', fontSize: '0.8rem' }}>Cargando ranking...</div>
+            ) : fortnightRank.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', background: '#ffffff', borderRadius: '12px', border: '1px border #f1ece1', color: '#64748b', fontSize: '0.82rem', fontWeight: 600 }}>
+                Sin asistencias registradas aún en esta quincena.
+              </div>
             ) : fortnightRank.map((emp, i) => (
               <div key={emp.id} className="flex items-center justify-between p-3 rounded-xl" style={{
                 background: i === 0 ? 'rgba(245, 158, 11, 0.12)' : '#ffffff',
@@ -205,7 +209,7 @@ export default function RewardsLeaderboard() {
                 <div className="flex flex-col items-end gap-1">
                   <div className="flex items-center gap-2">
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#d97706' }}>
-                      {emp.attendances} Asist.
+                      {emp.attendances} Asist. ({emp.onTimeCount ?? emp.attendances} a Tiempo)
                     </span>
                     <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.lateCount > 0 ? '#ef4444' : '#10b981' }}>
                       {emp.lateCount > 0 ? `${emp.lateCount} Ret. (${emp.lateMinutes}m)` : '0 Ret.'}
@@ -216,7 +220,7 @@ export default function RewardsLeaderboard() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', background: 'rgba(15, 23, 42, 0.06)', padding: '2px 6px', borderRadius: 6 }}>
-                      Score: {emp.score ?? 100}%
+                      Score: {emp.score ?? 0}%
                     </span>
                     {i === 0 && (
                       <span style={{ background: '#f59e0b', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
@@ -286,6 +290,10 @@ export default function RewardsLeaderboard() {
           <div className="flex flex-col gap-2.5">
             {loading ? (
               <div style={{ textAlign: 'center', padding: '16px', color: '#94a3b8', fontSize: '0.8rem' }}>Cargando ranking...</div>
+            ) : monthlyRank.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', background: '#ffffff', borderRadius: '12px', border: '1px border #f1ece1', color: '#64748b', fontSize: '0.82rem', fontWeight: 600 }}>
+                Sin asistencias registradas aún en el mes.
+              </div>
             ) : monthlyRank.map((emp, i) => (
               <div key={emp.id} className="flex items-center justify-between p-3 rounded-xl" style={{
                 background: i === 0 ? 'rgba(225, 29, 72, 0.12)' : '#ffffff',
@@ -318,7 +326,7 @@ export default function RewardsLeaderboard() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', background: 'rgba(15, 23, 42, 0.06)', padding: '2px 6px', borderRadius: 6 }}>
-                      Score: {emp.score ?? 100}%
+                      Score: {emp.score ?? 0}%
                     </span>
                     {i === 0 && (
                       <span style={{ background: '#e11d48', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
