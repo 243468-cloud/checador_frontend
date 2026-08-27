@@ -150,7 +150,7 @@ export default function NotificationBell() {
         if (typeof window !== 'undefined' && 'Notification' in window) {
           setSystemPerm(Notification.permission);
           if (Notification.permission === 'granted') {
-            subscribeUserToPush().catch(() => {});
+            subscribeUserToPush(true).catch(() => {});
           }
         }
       });

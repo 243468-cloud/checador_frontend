@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const autoSubscribePush = () => {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       registerServiceWorker().then(() => {
-        subscribeUserToPush().catch(() => {});
+        subscribeUserToPush(true).catch(() => {});
       });
     }
   };

@@ -26,16 +26,16 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 }
 
-export async function subscribeUserToPush(): Promise<boolean> {
+export async function subscribeUserToPush(silent: boolean = false): Promise<boolean> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    alert('Tu navegador o dispositivo no soporta notificaciones Push en segundo plano.');
+    if (!silent) console.warn('Tu navegador o dispositivo no soporta notificaciones Push en segundo plano.');
     return false;
   }
 
   try {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') {
-      alert('Permiso de notificaciones no concedido.');
+      if (!silent) console.warn('Permiso de notificaciones no concedido.');
       return false;
     }
 
