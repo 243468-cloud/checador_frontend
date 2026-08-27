@@ -174,6 +174,7 @@ export default function AttendancePage() {
                     <th>Estado</th>
                     <th>Tardanza</th>
                     <th>Horas</th>
+                    <th>Observaciones / Horas Extra</th>
                     {isAdmin && <th>Acciones</th>}
                   </tr>
                 </thead>
@@ -208,6 +209,25 @@ export default function AttendancePage() {
                       </td>
                       <td style={{ fontWeight: 600 }}>
                         {rec.hoursWorked > 0 ? `${rec.hoursWorked.toFixed(1)}h` : '—'}
+                      </td>
+                      <td style={{ fontSize: '0.82rem' }}>
+                        {rec.notes ? (
+                          <span
+                            className="badge"
+                            style={{
+                              background: rec.notes.includes('Horas extra') ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                              color: rec.notes.includes('Horas extra') ? '#059669' : '#dc2626',
+                              border: `1px solid ${rec.notes.includes('Horas extra') ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              padding: '3px 8px',
+                            }}
+                          >
+                            {rec.notes}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--color-text-faint)' }}>—</span>
+                        )}
                       </td>
                       {isAdmin && (
                         <td>

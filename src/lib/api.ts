@@ -107,6 +107,7 @@ export interface AttendanceRecord {
   status: 'ON_TIME' | 'LATE' | 'ABSENT' | 'IN_SHIFT' | 'EXCUSED';
   lateMinutes: number;
   hoursWorked: number;
+  notes?: string;
 }
 
 export interface DashboardStats {

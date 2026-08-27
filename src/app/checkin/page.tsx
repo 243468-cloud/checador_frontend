@@ -350,6 +350,20 @@ export default function CheckInPage() {
             </div>
           )}
 
+          {/* Notes & Overtime Banner */}
+          {record && record.notes && (
+            <div
+              className="mt-3 p-3 rounded-xl flex items-center justify-between text-xs font-semibold"
+              style={{
+                background: record.notes.includes('Horas extra') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                color: record.notes.includes('Horas extra') ? '#059669' : '#dc2626',
+                border: `1px solid ${record.notes.includes('Horas extra') ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              }}
+            >
+              <span>📝 {record.notes}</span>
+            </div>
+          )}
+
           {/* SARCASTIC LATE COMMENT BANNER */}
           {sarcasticQuote && (
             <div
