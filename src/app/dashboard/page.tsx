@@ -17,6 +17,9 @@ import {
   Activity,
 } from 'lucide-react';
 
+import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
+import { useCallback } from 'react';
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -27,7 +30,7 @@ export default function DashboardPage() {
   const today = new Date();
   const todayStr = format(today, "EEEE d 'de' MMMM, yyyy", { locale: es });
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     Promise.all([
       attendanceApi.getStats(),
       attendanceApi.getDaily(),
@@ -38,6 +41,17 @@ export default function DashboardPage() {
       setTotalEmployees(emps.length);
     }).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Actualización en vivo cero latencia al ocurrir entradas o salidas
+  useRealtime(useCallback((event: RealtimeEventData) => {
+    if (event.type === 'CHECK_IN' || event.type === 'CHECK_OUT') {
+      loadData();
+    }
+  }, [loadData]));
 
   const present = (stats?.onTime ?? 0) + (stats?.late ?? 0);
   const absent = totalEmployees - present;

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, CheckCheck, Smartphone, Volume2, ShieldAlert } from 'lucide-react';
+import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
+import { subscribeUserToPush, registerServiceWorker } from '@/lib/push';
 
 interface Notif {
   id: number;
@@ -108,35 +110,30 @@ export default function NotificationBell() {
   const [systemPerm, setSystemPerm] = useState<NotificationPermission>('default');
   const panelRef                    = useRef<HTMLDivElement>(null);
   const prevUnreadRef               = useRef<number>(-1);
-  const POLL_INTERVAL               = 30_000; // 30 s
 
-  // Detectar permiso de notificaciones del celular
+  // Registrar Service Worker al cargar el componente
   useEffect(() => {
+    registerServiceWorker();
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setSystemPerm(Notification.permission);
     }
   }, []);
 
   const requestPermission = async () => {
+    const success = await subscribeUserToPush();
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      const perm = await Notification.requestPermission();
-      setSystemPerm(perm);
-      if (perm === 'granted') {
-        sendSystemNotification('Vía Gourmet 🔔', '¡Notificaciones del celular activadas correctamente!');
-      }
+      setSystemPerm(Notification.permission);
+    }
+    if (success) {
+      sendSystemNotification('Vía Gourmet 🔔', '¡Notificaciones Push del celular activadas correctamente!');
     }
   };
 
-  // Obtener conteo de no-leídas (polling)
-  const pollUnread = useCallback(async () => {
+  // Obtener conteo inicial de no-leídas
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const data = await notifApi.getUnreadCount();
       const count = data.count ?? 0;
-      if (prevUnreadRef.current >= 0 && count > prevUnreadRef.current) {
-        playNotificationSound();
-        triggerVibration();
-        sendSystemNotification('Checador Vía Gourmet 🔔', `Tienes ${count} notificacion(es) de asistencia.`);
-      }
       prevUnreadRef.current = count;
       setUnread(count);
     } catch { /* silencioso */ }
@@ -154,12 +151,30 @@ export default function NotificationBell() {
     finally { setLoading(false); }
   }, []);
 
-  // Polling inicial y periódico
   useEffect(() => {
-    pollUnread();
-    const id = setInterval(pollUnread, POLL_INTERVAL);
-    return () => clearInterval(id);
-  }, [pollUnread]);
+    fetchUnreadCount();
+  }, [fetchUnreadCount]);
+
+  // Escuchar eventos en TIEMPO REAL (SSE cero latencia)
+  useRealtime(useCallback((event: RealtimeEventData) => {
+    if (event.type === 'NOTIFICATION_ADDED') {
+      const newNotif = event.data;
+      playNotificationSound();
+      triggerVibration();
+      sendSystemNotification(newNotif.title || 'Vía Gourmet 🔔', newNotif.body || 'Nueva notificación de asistencia');
+
+      setUnread(prev => prev + 1);
+      setNotifs(prev => [newNotif, ...prev]);
+    } else if (event.type === 'NOTIFICATIONS_READ') {
+      if (event.data === 'all') {
+        setUnread(0);
+        setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+      } else {
+        setUnread(prev => Math.max(0, prev - 1));
+        setNotifs(prev => prev.map(n => n.id === event.data ? { ...n, read: true } : n));
+      }
+    }
+  }, []));
 
   // Cerrar al hacer clic fuera
   useEffect(() => {

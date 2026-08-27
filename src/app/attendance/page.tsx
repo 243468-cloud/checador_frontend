@@ -18,6 +18,9 @@ import {
   X,
 } from 'lucide-react';
 
+import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
+import { useCallback } from 'react';
+
 export default function AttendancePage() {
   const { user } = useAuth();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
@@ -38,12 +41,19 @@ export default function AttendancePage() {
 
   const isAdmin = user?.role === 'SUPERUSER' || user?.role === 'ADMIN';
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     attendanceApi.getDaily(selectedDate).then(setRecords).finally(() => setLoading(false));
-  };
+  }, [selectedDate]);
 
-  useEffect(() => { load(); }, [selectedDate]);
+  useEffect(() => { load(); }, [load]);
+
+  // Actualización en tiempo real sin necesidad de refrescar la página
+  useRealtime(useCallback((event: RealtimeEventData) => {
+    if (event.type === 'CHECK_IN' || event.type === 'CHECK_OUT') {
+      load();
+    }
+  }, [load]));
 
   const handleOpenEdit = (rec: AttendanceRecord) => {
     setEditingRecord(rec);
