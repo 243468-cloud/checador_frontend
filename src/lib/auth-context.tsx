@@ -32,6 +32,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
+  // Keep-Alive background ping to prevent Render free tier spin-down (ping every 10 minutes)
+  useEffect(() => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const pingBackend = () => {
+      fetch(`${API_BASE}/api/branches/public`).catch(() => {});
+    };
+
+    pingBackend();
+    const interval = setInterval(pingBackend, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const login = async (username: string, password: string) => {
     const data = await apiLogin(username, password);
     localStorage.setItem('token', data.token);
