@@ -170,27 +170,23 @@ export const attendanceApi = {
 
 // ─── Ranking & Rewards ────────────────────────────────────────────────────────
 
+export interface EmployeeRankItem {
+  id: number;
+  name: string;
+  username: string;
+  branch: string;
+  shift: string;
+  attendances: number;
+  onTimeCount: number;
+  lateCount: number;
+  lateMinutes: number;
+  absentCount: number;
+  score: number;
+}
+
 export interface RankingResponse {
-  fortnightRank: {
-    id: number;
-    name: string;
-    username: string;
-    branch: string;
-    shift: string;
-    attendances: number;
-    lateMinutes: number;
-    onTimeCount: number;
-  }[];
-  monthlyRank: {
-    id: number;
-    name: string;
-    username: string;
-    branch: string;
-    shift: string;
-    attendances: number;
-    lateMinutes: number;
-    onTimeCount: number;
-  }[];
+  fortnightRank: EmployeeRankItem[];
+  monthlyRank: EmployeeRankItem[];
   config: {
     fortnightReward: string;
     monthlyReward: string;

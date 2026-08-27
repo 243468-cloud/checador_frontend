@@ -202,15 +202,28 @@ export default function RewardsLeaderboard() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#d97706' }}>
-                    {emp.attendances} Asistencias
-                  </span>
-                  {i === 0 && (
-                    <span style={{ background: '#f59e0b', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
-                      GANADOR 🏆
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#d97706' }}>
+                      {emp.attendances} Asist.
                     </span>
-                  )}
+                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.lateCount > 0 ? '#ef4444' : '#10b981' }}>
+                      {emp.lateCount > 0 ? `${emp.lateCount} Ret. (${emp.lateMinutes}m)` : '0 Ret.'}
+                    </span>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.absentCount > 0 ? '#dc2626' : '#64748b' }}>
+                      {emp.absentCount > 0 ? `${emp.absentCount} Faltas` : '0 Faltas'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', background: 'rgba(15, 23, 42, 0.06)', padding: '2px 6px', borderRadius: 6 }}>
+                      Score: {emp.score ?? 100}%
+                    </span>
+                    {i === 0 && (
+                      <span style={{ background: '#f59e0b', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
+                        1° LUGAR 🏆
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -239,7 +252,7 @@ export default function RewardsLeaderboard() {
                   Incentivo Mensual
                 </h3>
                 <span style={{ fontSize: '0.72rem', color: '#be123c', fontWeight: 600 }}>
-                  Empleado Más Puntual (Cero Retardos)
+                  Empleado Más Puntual (Cero Retardos / Cero Faltas)
                 </span>
               </div>
             </div>
@@ -258,7 +271,7 @@ export default function RewardsLeaderboard() {
 
           {/* Current Reward Banner */}
           <div className="p-3 rounded-xl mb-4 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(225, 29, 72, 0.2)' }}>
-            <Medal size={20} color="#e11d48" style={{ flexShrink: 0 }} />
+            <Award size={20} color="#e11d48" style={{ flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
                 Premio del Mes:
@@ -294,15 +307,25 @@ export default function RewardsLeaderboard() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: emp.lateMinutes === 0 ? '#059669' : '#e11d48' }}>
-                    {emp.lateMinutes === 0 ? '100% Puntual (0 min)' : `+${emp.lateMinutes} min retardo`}
-                  </span>
-                  {i === 0 && (
-                    <span style={{ background: '#e11d48', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
-                      GANADOR 🏆
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#e11d48' }}>
+                      {emp.lateCount === 0 && emp.absentCount === 0 ? '0 Ret. (Impecable)' : `${emp.lateCount} Ret. (${emp.lateMinutes}m)`}
                     </span>
-                  )}
+                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.absentCount > 0 ? '#dc2626' : '#10b981' }}>
+                      {emp.absentCount > 0 ? `${emp.absentCount} Faltas` : '0 Faltas'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', background: 'rgba(15, 23, 42, 0.06)', padding: '2px 6px', borderRadius: 6 }}>
+                      Score: {emp.score ?? 100}%
+                    </span>
+                    {i === 0 && (
+                      <span style={{ background: '#e11d48', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
+                        PUNTUAL 🏆
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
