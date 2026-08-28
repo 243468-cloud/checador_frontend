@@ -1428,35 +1428,50 @@ export default function SchedulesPage() {
               </span>
             </div>
 
-            {/* KPI Row for Balance (Ultra-Aesthetic & Explicit 36px Bottom Spacing) */}
-            <div className="grid-3 gap-5" style={{ marginBottom: 36, marginTop: 12 }}>
-              <div className="flex items-center gap-4 p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ffffff, #fff1f2)', border: '1px solid #fecdd3', boxShadow: '0 4px 16px rgba(225, 29, 72, 0.08)', borderRadius: 18, padding: '16px 20px' }}>
-                <div style={{ width: 46, height: 46, borderRadius: 14, background: '#ffe4e6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Timer size={22} color="#e11d48" />
+            {/* KPI Row for Balance (Responsive Flex & Padding Spacing) */}
+            <div className="flex flex-col md:flex-row gap-4 mb-8 mt-3" style={{ marginBottom: 32, marginTop: 12 }}>
+              {/* Card 1: Horas Extra */}
+              <div className="flex-1 flex items-center gap-4 p-5 rounded-xl bg-rose-50/80 border border-rose-200 shadow-sm" style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 16, padding: '20px' }}>
+                <div className="w-12 h-12 rounded-lg bg-rose-100 flex items-center justify-center shrink-0" style={{ width: 48, height: 48, borderRadius: 12, background: '#ffe4e6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Timer className="w-6 h-6 text-rose-600" size={24} color="#e11d48" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.72rem', color: '#9f1239', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 2 }}>Horas Extra Registradas</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#e11d48', lineHeight: 1 }}>+{totalOvertimeHours}h extra</div>
+                  <div className="text-[0.72rem] font-extrabold uppercase tracking-wider text-rose-800 mb-1" style={{ fontSize: '0.72rem', color: '#9f1239', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 4 }}>
+                    Total Horas Extra Registradas
+                  </div>
+                  <div className="text-2xl font-black text-rose-600 leading-none" style={{ fontSize: '1.6rem', fontWeight: 900, color: '#e11d48', lineHeight: 1 }}>
+                    +{totalOvertimeHours}h extra
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ffffff, #fffbeb)', border: '1px solid #fde68a', boxShadow: '0 4px 16px rgba(217, 119, 6, 0.08)', borderRadius: 18, padding: '16px 20px' }}>
-                <div style={{ width: 46, height: 46, borderRadius: 14, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Zap size={22} color="#d97706" />
+              {/* Card 2: Turnos Dobles */}
+              <div className="flex-1 flex items-center gap-4 p-5 rounded-xl bg-amber-50/80 border border-amber-200 shadow-sm" style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 16, padding: '20px' }}>
+                <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0" style={{ width: 48, height: 48, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Zap className="w-6 h-6 text-amber-600" size={24} color="#d97706" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.72rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 2 }}>Turnos Dobles Detectados</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#d97706', lineHeight: 1 }}>{totalDoubleShifts} dobles</div>
+                  <div className="text-[0.72rem] font-extrabold uppercase tracking-wider text-amber-800 mb-1" style={{ fontSize: '0.72rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 4 }}>
+                    Turnos Dobles Detectados
+                  </div>
+                  <div className="text-2xl font-black text-amber-600 leading-none" style={{ fontSize: '1.6rem', fontWeight: 900, color: '#d97706', lineHeight: 1 }}>
+                    {totalDoubleShifts} dobles
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ffffff, #ecfdf5)', border: '1px solid #a7f3d0', boxShadow: '0 4px 16px rgba(5, 150, 105, 0.08)', borderRadius: 18, padding: '16px 20px' }}>
-                <div style={{ width: 46, height: 46, borderRadius: 14, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <CheckCircle2 size={22} color="#059669" />
+              {/* Card 3: Descansos */}
+              <div className="flex-1 flex items-center gap-4 p-5 rounded-xl bg-emerald-50/80 border border-emerald-200 shadow-sm" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 16, padding: '20px' }}>
+                <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0" style={{ width: 48, height: 48, borderRadius: 12, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <CheckCircle2 className="w-6 h-6 text-emerald-600" size={24} color="#059669" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.72rem', color: '#065f46', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 2 }}>Descansos Programados</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', lineHeight: 1 }}>{totalRestDays} descansos</div>
+                  <div className="text-[0.72rem] font-extrabold uppercase tracking-wider text-emerald-800 mb-1" style={{ fontSize: '0.72rem', color: '#065f46', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 4 }}>
+                    Total Descansos Programados
+                  </div>
+                  <div className="text-2xl font-black text-emerald-600 leading-none" style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', lineHeight: 1 }}>
+                    {totalRestDays} descansos
+                  </div>
                 </div>
               </div>
             </div>
