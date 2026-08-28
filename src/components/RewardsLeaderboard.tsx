@@ -123,30 +123,33 @@ export default function RewardsLeaderboard() {
         )}
       </div>
 
-      {/* 2 Main Reward Columns */}
-      <div className="grid-2 gap-6">
+      {/* 2 Main Reward Columns (Responsive Flex Col on Mobile, Flex Row on Desktop) */}
+      <div className="flex flex-col md:flex-row gap-6 mb-6">
         {/* FORTNIGHTLY REWARD CARD */}
-        <div className="p-5 rounded-2xl" style={{
+        <div className="flex-1 p-6 rounded-2xl" style={{
           background: 'linear-gradient(135deg, #fffdfa 0%, #fff7f2 100%)',
           border: '1px solid rgba(245, 158, 11, 0.3)',
           boxShadow: '0 8px 24px -6px rgba(245, 158, 11, 0.12)',
+          borderRadius: 20,
+          padding: '24px',
         }}>
           {/* Badge & Title */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-5 pt-1">
+            <div className="flex items-center gap-3">
               <div style={{
-                width: 34, height: 34, borderRadius: 10,
+                width: 38, height: 38, borderRadius: 12,
                 background: 'rgba(245, 158, 11, 0.15)',
                 color: '#d97706',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
-                <Wine size={18} />
+                <Wine size={20} />
               </div>
               <div>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#92400e' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#92400e', marginBottom: 2 }}>
                   Incentivo Quincenal
                 </h3>
-                <span style={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.74rem', color: '#b45309', fontWeight: 600 }}>
                   Empleado con Mayor Asistencia
                 </span>
               </div>
@@ -156,7 +159,7 @@ export default function RewardsLeaderboard() {
               color: '#ffffff',
               fontSize: '11px',
               fontWeight: 800,
-              padding: '4px 10px',
+              padding: '4px 12px',
               borderRadius: '20px',
               boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
             }}>
@@ -165,20 +168,20 @@ export default function RewardsLeaderboard() {
           </div>
 
           {/* Current Reward Banner */}
-          <div className="p-3 rounded-xl mb-4 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
-            <Award size={20} color="#d97706" style={{ flexShrink: 0 }} />
+          <div className="p-3.5 rounded-xl mb-5 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(245, 158, 11, 0.25)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            <Award size={22} color="#d97706" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px', marginBottom: 2 }}>
                 Premio de la Quincena:
               </div>
-              <div style={{ fontSize: '0.86rem', color: '#0f172a', fontWeight: 800 }}>
+              <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: 800 }}>
                 {config.fortnightReward}
               </div>
             </div>
           </div>
 
           {/* Podium / Ranking List */}
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {loading ? (
               <div style={{ textAlign: 'center', padding: '16px', color: '#94a3b8', fontSize: '0.8rem' }}>Cargando ranking...</div>
             ) : fortnightRank.length === 0 ? (
@@ -186,28 +189,29 @@ export default function RewardsLeaderboard() {
                 Sin asistencias registradas aún en esta quincena.
               </div>
             ) : fortnightRank.map((emp, i) => (
-              <div key={emp.id} className="flex items-center justify-between p-3 rounded-xl" style={{
+              <div key={emp.id} className="flex items-center justify-between p-3.5 rounded-xl" style={{
                 background: i === 0 ? 'rgba(245, 158, 11, 0.12)' : '#ffffff',
                 border: i === 0 ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid #f1ece1',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
               }}>
                 <div className="flex items-center gap-3">
                   <div style={{
-                    width: 26, height: 26, borderRadius: '50%',
+                    width: 28, height: 28, borderRadius: '50%',
                     background: i === 0 ? '#f59e0b' : i === 1 ? '#94a3b8' : '#b45309',
                     color: '#ffffff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: '0.75rem',
+                    fontWeight: 800, fontSize: '0.75rem', flexShrink: 0,
                   }}>
                     {i === 0 ? '1°' : i === 1 ? '2°' : '3°'}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.84rem', color: '#0f172a' }}>{emp.name}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>{emp.name}</div>
                     <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{emp.branch}</div>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#d97706' }}>
                       {emp.attendances} Asist. ({emp.onTimeCount ?? emp.attendances} a Tiempo)
                     </span>
@@ -235,27 +239,30 @@ export default function RewardsLeaderboard() {
         </div>
 
         {/* MONTHLY REWARD CARD */}
-        <div className="p-5 rounded-2xl" style={{
+        <div className="flex-1 p-6 rounded-2xl" style={{
           background: 'linear-gradient(135deg, #fffdfb 0%, #fff2f5 100%)',
           border: '1px solid rgba(225, 29, 72, 0.3)',
           boxShadow: '0 8px 24px -6px rgba(225, 29, 72, 0.12)',
+          borderRadius: 20,
+          padding: '24px',
         }}>
           {/* Badge & Title */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-5 pt-1">
+            <div className="flex items-center gap-3">
               <div style={{
-                width: 34, height: 34, borderRadius: 10,
+                width: 38, height: 38, borderRadius: 12,
                 background: 'rgba(225, 29, 72, 0.15)',
                 color: '#e11d48',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
-                <UtensilsCrossed size={18} />
+                <UtensilsCrossed size={20} />
               </div>
               <div>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#9f1239' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#9f1239', marginBottom: 2 }}>
                   Incentivo Mensual
                 </h3>
-                <span style={{ fontSize: '0.72rem', color: '#be123c', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.74rem', color: '#be123c', fontWeight: 600 }}>
                   Empleado Más Puntual (Cero Retardos / Cero Faltas)
                 </span>
               </div>
@@ -265,7 +272,7 @@ export default function RewardsLeaderboard() {
               color: '#ffffff',
               fontSize: '11px',
               fontWeight: 800,
-              padding: '4px 10px',
+              padding: '4px 12px',
               borderRadius: '20px',
               boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)',
             }}>
@@ -274,20 +281,20 @@ export default function RewardsLeaderboard() {
           </div>
 
           {/* Current Reward Banner */}
-          <div className="p-3 rounded-xl mb-4 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(225, 29, 72, 0.2)' }}>
-            <Award size={20} color="#e11d48" style={{ flexShrink: 0 }} />
+          <div className="p-3.5 rounded-xl mb-5 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(225, 29, 72, 0.25)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            <Award size={22} color="#e11d48" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px', marginBottom: 2 }}>
                 Premio del Mes:
               </div>
-              <div style={{ fontSize: '0.86rem', color: '#0f172a', fontWeight: 800 }}>
+              <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: 800 }}>
                 {config.monthlyReward}
               </div>
             </div>
           </div>
 
           {/* Podium / Ranking List */}
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {loading ? (
               <div style={{ textAlign: 'center', padding: '16px', color: '#94a3b8', fontSize: '0.8rem' }}>Cargando ranking...</div>
             ) : monthlyRank.length === 0 ? (
@@ -295,28 +302,29 @@ export default function RewardsLeaderboard() {
                 Sin asistencias registradas aún en el mes.
               </div>
             ) : monthlyRank.map((emp, i) => (
-              <div key={emp.id} className="flex items-center justify-between p-3 rounded-xl" style={{
+              <div key={emp.id} className="flex items-center justify-between p-3.5 rounded-xl" style={{
                 background: i === 0 ? 'rgba(225, 29, 72, 0.12)' : '#ffffff',
                 border: i === 0 ? '1px solid rgba(225, 29, 72, 0.4)' : '1px solid #f1ece1',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
               }}>
                 <div className="flex items-center gap-3">
                   <div style={{
-                    width: 26, height: 26, borderRadius: '50%',
+                    width: 28, height: 28, borderRadius: '50%',
                     background: i === 0 ? '#e11d48' : i === 1 ? '#94a3b8' : '#be123c',
                     color: '#ffffff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: '0.75rem',
+                    fontWeight: 800, fontSize: '0.75rem', flexShrink: 0,
                   }}>
                     {i === 0 ? '1°' : i === 1 ? '2°' : '3°'}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.84rem', color: '#0f172a' }}>{emp.name}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>{emp.name}</div>
                     <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{emp.branch}</div>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#e11d48' }}>
                       {emp.lateCount === 0 && emp.absentCount === 0 ? '0 Ret. (Impecable)' : `${emp.lateCount} Ret. (${emp.lateMinutes}m)`}
                     </span>
