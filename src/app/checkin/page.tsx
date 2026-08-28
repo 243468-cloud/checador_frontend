@@ -25,6 +25,7 @@ import {
 import InstallPwaCard from '@/components/InstallPwaCard';
 import Sidebar from '@/components/Sidebar';
 import RewardsLeaderboard from '@/components/RewardsLeaderboard';
+import ScreenGuard from '@/components/ScreenGuard';
 
 type LocationStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -200,6 +201,11 @@ export default function CheckInPage() {
         </div>
 
         <div className="checkin-card animate-slide-up" style={{ width: '100%', maxWidth: 500, marginBottom: 32 }}>
+          <ScreenGuard
+            userName={user?.fullName}
+            userId={user?.userId}
+            isLocationValid={locStatus === 'ok' ? true : locStatus === 'error' ? false : null}
+          >
 
         {/* ── Header: date + clock + shift ── */}
         <div className="checkin-header-card" style={{
@@ -405,6 +411,7 @@ export default function CheckInPage() {
           <MapPin size={11} />
           Se requiere GPS para registrar asistencia
         </p>
+          </ScreenGuard>
       </div>
 
       {/* Real-time Rewards & Attendance Ranking Summary */}
