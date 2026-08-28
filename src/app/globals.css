@@ -404,10 +404,10 @@ a:hover { color: #60a5fa; }
   letter-spacing: -0.02em;
 }
 
-/* Grid layouts */
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+/* Grid layouts with fluid auto-fit responsiveness */
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-5); }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-5); }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-5); }
 
 /* ═══════════════════════════════════════════════════
    BUTTONS

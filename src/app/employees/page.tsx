@@ -100,14 +100,14 @@ export default function EmployeesPage() {
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        <div className="page-header">
+        <div className="page-header flex-wrap gap-4">
           <div>
             <h1 className="page-title">Empleados</h1>
             <p className="page-subtitle">{employees.filter(e => e.active).length} empleados activos</p>
           </div>
-          <div className="page-actions">
-            <div className="input-wrapper">
-              <span className="input-icon" style={{ position: 'absolute', left: 12, top: 10, color: 'var(--color-text-muted)' }}>
+          <div className="page-actions flex items-center gap-3 flex-wrap flex-1 max-w-lg justify-end">
+            <div className="input-wrapper flex-1 min-w-[200px]" style={{ position: 'relative' }}>
+              <span className="input-icon" style={{ position: 'absolute', left: 12, top: 10, color: 'var(--color-text-muted)', zIndex: 2 }}>
                 <Search size={16} />
               </span>
               <input
@@ -117,10 +117,10 @@ export default function EmployeesPage() {
                 placeholder="Buscar empleado..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{ paddingLeft: 36 }}
+                style={{ paddingLeft: 36, width: '100%' }}
               />
             </div>
-            <button id="btn-new-employee" className="btn btn-primary flex items-center gap-2" onClick={openCreate}>
+            <button id="btn-new-employee" className="btn btn-primary flex items-center gap-2 flex-shrink-0" onClick={openCreate}>
               <Plus size={16} />
               <span>Nuevo Empleado</span>
             </button>
