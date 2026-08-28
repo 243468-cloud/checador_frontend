@@ -1342,3 +1342,45 @@ tbody td {
     display: none !important;
   }
 }
+
+/* Balance KPI Responsive Stat Cards */
+.balance-kpi-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin-top: 16px;
+  margin-bottom: 36px;
+}
+
+.balance-kpi-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.balance-kpi-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 5px;
+  margin-top: 2px;
+}
+
+.balance-kpi-value {
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .balance-kpi-row {
+    flex-direction: column !important;
+    gap: 14px !important;
+    margin-bottom: 28px !important;
+  }
+}
