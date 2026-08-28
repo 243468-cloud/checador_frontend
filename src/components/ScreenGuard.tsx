@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import { ShieldAlert, ShieldCheck, MapPinOff } from 'lucide-react';
 import { notificationApi } from '@/lib/api';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+
 interface ScreenGuardProps {
   userName?: string;
   userId?: number;
@@ -48,7 +50,7 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3500);
-        const res = await fetch('/api/branches/public', { method: 'GET', signal: controller.signal });
+        const res = await fetch(`${API_BASE}/api/branches/public`, { method: 'GET', signal: controller.signal });
         clearTimeout(timeoutId);
         
         if (res.ok) {
