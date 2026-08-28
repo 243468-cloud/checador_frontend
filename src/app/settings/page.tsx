@@ -71,15 +71,15 @@ export default function SettingsPage() {
           border: '1px solid rgba(225, 29, 72, 0.18)',
           boxShadow: '0 12px 32px -8px rgba(225, 29, 72, 0.08), 0 4px 14px rgba(0,0,0,0.03)',
           borderRadius: '20px',
-          padding: '28px',
+          padding: '32px',
         }}>
-          <div className="flex items-center justify-between flex-wrap gap-4 pb-6 mb-6" style={{ borderBottom: '1px solid #f1ece1' }}>
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-6 pb-6 mb-6" style={{ borderBottom: '1px solid #f1ece1' }}>
+            <div className="flex items-center gap-5">
               <div style={{
-                width: 64, height: 64, borderRadius: '50%',
+                width: 68, height: 68, borderRadius: '50%',
                 background: 'linear-gradient(135deg, #e11d48, #be123c)',
                 color: '#ffffff',
-                fontWeight: 800, fontSize: '1.5rem',
+                fontWeight: 800, fontSize: '1.6rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 8px 24px rgba(225, 29, 72, 0.3)',
                 border: '3px solid #ffffff',
@@ -88,16 +88,16 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <div className="flex items-center gap-2">
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
+                <div className="flex items-center gap-3">
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
                     {user?.fullName || 'Usuario Vía Gourmet'}
                   </h2>
-                  <span className="badge badge-primary" style={{ fontSize: '11px', padding: '4px 10px', fontWeight: 800 }}>
+                  <span className="badge badge-primary" style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 800, borderRadius: '20px' }}>
                     {user?.role === 'SUPERUSER' ? 'SUPERUSUARIO' : user?.role === 'ADMIN' ? 'ADMINISTRADOR' : 'EMPLEADO'}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, marginTop: '3px' }}>
-                  Sucursal Asignada: <strong style={{ color: '#0f172a' }}>{user?.branchName || 'Global Vía Gourmet'}</strong>
+                <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 600, marginTop: '6px' }}>
+                  Sucursal Asignada: <strong style={{ color: '#0f172a', marginLeft: '4px' }}>{user?.branchName || 'Global Vía Gourmet'}</strong>
                 </div>
               </div>
             </div>
@@ -105,13 +105,13 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowPasswordModal(true)}
-                className="btn btn-primary flex items-center gap-2"
+                className="btn btn-primary flex items-center gap-2.5"
                 style={{
                   background: 'linear-gradient(135deg, #e11d48, #be123c)',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '0.85rem',
-                  padding: '10px 18px',
+                  padding: '12px 20px',
                   borderRadius: '12px',
                   boxShadow: '0 4px 14px rgba(225, 29, 72, 0.35)',
                 }}
@@ -123,41 +123,41 @@ export default function SettingsPage() {
           </div>
 
           {/* Profile Metadata Details Grid */}
-          <div className="grid-4 gap-4">
-            <div className="p-4 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div className="grid-2-columns" style={{ gap: '20px' }}>
+            <div className="p-5 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1', padding: '16px 20px' }}>
+              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                 Nombre de Usuario
               </div>
-              <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 800, marginTop: '4px' }}>
+              <div style={{ fontSize: '0.96rem', color: '#0f172a', fontWeight: 800 }}>
                 {user?.fullName || `ID: ${user?.userId}`}
               </div>
             </div>
 
-            <div className="p-4 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div className="p-5 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1', padding: '16px 20px' }}>
+              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                 Rol de Acceso
               </div>
-              <div style={{ fontSize: '0.92rem', color: '#e11d48', fontWeight: 800, marginTop: '4px' }}>
+              <div style={{ fontSize: '0.96rem', color: '#e11d48', fontWeight: 800 }}>
                 {user?.role === 'SUPERUSER' ? 'Superusuario Global' : user?.role === 'ADMIN' ? 'Administrador de Sucursal' : 'Empleado Oficial'}
               </div>
             </div>
 
-            <div className="p-4 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div className="p-5 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1', padding: '16px 20px' }}>
+              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                 Sucursal Base
               </div>
-              <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 800, marginTop: '4px' }}>
+              <div style={{ fontSize: '0.96rem', color: '#0f172a', fontWeight: 800 }}>
                 {user?.branchName || 'Vía Gourmet'}
               </div>
             </div>
 
-            <div className="p-4 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div className="p-5 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1', padding: '16px 20px' }}>
+              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                 Estado de Cuenta
               </div>
-              <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-2" style={{ marginTop: '2px' }}>
                 <CheckCircle2 size={16} color="#059669" />
-                <span style={{ fontSize: '0.92rem', color: '#059669', fontWeight: 800 }}>Activo & Verificado</span>
+                <span style={{ fontSize: '0.96rem', color: '#059669', fontWeight: 800 }}>Activo & Verificado</span>
               </div>
             </div>
           </div>
@@ -165,14 +165,14 @@ export default function SettingsPage() {
 
         {/* 2. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
         {user?.role !== 'EMPLOYEE' && (
-          <div className="grid-2-columns">
+          <div className="grid-2-columns" style={{ gap: '24px' }}>
             {/* Turnos Oficiales */}
-            <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '24px' }}>
-              <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+            <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '28px' }}>
+              <h3 className="flex items-center gap-2.5" style={{ marginBottom: 24, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
                 <Clock size={20} color="#e11d48" />
                 <span>Horarios de Turnos Oficiales</span>
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 {[
                   { name: 'Turno Matutino', time: '7:00 – 15:00', days: 'Lunes a Sábado', color: '#e11d48', icon: <Sun size={20} /> },
                   { name: 'Turno Vespertino', time: '15:00 – 23:00', days: 'Lunes a Sábado', color: '#d97706', icon: <Sunset size={20} /> },
@@ -181,43 +181,43 @@ export default function SettingsPage() {
                   <div key={shift.name} style={{
                     background: '#fdfbf7',
                     border: '1px solid #f1ece1',
-                    borderRadius: '14px',
-                    padding: '14px 18px',
-                    display: 'flex', alignItems: 'center', gap: 14,
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    display: 'flex', alignItems: 'center', gap: 18,
                   }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: `${shift.color}15`, color: shift.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${shift.color}15`, color: shift.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {shift.icon}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', marginBottom: 2 }}>{shift.name}</div>
-                      <div style={{ fontSize: '0.84rem', color: shift.color, fontWeight: 800 }}>{shift.time}</div>
+                      <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', marginBottom: 4 }}>{shift.name}</div>
+                      <div style={{ fontSize: '0.86rem', color: shift.color, fontWeight: 800, marginBottom: 2 }}>{shift.time}</div>
                       <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>{shift.days}</div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="alert alert-info flex items-start gap-2" style={{ marginTop: 18, fontSize: '0.78rem' }}>
-                <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                <span>Los horarios se aplican globalmente. Para ajustar tolerancias GPS o retardo por sucursal, consulta al administrador.</span>
+              <div className="alert alert-info flex items-start gap-3" style={{ marginTop: 24, fontSize: '0.8rem', padding: '14px 18px', borderRadius: '12px' }}>
+                <HelpCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ lineHeight: 1.4 }}>Los horarios se aplican globalmente. Para ajustar tolerancias GPS o retardo por sucursal, consulta al administrador.</span>
               </div>
             </div>
 
             {/* Aplicación PWA & Estado */}
-            <div className="card animate-slide-up" style={{ animationDelay: '0.1s', borderRadius: '20px', padding: '24px' }}>
-              <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+            <div className="card animate-slide-up" style={{ animationDelay: '0.1s', borderRadius: '20px', padding: '28px' }}>
+              <h3 className="flex items-center gap-2.5" style={{ marginBottom: 24, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
                 <Smartphone size={20} color="#e11d48" />
                 <span>Aplicación Móvil PWA & Sistema</span>
               </h3>
-              <div className="alert alert-success flex items-center gap-2 mb-4" style={{ padding: '12px 14px' }}>
-                <CheckCircle2 size={16} />
-                <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>PWA instalada y lista para funcionar en segundo plano.</span>
+              <div className="alert alert-success flex items-center gap-3 mb-6" style={{ padding: '16px 18px', borderRadius: '12px' }}>
+                <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: '0.84rem', fontWeight: 700, lineHeight: 1.4 }}>PWA instalada y lista para funcionar en segundo plano.</span>
               </div>
 
-              <div className="p-4 rounded-xl mb-4" style={{ background: '#fdfbf7', border: '1px solid #f1ece1' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a', marginBottom: '8px' }}>
+              <div className="p-5 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1', padding: '20px 24px', borderRadius: '16px' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', marginBottom: '14px' }}>
                   Servicios del Sistema Vía Gourmet:
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {[
                     { label: 'Servidor Backend API', status: 'En Línea', ok: true },
                     { label: 'Base de Datos MySQL', status: 'Activa', ok: true },
@@ -225,8 +225,8 @@ export default function SettingsPage() {
                     { label: 'Push Notifications Móvil', status: 'Sincronizado', ok: true },
                   ].map(item => (
                     <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>{item.label}</span>
-                      <span className="badge badge-success" style={{ fontSize: '10px', padding: '2px 8px', fontWeight: 800 }}>
+                      <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>{item.label}</span>
+                      <span className="badge badge-success" style={{ fontSize: '10px', padding: '4px 10px', fontWeight: 800, borderRadius: '20px' }}>
                         {item.status}
                       </span>
                     </div>
