@@ -566,7 +566,8 @@ export default function ReportsPage() {
 
         {/* Tabs Toolbar with Explicit 32px Top Gap */}
         <div className="flex items-center justify-between flex-wrap gap-4" style={{ marginTop: 32, marginBottom: 24 }}>
-          <div className="flex gap-2 items-center flex-wrap">
+          {/* Left Column: Primary Tab Views */}
+          <div className="flex gap-2">
             <button
               id="tab-table"
               className={`btn ${activeTab === 'table' ? 'btn-primary' : 'btn-ghost'} flex items-center gap-2`}
@@ -583,31 +584,37 @@ export default function ReportsPage() {
               <BarChart3 size={16} />
               <span>Gráficas de Análisis</span>
             </button>
-
-            {!isMobile && activeTab === 'table' && filtered.length > 0 && (
-              <div className="reports-view-toggle" style={{ marginLeft: '8px' }}>
-                <button
-                  className={viewMode === 'table' ? 'active' : ''}
-                  onClick={() => setViewMode('table')}
-                  title="Vista de tabla clásica"
-                >
-                  <TableIcon size={14} />
-                  <span>Tabla General</span>
-                </button>
-                <button
-                  className={viewMode === 'sheets' ? 'active' : ''}
-                  onClick={() => setViewMode('sheets')}
-                  title="Vista de hojas deslizables por empleado"
-                >
-                  <Smartphone size={14} />
-                  <span>Hojas Móvil</span>
-                </button>
-              </div>
-            )}
           </div>
 
-          <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            Horas trabajadas en período: <strong style={{ color: '#60a5fa', fontSize: '1rem' }}>{totalHours.toFixed(1)}h</strong>
+          {/* Right Column: View Sub-mode Toggle & Stats Summary */}
+          <div className="flex items-center gap-5 flex-wrap">
+            {!isMobile && activeTab === 'table' && filtered.length > 0 && (
+              <div className="flex items-center gap-2" style={{ marginRight: 8 }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Vista:</span>
+                <div className="reports-view-toggle">
+                  <button
+                    className={viewMode === 'table' ? 'active' : ''}
+                    onClick={() => setViewMode('table')}
+                    title="Vista de tabla clásica"
+                  >
+                    <TableIcon size={14} />
+                    <span>Tabla General</span>
+                  </button>
+                  <button
+                    className={viewMode === 'sheets' ? 'active' : ''}
+                    onClick={() => setViewMode('sheets')}
+                    title="Vista de hojas deslizables por empleado"
+                  >
+                    <Smartphone size={14} />
+                    <span>Hojas por Empleado</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+              Horas trabajadas en período: <strong style={{ color: '#60a5fa', fontSize: '1rem' }}>{totalHours.toFixed(1)}h</strong>
+            </div>
           </div>
         </div>
 
