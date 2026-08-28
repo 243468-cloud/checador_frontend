@@ -22,6 +22,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Smartphone,
 } from 'lucide-react';
 
 const MONTHS = ['', 'Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -48,6 +49,10 @@ export default function ReportsPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
+
+  const [viewMode, setViewMode] = useState<'table' | 'sheets'>('table');
+  const [activeEmployeeIndex, setActiveEmployeeIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -103,10 +108,30 @@ export default function ReportsPage() {
       : periodFilteredRecords.filter(r => r.employeeId === Number(filterEmployee));
   }, [periodFilteredRecords, filterEmployee]);
 
-  // Reset to page 1 whenever filters change
+  // Grouped filtered records by employee for Option 2 (Mobile Sheets View)
+  const groupedByEmployee = useMemo(() => {
+    const map = new Map<number, { id: number; name: string; records: AttendanceRecord[] }>();
+    employees.forEach(emp => {
+      if (filterEmployee === 'ALL' || Number(filterEmployee) === emp.id) {
+        map.set(emp.id, { id: emp.id, name: emp.name, records: [] });
+      }
+    });
+    filtered.forEach(r => {
+      const group = map.get(r.employeeId);
+      if (group) {
+        group.records.push(r);
+      }
+    });
+    return Array.from(map.values())
+      .filter(g => g.records.length > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [filtered, employees, filterEmployee]);
+
+  // Reset active employee index and page 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [year, month, periodType, subPeriod, filterEmployee]);
+    setActiveEmployeeIndex(0);
+  }, [year, month, periodType, subPeriod, filterEmployee, groupedByEmployee]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginatedRecords = useMemo(() => {
@@ -372,7 +397,7 @@ export default function ReportsPage() {
 
         {/* Tabs Toolbar with Explicit 32px Top Gap */}
         <div className="flex items-center justify-between flex-wrap gap-4" style={{ marginTop: 32, marginBottom: 24 }}>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center flex-wrap">
             <button
               id="tab-table"
               className={`btn ${activeTab === 'table' ? 'btn-primary' : 'btn-ghost'} flex items-center gap-2`}
@@ -389,6 +414,27 @@ export default function ReportsPage() {
               <BarChart3 size={16} />
               <span>Gráficas de Análisis</span>
             </button>
+
+            {activeTab === 'table' && filtered.length > 0 && (
+              <div className="reports-view-toggle" style={{ marginLeft: '8px' }}>
+                <button
+                  className={viewMode === 'table' ? 'active' : ''}
+                  onClick={() => setViewMode('table')}
+                  title="Vista de tabla clásica"
+                >
+                  <TableIcon size={14} />
+                  <span>Tabla General</span>
+                </button>
+                <button
+                  className={viewMode === 'sheets' ? 'active' : ''}
+                  onClick={() => setViewMode('sheets')}
+                  title="Vista de hojas deslizables por empleado"
+                >
+                  <Smartphone size={14} />
+                  <span>Hojas Móvil</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
@@ -399,16 +445,18 @@ export default function ReportsPage() {
         {loading ? (
           <div className="card"><div className="spinner" style={{ margin: '40px auto' }} /></div>
         ) : activeTab === 'table' ? (
-          /* Table View */
-          <div className="card">
-            {filtered.length === 0 ? (
+          /* Table or Sheets View */
+          filtered.length === 0 ? (
+            <div className="card">
               <div className="empty-state">
                 <div className="empty-state-icon"><BarChart3 size={40} /></div>
                 <p>No se encontraron registros para este período</p>
               </div>
-            ) : (
-              <>
-                <div className="table-wrapper">
+            </div>
+          ) : viewMode === 'table' ? (
+            /* Traditional Table View */
+            <div className="card">
+              <div className="table-wrapper">
                 <table>
                   <thead>
                     <tr>
@@ -469,57 +517,214 @@ export default function ReportsPage() {
                   marginTop: '16px',
                 }}
               >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>Filas por página:</span>
-                    <select
-                      className="form-select"
-                      value={pageSize}
-                      onChange={e => {
-                        setPageSize(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }}
-                    >
-                      <option value={10}>10</option>
-                      <option value={15}>15</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                    </select>
-                    <span style={{ marginLeft: 8 }}>
-                      Mostrando {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} registros
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <ChevronLeft size={16} />
-                      <span>Anterior</span>
-                    </button>
-
-                    <span style={{ fontWeight: 700, padding: '0 8px' }}>
-                      Página {currentPage} de {totalPages}
-                    </span>
-
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage >= totalPages}
-                      style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <span>Siguiente</span>
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Filas por página:</span>
+                  <select
+                    className="form-select"
+                    value={pageSize}
+                    onChange={e => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }}
+                  >
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span style={{ marginLeft: 8 }}>
+                    Mostrando {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} registros
+                  </span>
                 </div>
-              </>
-            )}
-          </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Anterior</span>
+                  </button>
+
+                  <span style={{ fontWeight: 700, padding: '0 8px' }}>
+                    Página {currentPage} de {totalPages}
+                  </span>
+
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages}
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <span>Siguiente</span>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Option 2: Mobile Sheets View with Swipe Navigation */
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Employee Top Horizontal TabBar */}
+              <div className="employee-tab-bar">
+                {groupedByEmployee.map((g, index) => (
+                  <button
+                    key={g.id}
+                    className={`employee-tab-item ${activeEmployeeIndex === index ? 'active' : ''}`}
+                    onClick={() => setActiveEmployeeIndex(index)}
+                  >
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Employee Sheet Card with Swipe Handlers */}
+              {groupedByEmployee[activeEmployeeIndex] && (() => {
+                const group = groupedByEmployee[activeEmployeeIndex];
+                const gTotal = group.records.length;
+                const gOnTime = group.records.filter(r => r.status === 'ON_TIME').length;
+                const gLate = group.records.filter(r => r.status === 'LATE').length;
+                const gAbsent = group.records.filter(r => r.status === 'ABSENT').length;
+                const gPunct = gTotal > 0 ? Math.round((gOnTime / gTotal) * 100) : 0;
+                const gHours = group.records.reduce((sum, r) => sum + (r.hoursWorked || 0), 0);
+
+                const handleTouchStartLocal = (e: React.TouchEvent) => {
+                  setTouchStart(e.targetTouches[0].clientX);
+                };
+
+                const handleTouchEndLocal = (e: React.TouchEvent) => {
+                  if (touchStart === null) return;
+                  const touchEnd = e.changedTouches[0].clientX;
+                  const diff = touchStart - touchEnd;
+                  if (diff > 60) {
+                    // Swiped left -> Next employee
+                    if (activeEmployeeIndex < groupedByEmployee.length - 1) {
+                      setActiveEmployeeIndex(activeEmployeeIndex + 1);
+                    }
+                  } else if (diff < -60) {
+                    // Swiped right -> Previous employee
+                    if (activeEmployeeIndex > 0) {
+                      setActiveEmployeeIndex(activeEmployeeIndex - 1);
+                    }
+                  }
+                  setTouchStart(null);
+                };
+
+                return (
+                  <div
+                    className="employee-sheet-card animate-slide-up"
+                    onTouchStart={handleTouchStartLocal}
+                    onTouchEnd={handleTouchEndLocal}
+                  >
+                    {/* Header */}
+                    <div className="employee-sheet-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: 44, height: 44,
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 14, fontWeight: 800, color: '#fff'
+                        }}>
+                          {group.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>{group.name}</h2>
+                          <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0 }}>Hoja {activeEmployeeIndex + 1} de {groupedByEmployee.length}</p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => activeEmployeeIndex > 0 && setActiveEmployeeIndex(activeEmployeeIndex - 1)}
+                          disabled={activeEmployeeIndex === 0}
+                          style={{ padding: '6px' }}
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => activeEmployeeIndex < groupedByEmployee.length - 1 && setActiveEmployeeIndex(activeEmployeeIndex + 1)}
+                          disabled={activeEmployeeIndex === groupedByEmployee.length - 1}
+                          style={{ padding: '6px' }}
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="employee-sheet-stats">
+                      <div className="employee-sheet-stat-box">
+                        <div className="employee-sheet-stat-value" style={{ color: '#10b981' }}>{gPunct}%</div>
+                        <div className="employee-sheet-stat-label">Puntualidad</div>
+                      </div>
+                      <div className="employee-sheet-stat-box">
+                        <div className="employee-sheet-stat-value" style={{ color: '#3b82f6' }}>{gHours.toFixed(1)}h</div>
+                        <div className="employee-sheet-stat-label">Total Horas</div>
+                      </div>
+                      <div className="employee-sheet-stat-box">
+                        <div className="employee-sheet-stat-value" style={{ color: '#f59e0b' }}>{gLate}</div>
+                        <div className="employee-sheet-stat-label">Retardos</div>
+                      </div>
+                      <div className="employee-sheet-stat-box">
+                        <div className="employee-sheet-stat-value" style={{ color: '#ef4444' }}>{gAbsent}</div>
+                        <div className="employee-sheet-stat-label">Faltas</div>
+                      </div>
+                    </div>
+
+                    {/* Daily Detail List */}
+                    <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 800, marginBottom: 12 }}>Desglose de Asistencias</h4>
+                    <div className="table-wrapper" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                      <table style={{ minWidth: '600px' }}>
+                        <thead>
+                          <tr>
+                            <th>Fecha</th>
+                            <th>Turno</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Estado</th>
+                            <th>Tardanza</th>
+                            <th>Horas</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.records.map(rec => (
+                            <tr key={rec.id}>
+                              <td style={{ fontWeight: 600 }}>
+                                {new Date(rec.date).toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit', month: 'short' })}
+                              </td>
+                              <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{rec.shift ? SHIFT_LABELS[rec.shift] || rec.shift : '—'}</td>
+                              <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(rec.checkIn)}</td>
+                              <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(rec.checkOut)}</td>
+                              <td>
+                                <span className={`badge ${statusClass[rec.status] || 'badge-muted'}`}>
+                                  {STATUS_LABELS[rec.status] || rec.status}
+                                </span>
+                              </td>
+                              <td>{rec.lateMinutes > 0 ? <span style={{ color: '#d97706', fontWeight: 600 }}>+{rec.lateMinutes} min</span> : '—'}</td>
+                              <td style={{ fontWeight: 600 }}>{rec.hoursWorked !== null ? `${rec.hoursWorked.toFixed(1)}h` : '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Instructions */}
+                    <div className="slide-instruction">
+                      <Smartphone size={14} />
+                      <span>Desliza la tarjeta a la izquierda o derecha para ver otro empleado</span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )
         ) : (
           /* Responsive Charts View */
           <div className="grid-2 gap-6">
