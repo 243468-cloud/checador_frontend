@@ -1411,68 +1411,83 @@ export default function SchedulesPage() {
         {/* BALANCE GENERAL Y CONTROL DE HORAS EXTRA (CHECKOUT) - Solo ADMIN y SUPERUSER */}
         {/* ----------------------------------------------------------------- */}
         {!isReadOnly && (
-          <div className="card mb-8 animate-slide-up" style={{ borderRadius: 20, padding: 24 }}>
-            <div className="flex items-center justify-between pb-4 mb-6" style={{ borderBottom: '1px solid #e2e8f0' }}>
+          <div className="card mb-8 animate-slide-up" style={{ borderRadius: 24, padding: '28px 24px', background: '#ffffff', border: '1px solid rgba(234, 88, 12, 0.2)', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
+            <div className="flex items-center justify-between pb-4 mb-6" style={{ borderBottom: '1px solid #f1f5f9' }}>
               <div className="flex items-center gap-3">
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#ffe4e6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Scale size={20} color="#e11d48" />
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#ffe4e6', border: '1px solid #fecdd3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Scale size={22} color="#e11d48" />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>Balance General: Empleado vs. Horarios y Horas Extra</h3>
-                  <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Desglose de horas programadas, horas reales trabajadas y horas extra tras check-out</p>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>Balance General: Empleado vs. Horarios y Horas Extra</h3>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>Desglose de horas programadas, horas reales trabajadas y horas extra tras check-out</p>
                 </div>
               </div>
-              <span className="badge" style={{ background: '#ffe4e6', color: '#e11d48', border: '1px solid #fecdd3', fontWeight: 800, padding: '5px 12px', fontSize: '0.78rem' }}>
-                <Timer size={13} style={{ marginRight: 4 }} />
+              <span className="badge" style={{ background: '#ffe4e6', color: '#e11d48', border: '1px solid #fecdd3', fontWeight: 800, padding: '6px 14px', fontSize: '0.8rem', borderRadius: 20 }}>
+                <Timer size={14} style={{ marginRight: 4 }} />
                 {totalOvertimeHours}h Extra Totales
               </span>
             </div>
 
-            {/* KPI Row for Balance (Rounded & Spacious) */}
-            <div className="grid-3 gap-4 mb-8">
-              <div className="p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #fff1f2, #ffe4e6)', border: '1px solid #fecdd3', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.05)', borderRadius: 16 }}>
-                <div style={{ fontSize: '0.72rem', color: '#9f1239', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 4 }}>Total Horas Extra Registradas</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#e11d48' }}>+{totalOvertimeHours}h extra</div>
+            {/* KPI Row for Balance (Ultra-Aesthetic & Explicit 36px Bottom Spacing) */}
+            <div className="grid-3 gap-5" style={{ marginBottom: 36, marginTop: 12 }}>
+              <div className="flex items-center gap-4 p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ffffff, #fff1f2)', border: '1px solid #fecdd3', boxShadow: '0 4px 16px rgba(225, 29, 72, 0.08)', borderRadius: 18, padding: '16px 20px' }}>
+                <div style={{ width: 46, height: 46, borderRadius: 14, background: '#ffe4e6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Timer size={22} color="#e11d48" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#9f1239', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 2 }}>Horas Extra Registradas</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#e11d48', lineHeight: 1 }}>+{totalOvertimeHours}h extra</div>
+                </div>
               </div>
 
-              <div className="p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', border: '1px solid #fde68a', boxShadow: '0 4px 12px rgba(217, 119, 6, 0.05)', borderRadius: 16 }}>
-                <div style={{ fontSize: '0.72rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 4 }}>Turnos Dobles Detectados</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#d97706' }}>{totalDoubleShifts} dobles</div>
+              <div className="flex items-center gap-4 p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ffffff, #fffbeb)', border: '1px solid #fde68a', boxShadow: '0 4px 16px rgba(217, 119, 6, 0.08)', borderRadius: 18, padding: '16px 20px' }}>
+                <div style={{ width: 46, height: 46, borderRadius: 14, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Zap size={22} color="#d97706" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 2 }}>Turnos Dobles Detectados</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#d97706', lineHeight: 1 }}>{totalDoubleShifts} dobles</div>
+                </div>
               </div>
 
-              <div className="p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(5, 150, 105, 0.05)', borderRadius: 16 }}>
-                <div style={{ fontSize: '0.72rem', color: '#065f46', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 4 }}>Total Descansos Programados</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#059669' }}>{totalRestDays} descansos</div>
+              <div className="flex items-center gap-4 p-4.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ffffff, #ecfdf5)', border: '1px solid #a7f3d0', boxShadow: '0 4px 16px rgba(5, 150, 105, 0.08)', borderRadius: 18, padding: '16px 20px' }}>
+                <div style={{ width: 46, height: 46, borderRadius: 14, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <CheckCircle2 size={22} color="#059669" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#065f46', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 2 }}>Descansos Programados</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', lineHeight: 1 }}>{totalRestDays} descansos</div>
+                </div>
               </div>
             </div>
 
-            {/* Balance Table with Overtime column */}
-            <div className="table-wrapper mt-6" style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)' }}>
+            {/* Balance Table with Overtime column & Explicit 32px Top Spacing */}
+            <div className="table-wrapper" style={{ marginTop: 32, borderRadius: 18, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.05)' }}>
               <table>
                 <thead>
-                  <tr style={{ background: '#0f172a', color: '#ffffff' }}>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Empleado</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Área Principal</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Días Trab.</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Descansos</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Horas Programadas</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Horas Reales Trab.</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Horas Extra (Checkout)</th>
-                    <th style={{ padding: '12px 16px', color: '#fff', fontSize: '0.78rem', fontWeight: 800 }}>Balance Carga</th>
+                  <tr style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#ffffff' }}>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Empleado</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Área Principal</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Días Trab.</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Descansos</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Horas Programadas</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Horas Reales Trab.</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Horas Extra (Checkout)</th>
+                    <th style={{ padding: '14px 18px', color: '#fff', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.5px' }}>Balance Carga</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employeeBalances.map(b => (
                     <tr key={b.name} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ fontWeight: 800, color: '#0f172a', padding: '12px 16px' }}>{b.name}</td>
-                      <td style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 600, padding: '12px 16px' }}>{b.primaryArea}</td>
-                      <td style={{ fontWeight: 700, color: '#0f172a', padding: '12px 16px' }}>{b.workDays} días</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ fontWeight: 800, color: '#0f172a', padding: '14px 18px' }}>{b.name}</td>
+                      <td style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600, padding: '14px 18px' }}>{b.primaryArea}</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a', padding: '14px 18px' }}>{b.workDays} días</td>
+                      <td style={{ padding: '14px 18px' }}>
                         <span style={{ color: '#059669', fontWeight: 700 }}>{b.restDays} días</span>
                       </td>
-                      <td style={{ fontWeight: 800, color: '#e11d48', padding: '12px 16px' }}>{b.totalScheduledHours}h</td>
-                      <td style={{ fontWeight: 700, color: '#0f172a', padding: '12px 16px' }}>{b.actualWorkedHours}h</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ fontWeight: 800, color: '#e11d48', padding: '14px 18px' }}>{b.totalScheduledHours}h</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a', padding: '14px 18px' }}>{b.actualWorkedHours}h</td>
+                      <td style={{ padding: '14px 18px' }}>
                         {b.overtimeHours > 0 ? (
                           <span
                             style={{
@@ -1480,7 +1495,7 @@ export default function SchedulesPage() {
                               border: '1px solid #e9d5ff',
                               color: '#7e22ce',
                               fontWeight: 800,
-                              padding: '4px 12px',
+                              padding: '5px 12px',
                               borderRadius: 14,
                               fontSize: '0.78rem',
                               display: 'inline-flex',
@@ -1488,14 +1503,14 @@ export default function SchedulesPage() {
                               gap: 4,
                             }}
                           >
-                            <Timer size={12} />
+                            <Timer size={13} />
                             +{b.overtimeHours}h extra
                           </span>
                         ) : (
                           <span style={{ color: '#94a3b8' }}>0.0h</span>
                         )}
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ padding: '14px 18px' }}>
                         {b.statusBalance === 'ELEVADO' ? (
                           <span className="badge badge-warning flex items-center gap-1" style={{ width: 'fit-content' }}>
                             <AlertTriangle size={12} /> Carga Elevada
