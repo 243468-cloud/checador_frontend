@@ -65,7 +65,7 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
         style={{
           display: 'flex',
           alignItems: 'center',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           background: isLocationValid === false
             ? 'linear-gradient(90deg, #991b1b, #ef4444)'
             : 'linear-gradient(90deg, #064e3b, #10b981)',
@@ -114,7 +114,7 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justify: 'center',
+            justifyContent: 'center',
             background: 'rgba(15, 23, 42, 0.85)',
             backdropFilter: 'blur(12px)',
             borderRadius: '16px',
