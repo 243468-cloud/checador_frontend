@@ -25,7 +25,7 @@ export default function AttendancePage() {
   const { user } = useAuth();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState('ALL');
 
   // Edit Modal State for Admin/Superadmin
