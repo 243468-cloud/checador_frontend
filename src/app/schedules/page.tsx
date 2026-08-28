@@ -1517,7 +1517,7 @@ export default function SchedulesPage() {
         )}
 
         {/* ----------------------------------------------------------------- */}
-        {/* MODAL 1: EDICIÓN INDIVIDUAL DE CELDA */}
+        {/* MODAL 1: EDICIÓN INDIVIDUAL DE CELDA (TEMA LIGHT VÍA GOURMET) */}
         {/* ----------------------------------------------------------------- */}
         {editModal && (
           <div
@@ -1526,8 +1526,8 @@ export default function SchedulesPage() {
               position: 'fixed',
               inset: 0,
               zIndex: 9999,
-              background: 'rgba(15, 23, 42, 0.85)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(6px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1542,28 +1542,28 @@ export default function SchedulesPage() {
                 maxWidth: 520,
                 maxHeight: '90vh',
                 overflowY: 'auto',
-                background: '#0f172a',
-                border: '1px solid rgba(234, 88, 12, 0.35)',
+                background: '#ffffff',
+                border: '1px solid rgba(234, 88, 12, 0.25)',
                 borderRadius: 20,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 30px rgba(234, 88, 12, 0.15)',
+                boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 0 24px rgba(234, 88, 12, 0.08)',
                 padding: '24px',
-                color: '#f8fafc',
+                color: '#0f172a',
               }}
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', marginBottom: 6 }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>
                     Edición de Casilla — {editModal.area}
                   </h3>
                   <div className="flex items-center gap-2 flex-wrap">
                     {editModal.shiftTime && (
-                      <span className="badge" style={{ background: 'rgba(2, 132, 199, 0.2)', color: '#38bdf8', border: '1px solid rgba(2, 132, 199, 0.4)', fontWeight: 800, fontSize: '0.72rem', padding: '3px 9px' }}>
+                      <span className="badge" style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 800, fontSize: '0.72rem', padding: '4px 10px' }}>
                         {editModal.shiftTime}
                       </span>
                     )}
-                    <span className="badge" style={{ background: 'rgba(234, 88, 12, 0.2)', color: '#f97316', border: '1px solid rgba(234, 88, 12, 0.4)', fontWeight: 800, fontSize: '0.72rem', padding: '3px 9px' }}>
+                    <span className="badge" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', fontWeight: 800, fontSize: '0.72rem', padding: '4px 10px' }}>
                       Día: {editModal.dayLabel}
                     </span>
                   </div>
@@ -1571,7 +1571,7 @@ export default function SchedulesPage() {
                 <button
                   type="button"
                   className="btn btn-ghost btn-icon"
-                  style={{ borderRadius: '50%', width: 32, height: 32, color: '#94a3b8' }}
+                  style={{ borderRadius: '50%', width: 34, height: 34, background: '#f1f5f9', color: '#64748b' }}
                   onClick={() => setEditModal(null)}
                 >
                   <X size={18} />
@@ -1581,7 +1581,7 @@ export default function SchedulesPage() {
               {/* SECTION 1: ASSIGNED EMPLOYEES */}
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-2.5">
-                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Empleados Asignados en este Turno:
                   </label>
                   {(() => {
@@ -1591,7 +1591,7 @@ export default function SchedulesPage() {
                       return (
                         <button
                           className="btn btn-ghost btn-sm flex items-center gap-1"
-                          style={{ fontSize: '0.72rem', color: '#f43f5e', padding: '2px 8px', borderRadius: 6 }}
+                          style={{ fontSize: '0.72rem', color: '#e11d48', background: '#ffe4e6', padding: '3px 10px', borderRadius: 8, fontWeight: 700 }}
                           onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
                         >
                           <Trash2 size={12} /> Limpiar Celda
@@ -1607,23 +1607,23 @@ export default function SchedulesPage() {
                   const currentItems = targetRow?.employees[editModal.dayIndex] || [];
                   if (currentItems.length === 0) {
                     return (
-                      <div className="p-4 text-center rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px dashed rgba(255, 255, 255, 0.12)' }}>
-                        <span style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>Celda vacía. Selecciona un empleado abajo para asignarlo.</span>
+                      <div className="p-4 text-center rounded-xl" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
+                        <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>Celda vacía. Selecciona un empleado abajo para asignarlo.</span>
                       </div>
                     );
                   }
                   return (
                     <div className="flex flex-col gap-2.5">
                       {currentItems.map((item, idx) => {
-                        const st = getBadgeStyle(item.type);
                         const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
                         return (
                           <div
                             key={idx}
-                            className="p-3 rounded-xl flex flex-col gap-2.5"
+                            className="p-3.5 rounded-xl flex flex-col gap-3"
                             style={{
-                              background: 'rgba(30, 41, 59, 0.7)',
-                              border: `1px solid ${item.type !== 'NORMAL' ? st.bg : 'rgba(255,255,255,0.1)'}`,
+                              background: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                             }}
                           >
                             {/* Top Row: Avatar + Name + Trash Button */}
@@ -1631,22 +1631,22 @@ export default function SchedulesPage() {
                               <div className="flex items-center gap-2.5">
                                 <div
                                   style={{
-                                    width: 32,
-                                    height: 32,
+                                    width: 34,
+                                    height: 34,
                                     borderRadius: '50%',
                                     background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                                     color: '#ffffff',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.82rem',
                                     fontWeight: 800,
                                     flexShrink: 0,
                                   }}
                                 >
                                   {initials}
                                 </div>
-                                <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#ffffff' }}>
+                                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
                                   {item.text}
                                 </span>
                               </div>
@@ -1655,15 +1655,15 @@ export default function SchedulesPage() {
                                 type="button"
                                 onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
                                 style={{
-                                  background: 'rgba(244, 63, 94, 0.15)',
-                                  border: '1px solid rgba(244, 63, 94, 0.3)',
+                                  background: '#ffe4e6',
+                                  border: '1px solid #fecdd3',
                                   borderRadius: 8,
-                                  padding: '4px 10px',
+                                  padding: '5px 12px',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 4,
-                                  color: '#f43f5e',
-                                  fontSize: '0.72rem',
+                                  gap: 5,
+                                  color: '#e11d48',
+                                  fontSize: '0.75rem',
                                   fontWeight: 700,
                                   cursor: 'pointer',
                                 }}
@@ -1674,16 +1674,17 @@ export default function SchedulesPage() {
                               </button>
                             </div>
 
-                            {/* Bottom Row: Segmented Status Switcher */}
-                            <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            {/* Bottom Row: Segmented Status Switcher Track */}
+                            <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
                               <button
                                 type="button"
                                 style={{
-                                  background: item.type === 'NORMAL' ? '#ea580c' : 'transparent',
-                                  color: item.type === 'NORMAL' ? '#ffffff' : '#94a3b8',
+                                  background: item.type === 'NORMAL' ? '#ffffff' : 'transparent',
+                                  color: item.type === 'NORMAL' ? '#0f172a' : '#64748b',
+                                  boxShadow: item.type === 'NORMAL' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                                   border: 'none',
                                   borderRadius: 6,
-                                  fontSize: '0.72rem',
+                                  fontSize: '0.74rem',
                                   fontWeight: 800,
                                   padding: '6px 4px',
                                   textAlign: 'center',
@@ -1699,10 +1700,10 @@ export default function SchedulesPage() {
                                 type="button"
                                 style={{
                                   background: item.type === 'DESCANSO' ? '#10b981' : 'transparent',
-                                  color: item.type === 'DESCANSO' ? '#ffffff' : '#94a3b8',
+                                  color: item.type === 'DESCANSO' ? '#ffffff' : '#64748b',
                                   border: 'none',
                                   borderRadius: 6,
-                                  fontSize: '0.72rem',
+                                  fontSize: '0.74rem',
                                   fontWeight: 800,
                                   padding: '6px 4px',
                                   textAlign: 'center',
@@ -1718,10 +1719,10 @@ export default function SchedulesPage() {
                                 type="button"
                                 style={{
                                   background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
-                                  color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#94a3b8',
+                                  color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#64748b',
                                   border: 'none',
                                   borderRadius: 6,
-                                  fontSize: '0.72rem',
+                                  fontSize: '0.74rem',
                                   fontWeight: 800,
                                   padding: '6px 4px',
                                   textAlign: 'center',
@@ -1736,11 +1737,11 @@ export default function SchedulesPage() {
                               <button
                                 type="button"
                                 style={{
-                                  background: item.type === 'DOBLE_TURNO' ? '#eab308' : 'transparent',
-                                  color: item.type === 'DOBLE_TURNO' ? '#000000' : '#94a3b8',
+                                  background: item.type === 'DOBLE_TURNO' ? '#ea580c' : 'transparent',
+                                  color: item.type === 'DOBLE_TURNO' ? '#ffffff' : '#64748b',
                                   border: 'none',
                                   borderRadius: 6,
-                                  fontSize: '0.72rem',
+                                  fontSize: '0.74rem',
                                   fontWeight: 800,
                                   padding: '6px 4px',
                                   textAlign: 'center',
@@ -1760,9 +1761,9 @@ export default function SchedulesPage() {
                 })()}
               </div>
 
-              {/* SECTION 2: ADD EMPLOYEE CHIPS (DEDUPLICATED & THEMED) */}
-              <div className="mb-5" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 14 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
+              {/* SECTION 2: ADD EMPLOYEE CHIPS */}
+              <div className="mb-5" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
                   + Agregar Empleado a este Turno:
                 </label>
                 <div className="flex gap-2 flex-wrap">
@@ -1772,17 +1773,17 @@ export default function SchedulesPage() {
                       type="button"
                       className="btn flex items-center gap-1.5 hover:scale-[1.03] transition-all"
                       style={{
-                        background: 'rgba(234, 88, 12, 0.1)',
-                        border: '1px solid rgba(234, 88, 12, 0.3)',
-                        color: '#f97316',
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        color: '#334155',
                         fontSize: '0.78rem',
-                        fontWeight: 800,
+                        fontWeight: 700,
                         padding: '6px 14px',
                         borderRadius: 20,
                       }}
                       onClick={() => quickAddCell(name, 'NORMAL')}
                     >
-                      <UserPlus size={13} color="#f97316" />
+                      <UserPlus size={13} color="#ea580c" />
                       <span>{name}</span>
                     </button>
                   ))}
@@ -1791,7 +1792,7 @@ export default function SchedulesPage() {
 
               {/* SECTION 3: STANDALONE CONVENTION STATUS CHIPS */}
               <div className="mb-5">
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
                   + O Agregar Etiqueta de Estado Especial:
                 </label>
 
@@ -1800,12 +1801,12 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'rgba(16, 185, 129, 0.12)',
-                      border: '1px solid rgba(16, 185, 129, 0.4)',
-                      color: '#34d399',
+                      background: '#ecfdf5',
+                      border: '1px solid #a7f3d0',
+                      color: '#047857',
                       fontWeight: 800,
                       fontSize: '0.8rem',
-                      padding: '8px 12px',
+                      padding: '9px 12px',
                       borderRadius: 10,
                     }}
                     onClick={() => quickAddCell('DESCANSO', 'DESCANSO')}
@@ -1818,12 +1819,12 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'rgba(2, 132, 199, 0.12)',
-                      border: '1px solid rgba(2, 132, 199, 0.4)',
-                      color: '#38bdf8',
+                      background: '#f0f9ff',
+                      border: '1px solid #bae6fd',
+                      color: '#0369a1',
                       fontWeight: 800,
                       fontSize: '0.8rem',
-                      padding: '8px 12px',
+                      padding: '9px 12px',
                       borderRadius: 10,
                     }}
                     onClick={() => quickAddCell('CAMBIO TURNO', 'CAMBIO_TURNO')}
@@ -1836,12 +1837,12 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'rgba(234, 179, 8, 0.12)',
-                      border: '1px solid rgba(234, 179, 8, 0.4)',
-                      color: '#fbbf24',
+                      background: '#fffbeb',
+                      border: '1px solid #fef08a',
+                      color: '#b45309',
                       fontWeight: 800,
                       fontSize: '0.8rem',
-                      padding: '8px 12px',
+                      padding: '9px 12px',
                       borderRadius: 10,
                     }}
                     onClick={() => quickAddCell('DOBLE TURNO', 'DOBLE_TURNO')}
@@ -1854,12 +1855,12 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'rgba(249, 115, 22, 0.12)',
-                      border: '1px solid rgba(249, 115, 22, 0.4)',
-                      color: '#fb923c',
+                      background: '#fff7ed',
+                      border: '1px solid #ffedd5',
+                      color: '#c2410c',
                       fontWeight: 800,
                       fontSize: '0.8rem',
-                      padding: '8px 12px',
+                      padding: '9px 12px',
                       borderRadius: 10,
                     }}
                     onClick={() => quickAddCell('CAMBIO AREA', 'CAMBIO_AREA')}
@@ -1871,8 +1872,8 @@ export default function SchedulesPage() {
               </div>
 
               {/* SECTION 4: OPTIONAL CUSTOM NOTE INPUT */}
-              <div className="mb-5" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 14 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'block' }}>
+              <div className="mb-5" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'block' }}>
                   Nota o Horario Especial (Opcional)
                 </label>
                 <div className="flex gap-2">
@@ -1882,7 +1883,7 @@ export default function SchedulesPage() {
                     placeholder="Ej. HIBERT 6PM, C-11-5, 8AM-6PM"
                     value={customInput}
                     onChange={e => setCustomInput(e.target.value)}
-                    style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(255,255,255,0.12)' }}
+                    style={{ background: '#ffffff', borderColor: '#cbd5e1', color: '#0f172a' }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' && customInput.trim()) {
                         quickAddCell(customInput, 'NORMAL');
