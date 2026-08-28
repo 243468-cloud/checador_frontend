@@ -154,15 +154,15 @@ export default function EmployeesPage() {
                   }}>
                     {initials(emp.fullName)}
                   </div>
-                  <div className="flex gap-2.5">
+                  <div style={{ display: 'flex', gap: '12px' }}>
                     <button
                       id={`btn-edit-${emp.id}`}
                       className="btn"
                       onClick={() => openEdit(emp)}
                       title="Editar"
                       style={{
-                        width: 32,
-                        height: 32,
+                        width: 38,
+                        height: 38,
                         padding: 0,
                         borderRadius: '50%',
                         background: '#f8fafc',
@@ -171,38 +171,18 @@ export default function EmployeesPage() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                         transition: 'all 0.2s ease',
                       }}
-                    ><Edit2 size={13} /></button>
-                    <button
-                      id={`btn-toggle-${emp.id}`}
-                      className="btn"
-                      onClick={() => toggleActive(emp)}
-                      title={emp.active ? 'Desactivar' : 'Activar'}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        padding: 0,
-                        borderRadius: '50%',
-                        background: emp.active ? '#f8fafc' : '#d1fae5',
-                        border: emp.active ? '1px solid #e2e8f0' : '1px solid #a7f3d0',
-                        color: emp.active ? '#64748b' : '#059669',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
-                        transition: 'all 0.2s ease',
-                      }}
-                    >{emp.active ? <Ban size={13} /> : <Check size={13} />}</button>
+                    ><Edit2 size={15} /></button>
                     <button
                       id={`btn-delete-${emp.id}`}
                       className="btn"
                       onClick={() => handleDeleteEmployee(emp)}
                       title="Eliminar empleado"
                       style={{
-                        width: 32,
-                        height: 32,
+                        width: 38,
+                        height: 38,
                         padding: 0,
                         borderRadius: '50%',
                         background: '#fee2e2',
@@ -211,10 +191,10 @@ export default function EmployeesPage() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                         transition: 'all 0.2s ease',
                       }}
-                    ><Trash2 size={13} /></button>
+                    ><Trash2 size={15} /></button>
                   </div>
                 </div>
 
