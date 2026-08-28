@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { attendanceApi, AttendanceRecord, STATUS_LABELS, SHIFT_LABELS } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/Sidebar';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -18,6 +19,7 @@ import {
   BarChart3,
   Calendar,
   Filter,
+  Trash2,
 } from 'lucide-react';
 
 const MONTHS = ['', 'Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -26,6 +28,9 @@ const MONTHS = ['', 'Enero','Febrero','Marzo','Abril','Mayo','Junio',
 type PeriodType = 'MONTHLY' | 'BIWEEKLY' | 'WEEKLY';
 
 export default function ReportsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'SUPERUSER' || user?.role === 'ADMIN';
+
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -47,6 +52,16 @@ export default function ReportsPage() {
   };
 
   useEffect(() => { load(); }, [year, month]);
+
+  const handleDeleteRecord = async (id: number, name: string) => {
+    if (!confirm(`¿Estás seguro de eliminar el registro de asistencia de "${name}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await attendanceApi.delete(id);
+      load();
+    } catch (err: unknown) {
+      alert('Error al eliminar registro: ' + (err instanceof Error ? err.message : 'Error'));
+    }
+  };
 
   // Filter records by sub-period (Weekly / Biweekly / Monthly)
   const periodFilteredRecords = useMemo(() => {
@@ -360,6 +375,7 @@ export default function ReportsPage() {
                       <th>Estado</th>
                       <th>Tardanza</th>
                       <th>Horas</th>
+                      {isAdmin && <th>Acción</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -375,6 +391,19 @@ export default function ReportsPage() {
                         <td><span className={`badge ${statusClass[rec.status] || 'badge-muted'}`}>{STATUS_LABELS[rec.status] || rec.status}</span></td>
                         <td>{rec.lateMinutes > 0 ? <span style={{ color: '#fbbf24', fontWeight: 600 }}>+{rec.lateMinutes} min</span> : '—'}</td>
                         <td style={{ fontWeight: 600 }}>{rec.hoursWorked > 0 ? `${rec.hoursWorked.toFixed(1)}h` : '—'}</td>
+                        {isAdmin && (
+                          <td>
+                            <button
+                              className="btn btn-ghost btn-sm flex items-center gap-1"
+                              onClick={() => handleDeleteRecord(rec.id, rec.employeeName)}
+                              style={{ color: '#ef4444', fontSize: '0.78rem' }}
+                              title="Eliminar este registro de asistencia"
+                            >
+                              <Trash2 size={14} />
+                              <span>Eliminar</span>
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
