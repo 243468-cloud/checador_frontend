@@ -220,22 +220,22 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Filter Toolbar Card (Spacious & Clean Rounded Layout) */}
-        <div className="card mb-7 animate-slide-up" style={{ padding: '24px', borderRadius: 20, background: '#ffffff', border: '1px solid rgba(234, 88, 12, 0.2)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.03)' }}>
-          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Filter size={18} />
+        {/* Filter Toolbar Card */}
+        <div className="card mb-6 animate-slide-up" style={{ padding: '20px 24px', borderRadius: 16, background: '#ffffff', border: '1px solid rgba(225, 29, 72, 0.18)', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)' }}>
+          <div className="flex items-center gap-2.5 mb-4 pb-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Filter size={16} />
             </div>
             <div>
-              <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px' }}>Filtros de Período</span>
-              <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>Selecciona la quincena, mes o empleado a auditar</p>
+              <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Filtros de Período</span>
+              <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>Selecciona el rango o empleado para filtrar los reportes</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style={{ alignItems: 'flex-end' }}>
+          <div className="reports-filter-grid">
             {/* Period Type */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo de Reporte</label>
+              <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo de Reporte</label>
               <select
                 className="form-select"
                 value={periodType}
@@ -243,7 +243,7 @@ export default function ReportsPage() {
                   setPeriodType(e.target.value as PeriodType);
                   setSubPeriod(1);
                 }}
-                style={{ height: 42, borderRadius: 10 }}
+                style={{ height: 40, borderRadius: 8 }}
               >
                 <option value="MONTHLY">Mensual (Mes Completo)</option>
                 <option value="BIWEEKLY">Quincenal (15 Días)</option>
@@ -254,14 +254,14 @@ export default function ReportsPage() {
             {/* Sub Period Selection (Only for Biweekly / Weekly) */}
             {periodType !== 'MONTHLY' && (
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {periodType === 'BIWEEKLY' ? 'Quincena' : 'Semana'}
                 </label>
                 <select
                   className="form-select"
                   value={subPeriod}
                   onChange={e => setSubPeriod(Number(e.target.value))}
-                  style={{ height: 42, borderRadius: 10 }}
+                  style={{ height: 40, borderRadius: 8 }}
                 >
                   {periodType === 'BIWEEKLY' ? (
                     <>
@@ -282,24 +282,24 @@ export default function ReportsPage() {
 
             {/* Year */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Año</label>
-              <select className="form-select" value={year} onChange={e => setYear(Number(e.target.value))} style={{ height: 42, borderRadius: 10 }}>
+              <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Año</label>
+              <select className="form-select" value={year} onChange={e => setYear(Number(e.target.value))} style={{ height: 40, borderRadius: 8 }}>
                 {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
 
             {/* Month */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mes</label>
-              <select className="form-select" value={month} onChange={e => setMonth(Number(e.target.value))} style={{ height: 42, borderRadius: 10 }}>
+              <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mes</label>
+              <select className="form-select" value={month} onChange={e => setMonth(Number(e.target.value))} style={{ height: 40, borderRadius: 8 }}>
                 {MONTHS.slice(1).map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
               </select>
             </div>
 
             {/* Employee Filter */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Empleado</label>
-              <select className="form-select" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)} style={{ height: 42, borderRadius: 10 }}>
+              <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Empleado</label>
+              <select className="form-select" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)} style={{ height: 40, borderRadius: 8 }}>
                 <option value="ALL">Todos los empleados</option>
                 {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
               </select>
@@ -307,63 +307,63 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* KPI Cards Row (Ultra-Aesthetic & Guaranteed 36px Spacing) */}
-        <div className="flex flex-col sm:flex-row flex-wrap gap-4" style={{ marginBottom: 36, marginTop: 12 }}>
+        {/* 4 Horizontal KPI Cards Row */}
+        <div className="reports-kpi-grid">
           {/* Card 1: Total Registros */}
-          <div className="flex-1 min-w-[220px] flex items-center gap-4 p-5 rounded-xl shadow-sm transition-all" style={{ background: 'linear-gradient(135deg, #ffffff, #f0f9ff)', border: '1px solid #bae6fd', borderRadius: 16, padding: '18px 20px' }}>
-            <div style={{ width: 46, height: 46, borderRadius: 12, background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <ClipboardList size={22} color="#0284c7" />
+          <div className="reports-kpi-card">
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <ClipboardList size={20} color="#2563eb" />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: '#0369a1', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 3 }}>
+              <div style={{ fontSize: '0.72rem', color: '#1e40af', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 2 }}>
                 Total Registros
               </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#0284c7', lineHeight: 1 }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1d4ed8', lineHeight: 1 }}>
                 {total}
               </div>
             </div>
           </div>
 
           {/* Card 2: Puntuales */}
-          <div className="flex-1 min-w-[220px] flex items-center gap-4 p-5 rounded-xl shadow-sm transition-all" style={{ background: 'linear-gradient(135deg, #ffffff, #ecfdf5)', border: '1px solid #a7f3d0', borderRadius: 16, padding: '18px 20px' }}>
-            <div style={{ width: 46, height: 46, borderRadius: 12, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <CheckCircle2 size={22} color="#059669" />
+          <div className="reports-kpi-card">
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle2 size={20} color="#059669" />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: '#065f46', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 3 }}>
+              <div style={{ fontSize: '0.72rem', color: '#065f46', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 2 }}>
                 Puntuales
               </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#059669', lineHeight: 1 }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#047857', lineHeight: 1 }}>
                 {onTime}
               </div>
             </div>
           </div>
 
           {/* Card 3: Tardanzas */}
-          <div className="flex-1 min-w-[220px] flex items-center gap-4 p-5 rounded-xl shadow-sm transition-all" style={{ background: 'linear-gradient(135deg, #ffffff, #fffbeb)', border: '1px solid #fde68a', borderRadius: 16, padding: '18px 20px' }}>
-            <div style={{ width: 46, height: 46, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <AlertTriangle size={22} color="#d97706" />
+          <div className="reports-kpi-card">
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <AlertTriangle size={20} color="#d97706" />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 3 }}>
+              <div style={{ fontSize: '0.72rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 2 }}>
                 Tardanzas
               </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#d97706', lineHeight: 1 }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#b45309', lineHeight: 1 }}>
                 {late}
               </div>
             </div>
           </div>
 
           {/* Card 4: % Puntualidad */}
-          <div className="flex-1 min-w-[220px] flex items-center gap-4 p-5 rounded-xl shadow-sm transition-all" style={{ background: 'linear-gradient(135deg, #ffffff, #faf5ff)', border: '1px solid #e9d5ff', borderRadius: 16, padding: '18px 20px' }}>
-            <div style={{ width: 46, height: 46, borderRadius: 12, background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <TrendingUp size={22} color="#7e22ce" />
+          <div className="reports-kpi-card">
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#faf5ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <TrendingUp size={20} color="#7c3aed" />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: '#6b21a8', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.8px', marginBottom: 3 }}>
+              <div style={{ fontSize: '0.72rem', color: '#5b21b6', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: 2 }}>
                 % Puntualidad
               </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#7e22ce', lineHeight: 1 }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#6d28d9', lineHeight: 1 }}>
                 {punctuality}%
               </div>
             </div>
