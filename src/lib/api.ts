@@ -150,6 +150,9 @@ export const attendanceApi = {
       body: JSON.stringify(data),
     }),
 
+  delete: (id: number) =>
+    apiFetch<{ message: string }>(`/api/attendance/admin/${id}`, { method: 'DELETE' }),
+
   /** Descarga el Excel de Pre-Nómina como un blob y lo guarda en el navegador. */
   downloadPayroll: async (year: number, month: number): Promise<void> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -231,6 +234,8 @@ export const employeeApi = {
     apiFetch(`/api/employees/${id}/toggle`, { method: 'PATCH' }),
   changePassword: (id: number, password: string) =>
     apiFetch(`/api/employees/${id}/password`, { method: 'PATCH', body: JSON.stringify({ password }) }),
+  delete: (id: number) =>
+    apiFetch<{ message: string }>(`/api/employees/${id}`, { method: 'DELETE' }),
 };
 
 // ─── Branches ─────────────────────────────────────────────────────────────────

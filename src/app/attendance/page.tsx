@@ -14,6 +14,7 @@ import {
   UserX,
   ClipboardList,
   Edit3,
+  Trash2,
   Save,
   X,
 } from 'lucide-react';
@@ -85,6 +86,16 @@ export default function AttendancePage() {
       alert(err.message || 'Error al actualizar asistencia');
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteRecord = async (id: number, name: string) => {
+    if (!confirm(`¿Estás seguro de eliminar el registro de asistencia de "${name}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await attendanceApi.delete(id);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Error al eliminar registro');
     }
   };
 
@@ -241,15 +252,26 @@ export default function AttendancePage() {
                       </td>
                       {isAdmin && (
                         <td>
-                          <button
-                            className="btn btn-ghost btn-sm flex items-center gap-1"
-                            onClick={() => handleOpenEdit(rec)}
-                            style={{ color: '#60a5fa', fontSize: '0.78rem' }}
-                            title="Modificar retardos y lapsos de tiempo"
-                          >
-                            <Edit3 size={14} />
-                            <span>Editar</span>
-                          </button>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <button
+                              className="btn btn-ghost btn-sm flex items-center gap-1"
+                              onClick={() => handleOpenEdit(rec)}
+                              style={{ color: '#60a5fa', fontSize: '0.78rem' }}
+                              title="Modificar retardos y lapsos de tiempo"
+                            >
+                              <Edit3 size={14} />
+                              <span>Editar</span>
+                            </button>
+                            <button
+                              className="btn btn-ghost btn-sm flex items-center gap-1"
+                              onClick={() => handleDeleteRecord(rec.id, rec.employeeName)}
+                              style={{ color: '#ef4444', fontSize: '0.78rem' }}
+                              title="Eliminar este registro de asistencia"
+                            >
+                              <Trash2 size={14} />
+                              <span>Eliminar</span>
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>

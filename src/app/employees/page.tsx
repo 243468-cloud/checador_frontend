@@ -13,6 +13,7 @@ import {
   Mail,
   X,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 
 const SHIFTS = [
@@ -80,6 +81,16 @@ export default function EmployeesPage() {
   const toggleActive = async (emp: Employee) => {
     await employeeApi.toggleActive(emp.id);
     load();
+  };
+
+  const handleDeleteEmployee = async (emp: Employee) => {
+    if (!confirm(`¿Estás seguro de eliminar PERMANENTEMENTE al empleado "${emp.fullName}" (@${emp.username}) y todos sus registros? Esta acción no se puede deshacer.`)) return;
+    try {
+      await employeeApi.delete(emp.id);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Error al eliminar empleado');
+    }
   };
 
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -156,6 +167,13 @@ export default function EmployeesPage() {
                       onClick={() => toggleActive(emp)}
                       title={emp.active ? 'Desactivar' : 'Activar'}
                     >{emp.active ? <Ban size={14} /> : <Check size={14} />}</button>
+                    <button
+                      id={`btn-delete-${emp.id}`}
+                      className="btn btn-ghost btn-icon btn-sm"
+                      onClick={() => handleDeleteEmployee(emp)}
+                      style={{ color: '#ef4444' }}
+                      title="Eliminar empleado"
+                    ><Trash2 size={14} /></button>
                   </div>
                 </div>
 
