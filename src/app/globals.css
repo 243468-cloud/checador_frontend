@@ -544,6 +544,27 @@ a:hover { color: #60a5fa; }
   border: 1px solid #f1ece1;
   background: #ffffff;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Minimalist Scrollbar for Tables */
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #fdfbf7;
+  border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(225, 29, 72, 0.2);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(225, 29, 72, 0.4);
 }
 
 table {
@@ -555,19 +576,19 @@ table {
 }
 
 thead {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
 }
 
 thead th {
-  padding: 14px 18px;
+  padding: 15px 18px;
   text-align: left;
   font-size: 0.74rem;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
   white-space: nowrap;
-  border-bottom: 2px solid rgba(225, 29, 72, 0.4);
+  border-bottom: 3px solid #d97706; /* Amber Gold Vía Gourmet theme accent border */
 }
 
 thead th:first-child {
@@ -593,7 +614,7 @@ tbody tr:last-child {
 }
 
 tbody tr:hover {
-  background: rgba(225, 29, 72, 0.05) !important;
+  background: rgba(225, 29, 72, 0.04) !important;
 }
 
 tbody td {
