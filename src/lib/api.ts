@@ -71,27 +71,41 @@ export function getAuthHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : {};
 }
 
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      ...getAuthHeaders(),
-      ...options?.headers,
-    },
-  });
+export async function apiFetch<T>(path: string, options?: RequestInit & { timeout?: number }): Promise<T> {
+  const controller = new AbortController();
+  const timeoutMs = options?.timeout || 8000;
+  const id = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (res.status === 401) {
-    localStorage.clear();
-    window.location.href = '/login';
-    throw new Error('Sesión expirada');
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
+    });
+    clearTimeout(id);
+
+    if (res.status === 401) {
+      localStorage.clear();
+      window.location.href = '/login';
+      throw new Error('Sesión expirada');
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Error del servidor' }));
+      throw new Error(err.error || `Error ${res.status}`);
+    }
+
+    return res.json();
+  } catch (err: any) {
+    clearTimeout(id);
+    if (err.name === 'AbortError') {
+      throw new Error('Tiempo de espera agotado (servidor lento o sin conexión)');
+    }
+    throw err;
   }
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Error del servidor' }));
-    throw new Error(err.error || `Error ${res.status}`);
-  }
-
-  return res.json();
 }
 
 // ─── Attendance ───────────────────────────────────────────────────────────────

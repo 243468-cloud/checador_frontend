@@ -71,6 +71,25 @@ export default function CheckInPage() {
   const [locStatus, setLocStatus] = useState<LocationStatus>('idle');
   const [locMsg, setLocMsg] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    if (actionLoading) {
+      setLoadingSeconds(0);
+      const startTime = Date.now();
+      intervalId = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        setLoadingSeconds(Number(elapsed.toFixed(1)));
+      }, 100);
+    } else {
+      setLoadingSeconds(0);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [actionLoading]);
+
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
   // Tardies tracking
@@ -278,13 +297,17 @@ export default function CheckInPage() {
                 onClick={handleCheckIn}
                 disabled={actionLoading}
               >
-                {actionLoading
-                  ? <Loader2 size={36} className="spin-icon" />
-                  : <>
-                      <Play size={36} strokeWidth={2} />
-                      <span>ENTRADA</span>
-                    </>
-                }
+                {actionLoading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Loader2 size={32} className="spin-icon" />
+                    <span style={{ fontSize: '0.72rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Procesando ({loadingSeconds.toFixed(1)}s)</span>
+                  </div>
+                ) : (
+                  <>
+                    <Play size={36} strokeWidth={2} />
+                    <span>ENTRADA</span>
+                  </>
+                )}
               </button>
             ) : !hasCheckedOut ? (
               <button
@@ -293,13 +316,17 @@ export default function CheckInPage() {
                 onClick={handleCheckOut}
                 disabled={actionLoading}
               >
-                {actionLoading
-                  ? <Loader2 size={36} className="spin-icon" />
-                  : <>
-                      <Square size={34} strokeWidth={2} fill="currentColor" />
-                      <span>SALIDA</span>
-                    </>
-                }
+                {actionLoading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Loader2 size={32} className="spin-icon" />
+                    <span style={{ fontSize: '0.72rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Procesando ({loadingSeconds.toFixed(1)}s)</span>
+                  </div>
+                ) : (
+                  <>
+                    <Square size={34} strokeWidth={2} fill="currentColor" />
+                    <span>SALIDA</span>
+                  </>
+                )}
               </button>
             ) : (
               <div className="checkin-btn-large checkin-btn-done">
