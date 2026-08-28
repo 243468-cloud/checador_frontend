@@ -632,129 +632,122 @@ export default function ReportsPage() {
           ) : isMobile ? (
             /* Option 2: Mobile Sheets View with Swipe Navigation (Forced on Mobile) */
             renderSheetsView()
-          ) : (
-            /* Desktop View: Toggled by viewMode */
-            <>
-              {/* Traditional Table View Container */}
-              <div className={`reports-table-view-container ${viewMode === 'table' ? 'desktop-visible' : 'desktop-hidden'}`}>
-                <div className="card">
-                  <div className="table-wrapper">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Empleado</th>
-                          <th>Fecha</th>
-                          <th>Turno</th>
-                          <th>Entrada</th>
-                          <th>Salida</th>
-                          <th>Estado</th>
-                          <th>Tardanza</th>
-                          <th>Horas</th>
-                          {isAdmin && <th>Acción</th>}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginatedRecords.map(rec => (
-                          <tr key={rec.id}>
-                            <td style={{ fontWeight: 600 }}>{rec.employeeName}</td>
-                            <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                              {new Date(rec.date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
-                            </td>
-                            <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{SHIFT_LABELS[rec.shift] || rec.shift}</td>
-                            <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(rec.checkIn)}</td>
-                            <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(rec.checkOut)}</td>
-                            <td><span className={`badge ${statusClass[rec.status] || 'badge-muted'}`}>{STATUS_LABELS[rec.status] || rec.status}</span></td>
-                            <td>{rec.lateMinutes > 0 ? <span style={{ color: '#fbbf24', fontWeight: 600 }}>+{rec.lateMinutes} min</span> : '—'}</td>
-                            <td style={{ fontWeight: 600 }}>{rec.hoursWorked > 0 ? `${rec.hoursWorked.toFixed(1)}h` : '—'}</td>
-                            {isAdmin && (
-                              <td>
-                                <button
-                                  className="btn btn-ghost btn-sm flex items-center gap-1"
-                                  onClick={() => handleDeleteRecord(rec.id, rec.employeeName)}
-                                  style={{ color: '#ef4444', fontSize: '0.78rem' }}
-                                  title="Eliminar este registro de asistencia"
-                                >
-                                  <Trash2 size={14} />
-                                  <span>Eliminar</span>
-                                </button>
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+          ) : viewMode === 'table' ? (
+            /* Desktop View: Traditional Table */
+            <div className="card animate-slide-up">
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Empleado</th>
+                      <th>Fecha</th>
+                      <th>Turno</th>
+                      <th>Entrada</th>
+                      <th>Salida</th>
+                      <th>Estado</th>
+                      <th>Tardanza</th>
+                      <th>Horas</th>
+                      {isAdmin && <th>Acción</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedRecords.map(rec => (
+                      <tr key={rec.id}>
+                        <td style={{ fontWeight: 600 }}>{rec.employeeName}</td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                          {new Date(rec.date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                        </td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{SHIFT_LABELS[rec.shift] || rec.shift}</td>
+                        <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(rec.checkIn)}</td>
+                        <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmt(rec.checkOut)}</td>
+                        <td><span className={`badge ${statusClass[rec.status] || 'badge-muted'}`}>{STATUS_LABELS[rec.status] || rec.status}</span></td>
+                        <td>{rec.lateMinutes > 0 ? <span style={{ color: '#fbbf24', fontWeight: 600 }}>+{rec.lateMinutes} min</span> : '—'}</td>
+                        <td style={{ fontWeight: 600 }}>{rec.hoursWorked > 0 ? `${rec.hoursWorked.toFixed(1)}h` : '—'}</td>
+                        {isAdmin && (
+                          <td>
+                            <button
+                              className="btn btn-ghost btn-sm flex items-center gap-1"
+                              onClick={() => handleDeleteRecord(rec.id, rec.employeeName)}
+                              style={{ color: '#ef4444', fontSize: '0.78rem' }}
+                              title="Eliminar este registro de asistencia"
+                            >
+                              <Trash2 size={14} />
+                              <span>Eliminar</span>
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                  {/* Pagination Controls Footer Toolbar */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '16px 12px 0 12px',
-                      fontSize: '0.82rem',
-                      color: 'var(--color-text-muted)',
-                      flexWrap: 'wrap',
-                      gap: '12px',
-                      marginTop: '16px',
+              {/* Pagination Controls Footer Toolbar */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px 12px 0 12px',
+                  fontSize: '0.82rem',
+                  color: 'var(--color-text-muted)',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  marginTop: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Filas por página:</span>
+                  <select
+                    className="form-select"
+                    value={pageSize}
+                    onChange={e => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
                     }}
+                    style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>Filas por página:</span>
-                      <select
-                        className="form-select"
-                        value={pageSize}
-                        onChange={e => {
-                          setPageSize(Number(e.target.value));
-                          setCurrentPage(1);
-                        }}
-                        style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }}
-                      >
-                        <option value={10}>10</option>
-                        <option value={15}>15</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                      </select>
-                      <span style={{ marginLeft: 8 }}>
-                        Mostrando {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} registros
-                      </span>
-                    </div>
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span style={{ marginLeft: 8 }}>
+                    Mostrando {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} registros
+                  </span>
+                </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <ChevronLeft size={16} />
-                        <span>Anterior</span>
-                      </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Anterior</span>
+                  </button>
 
-                      <span style={{ fontWeight: 700, padding: '0 8px' }}>
-                        Página {currentPage} de {totalPages}
-                      </span>
+                  <span style={{ fontWeight: 700, padding: '0 8px' }}>
+                    Página {currentPage} de {totalPages}
+                  </span>
 
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage >= totalPages}
-                        style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <span>Siguiente</span>
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages}
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <span>Siguiente</span>
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
               </div>
-
-              {/* Option 2: Mobile Sheets View with Swipe Navigation */}
-              <div className={`reports-sheets-view-container ${viewMode === 'sheets' ? 'desktop-visible' : 'desktop-hidden'}`}>
-                {renderSheetsView()}
-              </div>
-            </>
+            </div>
+          ) : (
+            /* Desktop View: Sheets View */
+            renderSheetsView()
           )
         ) : (
           /* Responsive Charts View */
