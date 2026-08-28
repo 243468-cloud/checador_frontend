@@ -62,102 +62,104 @@ export default function DashboardPage() {
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        {/* Header */}
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Dashboard</h1>
-            <p className="page-subtitle" style={{ textTransform: 'capitalize' }}>{todayStr}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="badge badge-success flex items-center gap-2">
-              <Activity size={12} />
-              Sistema activo
-            </span>
-          </div>
-        </div>
-
-        {/* KPI Cards (Clean 4-column / 2x2 Responsive Grid) */}
-        <div className="dashboard-kpi-grid">
-          <KPICard icon={<Users size={22} />} label="Total Empleados" value={totalEmployees} color="#4f46e5" bg="#e0e7ff" border="#c7d2fe" />
-          <KPICard icon={<CheckCircle2 size={22} />} label="Presentes" value={present} color="#059669" bg="#d1fae5" border="#a7f3d0" />
-          <KPICard icon={<AlertTriangle size={22} />} label="Tardanzas" value={stats?.late ?? 0} color="#d97706" bg="#fef3c7" border="#fde68a" />
-          <KPICard icon={<UserX size={22} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#dc2626" bg="#fee2e2" border="#fca5a5" />
-        </div>
-
-        {/* Ranking & Recompensas Vía Gourmet */}
-        <RewardsLeaderboard />
-
-        {/* Daily Attendance Table */}
-        <div className="card animate-slide-up">
-          <div className="flex items-center justify-between mb-6">
+        <div style={{ maxWidth: 1440, width: '100%' }}>
+          {/* Header */}
+          <div className="page-header">
             <div>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Asistencia de Hoy</h2>
-              <p className="text-sm text-muted mt-2">{daily.length} registros</p>
+              <h1 className="page-title">Dashboard</h1>
+              <p className="page-subtitle" style={{ textTransform: 'capitalize' }}>{todayStr}</p>
             </div>
-            <a href="/attendance" className="btn btn-ghost btn-sm flex items-center gap-2">
-              <span>Ver todo</span>
-              <ArrowRight size={14} />
-            </a>
+            <div className="flex items-center gap-3">
+              <span className="badge badge-success flex items-center gap-2">
+                <Activity size={12} />
+                Sistema activo
+              </span>
+            </div>
           </div>
 
-          {daily.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <ClipboardList size={40} />
+          {/* KPI Cards (Clean 4-column / 2x2 Responsive Grid) */}
+          <div className="dashboard-kpi-grid">
+            <KPICard icon={<Users size={22} />} label="Total Empleados" value={totalEmployees} color="#4f46e5" bg="#e0e7ff" border="#c7d2fe" />
+            <KPICard icon={<CheckCircle2 size={22} />} label="Presentes" value={present} color="#059669" bg="#d1fae5" border="#a7f3d0" />
+            <KPICard icon={<AlertTriangle size={22} />} label="Tardanzas" value={stats?.late ?? 0} color="#d97706" bg="#fef3c7" border="#fde68a" />
+            <KPICard icon={<UserX size={22} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#dc2626" bg="#fee2e2" border="#fca5a5" />
+          </div>
+
+          {/* Ranking & Recompensas Vía Gourmet */}
+          <RewardsLeaderboard />
+
+          {/* Daily Attendance Table */}
+          <div className="card animate-slide-up">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Asistencia de Hoy</h2>
+                <p className="text-sm text-muted mt-2">{daily.length} registros</p>
               </div>
-              <p>Aún no hay registros de asistencia hoy</p>
+              <a href="/attendance" className="btn btn-ghost btn-sm flex items-center gap-2">
+                <span>Ver todo</span>
+                <ArrowRight size={14} />
+              </a>
             </div>
-          ) : (
-            <div className="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Empleado</th>
-                    <th>Turno</th>
-                    <th>Entrada</th>
-                    <th>Salida</th>
-                    <th>Estado</th>
-                    <th>Tardanza</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {daily.slice(0, 8).map(rec => (
-                    <tr key={rec.id}>
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div style={{
-                            width: 32, height: 32,
-                            borderRadius: '50%',
-                            background: `linear-gradient(135deg, ${STATUS_COLORS[rec.status]}, ${STATUS_COLORS[rec.status]}aa)`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0
-                          }}>
-                            {rec.employeeName.split(' ').map(w => w[0]).join('').slice(0,2)}
-                          </div>
-                          <span style={{ fontWeight: 500 }}>{rec.employeeName}</span>
-                        </div>
-                      </td>
-                      <td><span className="text-sm text-muted">{SHIFT_LABELS[rec.shift]}</span></td>
-                      <td style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {rec.checkIn ? rec.checkIn.split('T')[1]?.slice(0,5) : <span className="text-muted">—</span>}
-                      </td>
-                      <td style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {rec.checkOut ? rec.checkOut.split('T')[1]?.slice(0,5) : <span className="text-muted">—</span>}
-                      </td>
-                      <td>
-                        <StatusBadge status={rec.status} />
-                      </td>
-                      <td>
-                        {rec.lateMinutes > 0
-                          ? <span style={{ color: '#f59e0b', fontWeight: 600 }}>+{rec.lateMinutes} min</span>
-                          : <span className="text-muted">—</span>}
-                      </td>
+
+            {daily.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <ClipboardList size={40} />
+                </div>
+                <p>Aún no hay registros de asistencia hoy</p>
+              </div>
+            ) : (
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Empleado</th>
+                      <th>Turno</th>
+                      <th>Entrada</th>
+                      <th>Salida</th>
+                      <th>Estado</th>
+                      <th>Tardanza</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {daily.slice(0, 8).map(rec => (
+                      <tr key={rec.id}>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div style={{
+                              width: 32, height: 32,
+                              borderRadius: '50%',
+                              background: `linear-gradient(135deg, ${STATUS_COLORS[rec.status]}, ${STATUS_COLORS[rec.status]}aa)`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0
+                            }}>
+                              {rec.employeeName.split(' ').map(w => w[0]).join('').slice(0,2)}
+                            </div>
+                            <span style={{ fontWeight: 500 }}>{rec.employeeName}</span>
+                          </div>
+                        </td>
+                        <td><span className="text-sm text-muted">{SHIFT_LABELS[rec.shift]}</span></td>
+                        <td style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {rec.checkIn ? rec.checkIn.split('T')[1]?.slice(0,5) : <span className="text-muted">—</span>}
+                        </td>
+                        <td style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {rec.checkOut ? rec.checkOut.split('T')[1]?.slice(0,5) : <span className="text-muted">—</span>}
+                        </td>
+                        <td>
+                          <StatusBadge status={rec.status} />
+                        </td>
+                        <td>
+                          {rec.lateMinutes > 0
+                            ? <span style={{ color: '#f59e0b', fontWeight: 600 }}>+{rec.lateMinutes} min</span>
+                            : <span className="text-muted">—</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>
