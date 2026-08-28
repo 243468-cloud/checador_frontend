@@ -73,36 +73,37 @@ export default function SettingsPage() {
           borderRadius: '20px',
           padding: '32px',
         }}>
-          <div className="flex items-center justify-between flex-wrap gap-6 pb-6 mb-6" style={{ borderBottom: '1px solid #f1ece1' }}>
-            <div className="flex items-center gap-5">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 mb-6" style={{ borderBottom: '1px solid #f1ece1' }}>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
               <div style={{
-                width: 68, height: 68, borderRadius: '50%',
+                width: 72, height: 72, borderRadius: '50%',
                 background: 'linear-gradient(135deg, #e11d48, #be123c)',
                 color: '#ffffff',
-                fontWeight: 800, fontSize: '1.6rem',
+                fontWeight: 800, fontSize: '1.75rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 8px 24px rgba(225, 29, 72, 0.3)',
                 border: '3px solid #ffffff',
+                flexShrink: 0,
               }}>
                 {(user?.fullName || 'U').slice(0, 2).toUpperCase()}
               </div>
 
-              <div>
-                <div className="flex items-center gap-3">
-                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
                     {user?.fullName || 'Usuario Vía Gourmet'}
                   </h2>
                   <span className="badge badge-primary" style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 800, borderRadius: '20px' }}>
                     {user?.role === 'SUPERUSER' ? 'SUPERUSUARIO' : user?.role === 'ADMIN' ? 'ADMINISTRADOR' : 'EMPLEADO'}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 600, marginTop: '6px' }}>
+                <div style={{ fontSize: '0.88rem', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
                   Sucursal Asignada: <strong style={{ color: '#0f172a', marginLeft: '4px' }}>{user?.branchName || 'Global Vía Gourmet'}</strong>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div style={{ marginTop: '8px' }}>
               <button
                 onClick={() => setShowPasswordModal(true)}
                 className="btn btn-primary flex items-center gap-2.5"
