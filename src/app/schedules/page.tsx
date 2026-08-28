@@ -1022,8 +1022,9 @@ export default function SchedulesPage() {
                     if (rosterRows.length > 0) setSelectedRowId(rosterRows[0].id);
                     setShowGlobalModal(true);
                   }}
+                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
                 >
-                  <Zap size={16} />
+                  <Zap size={15} />
                   <span>Cambio Global / Masivo</span>
                 </button>
 
@@ -1031,8 +1032,9 @@ export default function SchedulesPage() {
                   id="btn-add-area-row"
                   className="btn btn-ghost flex items-center gap-2"
                   onClick={() => setShowAddRowModal(true)}
+                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
                 >
-                  <Plus size={16} color="#e11d48" />
+                  <Plus size={15} color="#e11d48" />
                   <span>Nueva Área / Turno</span>
                 </button>
 
@@ -1040,8 +1042,9 @@ export default function SchedulesPage() {
                   id="btn-export-excel-roster"
                   className="btn btn-ghost flex items-center gap-2"
                   onClick={exportRosterToExcel}
+                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
                 >
-                  <FileSpreadsheet size={16} color="#059669" />
+                  <FileSpreadsheet size={15} color="#059669" />
                   <span>Exportar Excel</span>
                 </button>
               </>
@@ -1055,13 +1058,13 @@ export default function SchedulesPage() {
                 background: 'linear-gradient(135deg, #e11d48, #be123c)',
                 color: '#ffffff',
                 fontWeight: 800,
-                fontSize: '0.88rem',
-                padding: '10px 18px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 14px rgba(225, 29, 72, 0.35)',
+                fontSize: '0.82rem',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)',
               }}
             >
-              <FileText size={18} />
+              <FileText size={15} />
               <span>Exportar PDF</span>
             </button>
           </div>
