@@ -215,6 +215,25 @@ export default function SchedulesPage() {
   const [newRowArea, setNewRowArea] = useState('');
   const [newRowShift, setNewRowShift] = useState('');
 
+  const sortRowsChronologically = (rows: RosterRow[]): RosterRow[] => {
+    return [...rows].sort((a, b) => {
+      const parseHour = (shiftTime: string): number => {
+        if (!shiftTime) return 99;
+        const match = shiftTime.match(/(\d+)\s*(AM|PM)/i);
+        if (!match) return 99;
+        let hour = parseInt(match[1], 10);
+        const period = match[2].toUpperCase();
+        if (period === 'PM' && hour < 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+        return hour;
+      };
+      const timeA = parseHour(a.shiftTime);
+      const timeB = parseHour(b.shiftTime);
+      if (timeA !== timeB) return timeA - timeB;
+      return a.area.localeCompare(b.area);
+    });
+  };
+
   // ─── Carga el roster desde la API (o localStorage como fallback) ─────────────
   useEffect(() => {
     const branchId = user?.branchId;
@@ -222,12 +241,12 @@ export default function SchedulesPage() {
       scheduleApi.getRoster(branchId, weekStart)
         .then(cells => {
           if (cells.length > 0) {
-            setRosterRows(apiCellsToRosterRows(cells));
+            setRosterRows(sortRowsChronologically(apiCellsToRosterRows(cells)));
           } else {
             // Sin datos en API → intentar localStorage como fallback
             const saved = localStorage.getItem('official_roster_rows');
             if (saved) {
-              try { setRosterRows(JSON.parse(saved)); } catch {}
+              try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch {}
             }
           }
         })
@@ -235,13 +254,13 @@ export default function SchedulesPage() {
           // Sin backend → usar localStorage
           const saved = localStorage.getItem('official_roster_rows');
           if (saved) {
-            try { setRosterRows(JSON.parse(saved)); } catch {}
+            try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch {}
           }
         });
     } else {
       const saved = localStorage.getItem('official_roster_rows');
       if (saved) {
-        try { setRosterRows(JSON.parse(saved)); } catch {}
+        try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch {}
       }
     }
 
@@ -1078,31 +1097,29 @@ export default function SchedulesPage() {
             </div>
 
             {/* Quick Sort & Order Controls */}
-            {!isReadOnly && (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm flex items-center gap-1.5"
-                  onClick={sortByShiftTime}
-                  title="Ordenar filas cronológicamente por hora de inicio de turno (Mañana ➔ Tarde)"
-                  style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f97316', background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.25)' }}
-                >
-                  <Clock size={13} />
-                  <span>Ordenar x Horario</span>
-                </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                onClick={sortByShiftTime}
+                title="Ordenar filas cronológicamente por hora de inicio de turno (Mañana ➔ Tarde)"
+                style={{ fontSize: '0.78rem', fontWeight: 800, color: '#ffffff', background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', padding: '6px 12px', borderRadius: 8 }}
+              >
+                <Clock size={14} />
+                <span>Ordenar x Horario</span>
+              </button>
 
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm flex items-center gap-1.5"
-                  onClick={sortByAreaName}
-                  title="Ordenar filas alfabéticamente por área"
-                  style={{ fontSize: '0.75rem', fontWeight: 700, color: '#38bdf8', background: 'rgba(2, 132, 199, 0.1)', border: '1px solid rgba(2, 132, 199, 0.25)' }}
-                >
-                  <Filter size={13} />
-                  <span>Ordenar x Área</span>
-                </button>
-              </div>
-            )}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                onClick={sortByAreaName}
+                title="Ordenar filas alfabéticamente por área"
+                style={{ fontSize: '0.78rem', fontWeight: 800, color: '#ffffff', background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none', padding: '6px 12px', borderRadius: 8 }}
+              >
+                <Filter size={14} />
+                <span>Ordenar x Área</span>
+              </button>
+            </div>
           </div>
 
           {/* Roster Table */}
@@ -1140,7 +1157,19 @@ export default function SchedulesPage() {
                             {row.area}
                           </div>
                           {row.shiftTime && (
-                            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, marginTop: 1 }}>
+                            <div
+                              style={{
+                                display: 'inline-block',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                marginTop: 3,
+                                background: row.shiftTime.includes('3PM') ? 'rgba(234, 179, 8, 0.18)' : row.shiftTime.includes('8AM') ? 'rgba(16, 185, 129, 0.18)' : 'rgba(2, 132, 199, 0.18)',
+                                color: row.shiftTime.includes('3PM') ? '#d97706' : row.shiftTime.includes('8AM') ? '#059669' : '#0284c7',
+                                border: `1px solid ${row.shiftTime.includes('3PM') ? 'rgba(234, 179, 8, 0.3)' : row.shiftTime.includes('8AM') ? 'rgba(16, 185, 129, 0.3)' : 'rgba(2, 132, 199, 0.3)'}`,
+                              }}
+                            >
                               {row.shiftTime}
                             </div>
                           )}
