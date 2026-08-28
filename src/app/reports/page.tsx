@@ -453,9 +453,11 @@ export default function ReportsPage() {
                 <p>No se encontraron registros para este período</p>
               </div>
             </div>
-          ) : viewMode === 'table' ? (
-            /* Traditional Table View */
-            <div className="card">
+          ) : (
+            <>
+              {/* Traditional Table View Container */}
+              <div className={`reports-table-view-container ${viewMode === 'table' ? 'desktop-visible' : 'desktop-hidden'}`}>
+                <div className="card">
               <div className="table-wrapper">
                 <table>
                   <thead>
@@ -566,9 +568,10 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
-          ) : (
-            /* Option 2: Mobile Sheets View with Swipe Navigation */
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            </div>
+
+            {/* Option 2: Mobile Sheets View with Swipe Navigation */}
+            <div className={`reports-sheets-view-container ${viewMode === 'sheets' ? 'desktop-visible' : 'desktop-hidden'}`}>
               {/* Employee Top Horizontal TabBar */}
               <div className="employee-tab-bar">
                 {groupedByEmployee.map((g, index) => (
@@ -724,7 +727,8 @@ export default function ReportsPage() {
                 );
               })()}
             </div>
-          )
+          </>
+        )
         ) : (
           /* Responsive Charts View */
           <div className="grid-2 gap-6">
