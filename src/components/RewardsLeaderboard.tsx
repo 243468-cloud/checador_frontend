@@ -76,50 +76,55 @@ export default function RewardsLeaderboard() {
       padding: '24px',
     }}>
       {/* Leaderboard Header */}
-      <div className="flex items-center justify-between pb-4 mb-6" style={{ borderBottom: '1px solid rgba(225, 29, 72, 0.12)' }}>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-5 mb-6" style={{ borderBottom: '1px solid rgba(225, 29, 72, 0.12)' }}>
+        <div className="flex items-start gap-4">
           <div style={{
-            width: 44, height: 44, borderRadius: 14,
+            width: 48, height: 48, borderRadius: 14,
             background: 'linear-gradient(135deg, #e11d48, #be123c)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#ffffff',
             boxShadow: '0 8px 20px rgba(225, 29, 72, 0.3)',
+            flexShrink: 0,
+            marginTop: '2px',
           }}>
             <Trophy size={24} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
                 Ranking & Recompensas Vía Gourmet
               </h2>
-              <span className="badge badge-primary flex items-center gap-1" style={{ fontSize: '10px', padding: '2px 8px' }}>
+              <span className="badge badge-primary flex items-center gap-1.5" style={{ fontSize: '10px', padding: '4px 10px', fontWeight: 800, borderRadius: '20px', width: 'fit-content' }}>
                 <Sparkles size={11} />
                 Programa Oficial
               </span>
             </div>
-            <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
               Reconocimiento al compromiso y puntualidad de nuestros colaboradores
             </p>
           </div>
         </div>
 
         {isSuperUser && (
-          <button
-            onClick={() => setShowConfigModal(true)}
-            className="btn btn-ghost flex items-center gap-2"
-            style={{
-              background: 'rgba(225, 29, 72, 0.08)',
-              color: '#e11d48',
-              border: '1px solid rgba(225, 29, 72, 0.25)',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              borderRadius: '10px',
-              padding: '8px 14px',
-            }}
-          >
-            <Settings size={15} />
-            <span>Configurar Premios</span>
-          </button>
+          <div style={{ marginTop: '10px' }} className="md:mt-0">
+            <button
+              onClick={() => setShowConfigModal(true)}
+              className="btn btn-ghost flex items-center gap-2"
+              style={{
+                background: 'rgba(225, 29, 72, 0.08)',
+                color: '#e11d48',
+                border: '1px solid rgba(225, 29, 72, 0.25)',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                borderRadius: '10px',
+                padding: '10px 16px',
+                width: '100%',
+              }}
+            >
+              <Settings size={15} />
+              <span>Configurar Premios</span>
+            </button>
+          </div>
         )}
       </div>
 
