@@ -117,6 +117,39 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
     };
   }, []);
 
+  // Intercept desktop screenshot shortcuts (PrintScreen, Ctrl+P, Ctrl+S, F12)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent PrintScreen key
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        alert('Captura de pantalla deshabilitada por motivos de seguridad.');
+        return false;
+      }
+      // Prevent Ctrl+P or Cmd+P (Print)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        alert('Impresión de pantalla bloqueada.');
+        return false;
+      }
+      // Prevent Ctrl+S or Cmd+S (Save page)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        return false;
+      }
+      // Prevent F12 (Developer Tools) or Ctrl+Shift+I / Cmd+Shift+I
+      if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
     <div
       className="screen-protected"
@@ -129,6 +162,14 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
         WebkitUserSelect: 'none',
       }}
     >
+      {/* Hide page contents completely during print/save dialogs */}
+      <style>{`
+        @media print {
+          body {
+            display: none !important;
+          }
+        }
+      `}</style>
       {/* Dynamic Security Watermark Header Ticker */}
       <div
         style={{
