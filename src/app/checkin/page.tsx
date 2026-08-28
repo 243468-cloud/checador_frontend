@@ -162,7 +162,6 @@ export default function CheckInPage() {
     if (!loc) { setActionLoading(false); return; }
     try {
       const rec = await attendanceApi.checkIn(loc.lat, loc.lng);
-      setRecord(rec);
 
       const isLate = rec.status === 'LATE' || rec.lateMinutes > 0;
       if (isLate) {
@@ -183,9 +182,12 @@ export default function CheckInPage() {
           text: `Entrada registrada a las ${rec.checkIn.split('T')[1]?.slice(0,5)} · ¡Llegaste puntual! 🎉`,
         });
       }
+
+      // Desactivamos el loading antes de cambiar el registro para que el botón de Salida no parpadee cargando
+      setActionLoading(false);
+      setRecord(rec);
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
-    } finally {
       setActionLoading(false);
     }
   };
@@ -197,11 +199,13 @@ export default function CheckInPage() {
     if (!loc) { setActionLoading(false); return; }
     try {
       const rec = await attendanceApi.checkOut(loc.lat, loc.lng);
+
+      // Desactivamos el loading antes de cambiar el registro para que no parpadee el botón cargando
+      setActionLoading(false);
       setRecord(rec);
       setMessage({ type: 'success', text: `Salida registrada a las ${rec.checkOut.split('T')[1]?.slice(0,5)} · ${rec.hoursWorked?.toFixed(1)}h trabajadas` });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
-    } finally {
       setActionLoading(false);
     }
   };
