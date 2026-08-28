@@ -6,12 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="app-wrapper">
-      <Sidebar />
-      <main className="main-content">
-        {children}
-      </main>
-    </div>
-  );
+  return <>{children}</>;
 }
