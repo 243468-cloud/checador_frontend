@@ -107,6 +107,7 @@ export interface AttendanceRecord {
   status: 'ON_TIME' | 'LATE' | 'ABSENT' | 'IN_SHIFT' | 'EXCUSED';
   lateMinutes: number;
   hoursWorked: number;
+  extraHours?: number;
   notes?: string;
 }
 
@@ -144,7 +145,7 @@ export const attendanceApi = {
   getStats: (date?: string) =>
     apiFetch<DashboardStats>(`/api/attendance/admin/stats${date ? `?date=${date}` : ''}`),
 
-  update: (id: number, data: Partial<{ checkInTime: string; checkOutTime: string; status: string; notes: string; lateMinutes: number }>) =>
+  update: (id: number, data: Partial<{ checkInTime: string; checkOutTime: string; status: string; notes: string; lateMinutes: number; extraHours: number }>) =>
     apiFetch<AttendanceRecord>(`/api/attendance/admin/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

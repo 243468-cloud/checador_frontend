@@ -36,6 +36,7 @@ export default function AttendancePage() {
     checkOutTime: '',
     status: 'ON_TIME',
     lateMinutes: 0,
+    extraHours: 0,
     notes: '',
   });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -65,6 +66,7 @@ export default function AttendancePage() {
       checkOutTime: checkOutIso,
       status: rec.status,
       lateMinutes: rec.lateMinutes || 0,
+      extraHours: rec.extraHours || 0,
       notes: '',
     });
   };
@@ -78,6 +80,7 @@ export default function AttendancePage() {
         checkOutTime: editForm.checkOutTime ? editForm.checkOutTime + ':00' : undefined,
         status: editForm.status,
         lateMinutes: Number(editForm.lateMinutes),
+        extraHours: Number(editForm.extraHours),
         notes: editForm.notes,
       });
       setEditingRecord(null);
@@ -322,16 +325,31 @@ export default function AttendancePage() {
                   </select>
                 </div>
 
-                <div className="form-group-field">
-                  <label className="form-label-text">Minutos de Retardo (0 = Perdonar Retardos)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="form-input"
-                    value={editForm.lateMinutes}
-                    onChange={e => setEditForm(p => ({ ...p, lateMinutes: Number(e.target.value) }))}
-                    placeholder="Minutos acumulados de tardanza"
-                  />
+                <div className="grid-2 gap-3">
+                  <div className="form-group-field">
+                    <label className="form-label-text">Minutos de Retardo</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="form-input"
+                      value={editForm.lateMinutes}
+                      onChange={e => setEditForm(p => ({ ...p, lateMinutes: Number(e.target.value) }))}
+                      placeholder="Minutos de retardo"
+                    />
+                  </div>
+                  <div className="form-group-field">
+                    <label className="form-label-text">Horas Extra (Autorizadas)</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      max="12"
+                      className="form-input"
+                      value={editForm.extraHours}
+                      onChange={e => setEditForm(p => ({ ...p, extraHours: Number(e.target.value) }))}
+                      placeholder="Horas extra asignadas"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid-2 gap-3">
