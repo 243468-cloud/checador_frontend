@@ -194,49 +194,53 @@ export default function RewardsLeaderboard() {
                 Sin asistencias registradas aún en esta quincena.
               </div>
             ) : fortnightRank.map((emp, i) => (
-              <div key={emp.id} className="flex items-center justify-between p-3.5 rounded-xl" style={{
-                background: i === 0 ? 'rgba(245, 158, 11, 0.12)' : '#ffffff',
-                border: i === 0 ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid #f1ece1',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+              <div key={emp.id} className="flex items-center justify-between p-4 rounded-xl transition-all" style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                boxShadow: i === 0 ? '0 4px 12px rgba(245, 158, 11, 0.06)' : '0 2px 6px rgba(0,0,0,0.02)',
+                borderRadius: '16px',
+                padding: '14px 18px',
               }}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: i === 0 ? '#f59e0b' : i === 1 ? '#94a3b8' : '#b45309',
-                    color: '#ffffff',
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: i === 0 ? '#fef3c7' : i === 1 ? '#f1f5f9' : '#ffedd5',
+                    color: i === 0 ? '#b45309' : i === 1 ? '#475569' : '#c2410c',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: '0.75rem', flexShrink: 0,
+                    fontWeight: 800, fontSize: '0.82rem', flexShrink: 0,
+                    border: i === 0 ? '1px solid #fde68a' : i === 1 ? '1px solid #e2e8f0' : '1px solid #fed7aa',
                   }}>
-                    {i === 0 ? '1°' : i === 1 ? '2°' : '3°'}
+                    {i + 1}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>{emp.name}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{emp.branch}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{emp.name}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>{emp.branch}</span>
+                      <span>•</span>
+                      <span style={{ fontWeight: 600, color: '#475569' }}>
+                        {emp.attendances} Asistencias
+                      </span>
+                      <span>•</span>
+                      <span style={{ fontWeight: 600, color: emp.lateCount > 0 ? '#ef4444' : '#10b981' }}>
+                        {emp.lateCount} Retardos
+                      </span>
+                      <span>•</span>
+                      <span style={{ fontWeight: 600, color: emp.absentCount > 0 ? '#dc2626' : '#64748b' }}>
+                        {emp.absentCount} Faltas
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#d97706' }}>
-                      {emp.attendances} Asist. ({emp.onTimeCount ?? emp.attendances} a Tiempo)
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '4px 10px', borderRadius: '20px' }}>
+                    Score: {emp.score ?? 0}%
+                  </span>
+                  {i === 0 && (
+                    <span style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.5px' }}>
+                      1° LUGAR 🏆
                     </span>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.lateCount > 0 ? '#ef4444' : '#10b981' }}>
-                      {emp.lateCount > 0 ? `${emp.lateCount} Ret. (${emp.lateMinutes}m)` : '0 Ret.'}
-                    </span>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.absentCount > 0 ? '#dc2626' : '#64748b' }}>
-                      {emp.absentCount > 0 ? `${emp.absentCount} Faltas` : '0 Faltas'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', background: 'rgba(15, 23, 42, 0.06)', padding: '2px 6px', borderRadius: 6 }}>
-                      Score: {emp.score ?? 0}%
-                    </span>
-                    {i === 0 && (
-                      <span style={{ background: '#f59e0b', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
-                        1° LUGAR 🏆
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -307,46 +311,49 @@ export default function RewardsLeaderboard() {
                 Sin asistencias registradas aún en el mes.
               </div>
             ) : monthlyRank.map((emp, i) => (
-              <div key={emp.id} className="flex items-center justify-between p-3.5 rounded-xl" style={{
-                background: i === 0 ? 'rgba(225, 29, 72, 0.12)' : '#ffffff',
-                border: i === 0 ? '1px solid rgba(225, 29, 72, 0.4)' : '1px solid #f1ece1',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+              <div key={emp.id} className="flex items-center justify-between p-4 rounded-xl transition-all" style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                boxShadow: i === 0 ? '0 4px 12px rgba(225, 29, 72, 0.06)' : '0 2px 6px rgba(0,0,0,0.02)',
+                borderRadius: '16px',
+                padding: '14px 18px',
               }}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: i === 0 ? '#e11d48' : i === 1 ? '#94a3b8' : '#be123c',
-                    color: '#ffffff',
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: i === 0 ? '#fee2e2' : i === 1 ? '#f1f5f9' : '#ffedd5',
+                    color: i === 0 ? '#be123c' : i === 1 ? '#475569' : '#c2410c',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: '0.75rem', flexShrink: 0,
+                    fontWeight: 800, fontSize: '0.82rem', flexShrink: 0,
+                    border: i === 0 ? '1px solid #fca5a5' : i === 1 ? '1px solid #e2e8f0' : '1px solid #fed7aa',
                   }}>
-                    {i === 0 ? '1°' : i === 1 ? '2°' : '3°'}
+                    {i + 1}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>{emp.name}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{emp.branch}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{emp.name}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>{emp.branch}</span>
+                      <span>•</span>
+                      <span style={{ fontWeight: 600, color: emp.lateCount === 0 && emp.absentCount === 0 ? '#10b981' : '#ef4444' }}>
+                        {emp.lateCount === 0 && emp.absentCount === 0 ? 'Impecable' : `${emp.lateCount} Retardos`}
+                      </span>
+                      <span>•</span>
+                      <span style={{ fontWeight: 600, color: emp.absentCount > 0 ? '#dc2626' : '#10b981' }}>
+                        {emp.absentCount} Faltas
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#e11d48' }}>
-                      {emp.lateCount === 0 && emp.absentCount === 0 ? '0 Ret. (Impecable)' : `${emp.lateCount} Ret. (${emp.lateMinutes}m)`}
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#9f1239', background: '#ffe4e6', padding: '4px 10px', borderRadius: '20px' }}>
+                    Score: {emp.score ?? 0}%
+                  </span>
+                  {i === 0 && (
+                    <span style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.5px' }}>
+                      PUNTUAL 🏆
                     </span>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: emp.absentCount > 0 ? '#dc2626' : '#10b981' }}>
-                      {emp.absentCount > 0 ? `${emp.absentCount} Faltas` : '0 Faltas'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', background: 'rgba(15, 23, 42, 0.06)', padding: '2px 6px', borderRadius: 6 }}>
-                      Score: {emp.score ?? 0}%
-                    </span>
-                    {i === 0 && (
-                      <span style={{ background: '#e11d48', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
-                        PUNTUAL 🏆
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
