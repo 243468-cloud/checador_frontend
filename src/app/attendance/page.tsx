@@ -205,7 +205,8 @@ export default function AttendancePage() {
               <p>No hay registros para esta fecha</p>
             </div>
           ) : (
-            <div className="table-wrapper">
+            <>
+              <div className="table-wrapper">
               <table>
                 <thead>
                   <tr>
@@ -302,21 +303,22 @@ export default function AttendancePage() {
                   ))}
                 </tbody>
               </table>
+            </div>
 
-              {/* Pagination Controls Footer Toolbar */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 16px',
-                  borderTop: '1px solid var(--color-border-light)',
-                  fontSize: '0.82rem',
-                  color: 'var(--color-text-muted)',
-                  flexWrap: 'wrap',
-                  gap: '12px',
-                }}
-              >
+            {/* Pagination Controls Footer Toolbar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 12px 0 12px',
+                fontSize: '0.82rem',
+                color: 'var(--color-text-muted)',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginTop: '16px',
+              }}
+            >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>Filas por página:</span>
                   <select
@@ -365,7 +367,7 @@ export default function AttendancePage() {
                   </button>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
