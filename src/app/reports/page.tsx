@@ -52,7 +52,7 @@ export default function ReportsPage() {
 
   const [viewMode, setViewMode] = useState<'table' | 'sheets'>('table');
   const [activeEmployeeIndex, setActiveEmployeeIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -227,22 +227,31 @@ export default function ReportsPage() {
     const gHours = group.records.reduce((sum, r) => sum + (r.hoursWorked || 0), 0);
 
     const handleTouchStartLocal = (e: React.TouchEvent) => {
-      setTouchStart(e.targetTouches[0].clientX);
+      setTouchStart({
+        x: e.targetTouches[0].clientX,
+        y: e.targetTouches[0].clientY
+      });
     };
 
     const handleTouchEndLocal = (e: React.TouchEvent) => {
       if (touchStart === null) return;
-      const touchEnd = e.changedTouches[0].clientX;
-      const diff = touchStart - touchEnd;
-      if (diff > 60) {
-        // Swiped left -> Next employee
-        if (activeEmployeeIndex < groupedByEmployee.length - 1) {
-          setActiveEmployeeIndex(activeEmployeeIndex + 1);
-        }
-      } else if (diff < -60) {
-        // Swiped right -> Previous employee
-        if (activeEmployeeIndex > 0) {
-          setActiveEmployeeIndex(activeEmployeeIndex - 1);
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const diffX = touchStart.x - touchEndX;
+      const diffY = touchStart.y - touchEndY;
+
+      // Ensure horizontal swipe is intentional, meets the threshold, and is not vertical scrolling
+      if (Math.abs(diffX) > 100 && Math.abs(diffX) > Math.abs(diffY) * 1.8) {
+        if (diffX > 100) {
+          // Swiped left -> Next employee
+          if (activeEmployeeIndex < groupedByEmployee.length - 1) {
+            setActiveEmployeeIndex(activeEmployeeIndex + 1);
+          }
+        } else if (diffX < -100) {
+          // Swiped right -> Previous employee
+          if (activeEmployeeIndex > 0) {
+            setActiveEmployeeIndex(activeEmployeeIndex - 1);
+          }
         }
       }
       setTouchStart(null);
@@ -329,7 +338,13 @@ export default function ReportsPage() {
 
           {/* Daily Detail List */}
           <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 800, marginBottom: 12 }}>Desglose de Asistencias</h4>
-          <div className="table-wrapper" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+          <div
+            className="table-wrapper"
+            style={{ maxHeight: '350px', overflowY: 'auto' }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             <table style={{ minWidth: '600px' }}>
               <thead>
                 <tr>
