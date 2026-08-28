@@ -32,6 +32,8 @@ import {
   CheckCircle2,
   Timer,
   Award,
+  Filter,
+  Sliders,
 } from 'lucide-react';
 
 export interface RosterCell {
@@ -316,11 +318,62 @@ export default function SchedulesPage() {
   };
 
   const availableNames = useMemo(() => {
-    if (employees.length > 0) {
-      return employees.map(e => e.fullName.split(' ')[0].toUpperCase());
-    }
-    return PRESET_NAMES;
+    const raw = employees.length > 0
+      ? employees.map(e => e.fullName.split(' ')[0].toUpperCase())
+      : PRESET_NAMES;
+    return Array.from(new Set(raw));
   }, [employees]);
+
+  const uniqueAvailableNames = availableNames;
+
+  // ─── Row Sorting & Ordering Helpers ─────────────────────────────────────────
+  const parseShiftStartTime = (shiftTime: string): number => {
+    if (!shiftTime) return 99;
+    const match = shiftTime.match(/(\d+)\s*(AM|PM)/i);
+    if (!match) return 99;
+    let hour = parseInt(match[1], 10);
+    const period = match[2].toUpperCase();
+    if (period === 'PM' && hour < 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    return hour;
+  };
+
+  const sortByShiftTime = () => {
+    const sorted = [...rosterRows].sort((a, b) => {
+      const timeA = parseShiftStartTime(a.shiftTime);
+      const timeB = parseShiftStartTime(b.shiftTime);
+      if (timeA !== timeB) return timeA - timeB;
+      return a.area.localeCompare(b.area);
+    });
+    saveRoster(sorted);
+  };
+
+  const sortByAreaName = () => {
+    const sorted = [...rosterRows].sort((a, b) => {
+      const areaCmp = a.area.localeCompare(b.area);
+      if (areaCmp !== 0) return areaCmp;
+      return parseShiftStartTime(a.shiftTime) - parseShiftStartTime(b.shiftTime);
+    });
+    saveRoster(sorted);
+  };
+
+  const moveRowUp = (index: number) => {
+    if (index <= 0) return;
+    const copy = [...rosterRows];
+    const temp = copy[index];
+    copy[index] = copy[index - 1];
+    copy[index - 1] = temp;
+    saveRoster(copy);
+  };
+
+  const moveRowDown = (index: number) => {
+    if (index >= rosterRows.length - 1) return;
+    const copy = [...rosterRows];
+    const temp = copy[index];
+    copy[index] = copy[index + 1];
+    copy[index + 1] = temp;
+    saveRoster(copy);
+  };
 
   // -------------------------------------------------------------
   // COMPUTE BALANCE GENERAL & OVERTIME
@@ -1014,19 +1067,42 @@ export default function SchedulesPage() {
         </div>
 
         {/* Official Roster Matrix Card */}
-
-        {/* Official Roster Matrix Card */}
         <div className="card mb-6 overflow-hidden">
-          <div className="flex items-center justify-between p-4" style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--color-border)' }}>
+          <div className="flex items-center justify-between p-4 flex-wrap gap-3" style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--color-border)' }}>
             <div className="flex items-center gap-3">
               <Grid size={18} color="#ea580c" />
               <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>Matriz Semanal de Turnos</h3>
-            </div>
-            <div className="flex items-center gap-3">
               <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                 Semana del {daysHeader[0].date} al {daysHeader[6].date}
               </span>
             </div>
+
+            {/* Quick Sort & Order Controls */}
+            {!isReadOnly && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                  onClick={sortByShiftTime}
+                  title="Ordenar filas cronológicamente por hora de inicio de turno (Mañana ➔ Tarde)"
+                  style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f97316', background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.25)' }}
+                >
+                  <Clock size={13} />
+                  <span>Ordenar x Horario</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                  onClick={sortByAreaName}
+                  title="Ordenar filas alfabéticamente por área"
+                  style={{ fontSize: '0.75rem', fontWeight: 700, color: '#38bdf8', background: 'rgba(2, 132, 199, 0.1)', border: '1px solid rgba(2, 132, 199, 0.25)' }}
+                >
+                  <Filter size={13} />
+                  <span>Ordenar x Área</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Roster Table */}
@@ -1055,10 +1131,10 @@ export default function SchedulesPage() {
                 </tr>
               </thead>
               <tbody>
-                {rosterRows.map(row => (
+                {rosterRows.map((row, rowIdx) => (
                   <tr key={row.id} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
                     <td style={{ background: 'rgba(234, 88, 12, 0.08)', borderRight: '1px solid var(--color-border)', padding: '10px 14px' }}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
                           <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#f97316', letterSpacing: '0.5px' }}>
                             {row.area}
@@ -1069,14 +1145,41 @@ export default function SchedulesPage() {
                             </div>
                           )}
                         </div>
-                        <button
-                          className="btn btn-ghost btn-sm p-1"
-                          onClick={() => openGlobalModalForRow(row.id)}
-                          title={`Edición global para fila ${row.area}`}
-                          style={{ color: '#fbbf24', borderRadius: 4 }}
-                        >
-                          <Zap size={13} />
-                        </button>
+
+                        {!isReadOnly && (
+                          <div className="flex items-center gap-1">
+                            <div className="flex flex-col gap-0.5">
+                              <button
+                                type="button"
+                                className="btn btn-ghost p-0.5"
+                                style={{ height: 16, width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', opacity: rowIdx === 0 ? 0.3 : 1 }}
+                                onClick={() => moveRowUp(rowIdx)}
+                                disabled={rowIdx === 0}
+                                title="Mover fila arriba"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-ghost p-0.5"
+                                style={{ height: 16, width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', opacity: rowIdx === rosterRows.length - 1 ? 0.3 : 1 }}
+                                onClick={() => moveRowDown(rowIdx)}
+                                disabled={rowIdx === rosterRows.length - 1}
+                                title="Mover fila abajo"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                            <button
+                              className="btn btn-ghost btn-sm p-1"
+                              onClick={() => openGlobalModalForRow(row.id)}
+                              title={`Edición global para fila ${row.area}`}
+                              style={{ color: '#fbbf24', borderRadius: 4 }}
+                            >
+                              <Zap size={13} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
 
@@ -1382,7 +1485,7 @@ export default function SchedulesPage() {
         )}
 
         {/* ----------------------------------------------------------------- */}
-        {/* MODAL 1: EDICIÓN INDIVIDUAL CON BOTONES DE COLOR POR EMPLEADO */}
+        {/* MODAL 1: EDICIÓN INDIVIDUAL DE CELDA */}
         {/* ----------------------------------------------------------------- */}
         {editModal && (
           <div
@@ -1391,8 +1494,8 @@ export default function SchedulesPage() {
               position: 'fixed',
               inset: 0,
               zIndex: 9999,
-              background: 'rgba(0, 0, 0, 0.75)',
-              backdropFilter: 'blur(4px)',
+              background: 'rgba(15, 23, 42, 0.8)',
+              backdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1404,33 +1507,39 @@ export default function SchedulesPage() {
               className="modal animate-slide-up"
               style={{
                 width: '100%',
-                maxWidth: 540,
+                maxWidth: 520,
                 maxHeight: '90vh',
                 overflowY: 'auto',
                 background: '#0f172a',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: 16,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
-                padding: '20px 24px',
+                border: '1px solid rgba(225, 29, 72, 0.3)',
+                borderRadius: 20,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.85)',
+                padding: '24px',
+                color: '#f8fafc',
               }}
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', marginBottom: 2 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', marginBottom: 6 }}>
                     Edición de Casilla — {editModal.area}
                   </h3>
-                  <div className="flex items-center gap-2" style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: 600 }}>
-                    <span style={{ color: '#f97316', fontWeight: 700 }}>{editModal.shiftTime}</span>
-                    <span>•</span>
-                    <span>Día: {editModal.dayLabel}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {editModal.shiftTime && (
+                      <span className="badge" style={{ background: 'rgba(2, 132, 199, 0.2)', color: '#38bdf8', border: '1px solid rgba(2, 132, 199, 0.4)', fontWeight: 800, fontSize: '0.72rem', padding: '3px 8px' }}>
+                        {editModal.shiftTime}
+                      </span>
+                    )}
+                    <span className="badge" style={{ background: 'rgba(234, 88, 12, 0.2)', color: '#f97316', border: '1px solid rgba(234, 88, 12, 0.4)', fontWeight: 800, fontSize: '0.72rem', padding: '3px 8px' }}>
+                      Día: {editModal.dayLabel}
+                    </span>
                   </div>
                 </div>
                 <button
                   type="button"
                   className="btn btn-ghost btn-icon"
-                  style={{ borderRadius: '50%', width: 32, height: 32 }}
+                  style={{ borderRadius: '50%', width: 32, height: 32, color: '#94a3b8' }}
                   onClick={() => setEditModal(null)}
                 >
                   <X size={18} />
@@ -1439,9 +1548,9 @@ export default function SchedulesPage() {
 
               {/* CURRENT CELL ITEMS WITH DIRECT COLOR CHANGE CONTROLS FOR EACH EMPLOYEE */}
               <div className="mb-5">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2.5">
                   <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Empleados en esta celda (Cambiar estado por nombre):
+                    Empleados Asignados en este Turno:
                   </label>
                   {(() => {
                     const targetRow = rosterRows.find(r => r.id === editModal.rowId);
@@ -1466,44 +1575,61 @@ export default function SchedulesPage() {
                   const currentItems = targetRow?.employees[editModal.dayIndex] || [];
                   if (currentItems.length === 0) {
                     return (
-                      <div className="p-3 text-center rounded-lg" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed rgba(255, 255, 255, 0.1)' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-faint)' }}>Celda vacía. Selecciona un empleado abajo.</span>
+                      <div className="p-4 text-center rounded-xl" style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px dashed rgba(255, 255, 255, 0.12)' }}>
+                        <span style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>Celda vacía. Selecciona un empleado abajo para asignarlo.</span>
                       </div>
                     );
                   }
                   return (
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-2">
                       {currentItems.map((item, idx) => {
                         const st = getBadgeStyle(item.type);
+                        const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
                         return (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-2.5 rounded-lg"
+                            className="flex items-center justify-between p-2.5 rounded-xl"
                             style={{
                               background: 'rgba(30, 41, 59, 0.8)',
-                              border: `1px solid ${item.type !== 'NORMAL' ? st.bg : 'rgba(255,255,255,0.08)'}`,
+                              border: `1px solid ${item.type !== 'NORMAL' ? st.bg : 'rgba(255,255,255,0.1)'}`,
                             }}
                           >
-                            <div className="flex items-center gap-2">
-                              <span
+                            <div className="flex items-center gap-2.5">
+                              <div
                                 style={{
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: '50%',
                                   background: st.bg,
                                   color: st.color,
-                                  padding: '4px 10px',
-                                  borderRadius: 6,
-                                  fontSize: '0.82rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.75rem',
                                   fontWeight: 800,
+                                  flexShrink: 0,
                                 }}
                               >
+                                {initials}
+                              </div>
+                              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#f8fafc' }}>
                                 {item.text}
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1 flex-wrap">
                               <button
                                 type="button"
-                                className={`btn btn-xs ${item.type === 'NORMAL' ? 'btn-primary' : 'btn-ghost'}`}
-                                style={{ fontSize: '0.68rem', padding: '2px 6px' }}
+                                style={{
+                                  background: item.type === 'NORMAL' ? '#334155' : 'transparent',
+                                  color: item.type === 'NORMAL' ? '#fff' : '#94a3b8',
+                                  border: 'none',
+                                  borderRadius: 6,
+                                  fontSize: '0.68rem',
+                                  fontWeight: 700,
+                                  padding: '3px 7px',
+                                  cursor: 'pointer',
+                                }}
                                 onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
                               >
                                 Normal
@@ -1512,13 +1638,14 @@ export default function SchedulesPage() {
                               <button
                                 type="button"
                                 style={{
-                                  background: item.type === 'DESCANSO' ? '#10b981' : 'rgba(16, 185, 129, 0.2)',
-                                  border: '1px solid #10b981',
-                                  color: '#fff',
+                                  background: item.type === 'DESCANSO' ? '#10b981' : 'transparent',
+                                  color: item.type === 'DESCANSO' ? '#fff' : '#34d399',
+                                  border: item.type === 'DESCANSO' ? 'none' : '1px solid rgba(16, 185, 129, 0.3)',
                                   borderRadius: 6,
                                   fontSize: '0.68rem',
                                   fontWeight: 800,
-                                  padding: '3px 8px',
+                                  padding: '3px 7px',
+                                  cursor: 'pointer',
                                 }}
                                 onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
                               >
@@ -1528,13 +1655,14 @@ export default function SchedulesPage() {
                               <button
                                 type="button"
                                 style={{
-                                  background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'rgba(2, 132, 199, 0.2)',
-                                  border: '1px solid #0284c7',
-                                  color: '#fff',
+                                  background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
+                                  color: item.type === 'CAMBIO_TURNO' ? '#fff' : '#38bdf8',
+                                  border: item.type === 'CAMBIO_TURNO' ? 'none' : '1px solid rgba(2, 132, 199, 0.3)',
                                   borderRadius: 6,
                                   fontSize: '0.68rem',
                                   fontWeight: 800,
-                                  padding: '3px 8px',
+                                  padding: '3px 7px',
+                                  cursor: 'pointer',
                                 }}
                                 onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
                               >
@@ -1544,13 +1672,14 @@ export default function SchedulesPage() {
                               <button
                                 type="button"
                                 style={{
-                                  background: item.type === 'DOBLE_TURNO' ? '#eab308' : 'rgba(234, 179, 8, 0.2)',
-                                  border: '1px solid #eab308',
+                                  background: item.type === 'DOBLE_TURNO' ? '#eab308' : 'transparent',
                                   color: item.type === 'DOBLE_TURNO' ? '#000' : '#fbbf24',
+                                  border: item.type === 'DOBLE_TURNO' ? 'none' : '1px solid rgba(234, 179, 8, 0.3)',
                                   borderRadius: 6,
                                   fontSize: '0.68rem',
                                   fontWeight: 800,
-                                  padding: '3px 8px',
+                                  padding: '3px 7px',
+                                  cursor: 'pointer',
                                 }}
                                 onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
                               >
@@ -1586,20 +1715,20 @@ export default function SchedulesPage() {
                 })()}
               </div>
 
-              {/* SECTION 1: ADD EMPLOYEE CHIPS */}
+              {/* SECTION 2: ADD EMPLOYEE CHIPS (DEDUPLICATED) */}
               <div className="mb-5" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 14 }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
-                  + Agregar Empleado a esta Celda:
+                  + Agregar Empleado a este Turno:
                 </label>
                 <div className="flex gap-2 flex-wrap">
-                  {availableNames.map((name, idx) => (
+                  {uniqueAvailableNames.map((name, idx) => (
                     <button
                       key={idx}
                       type="button"
                       className="btn flex items-center gap-1.5 hover:scale-[1.03] transition-all"
                       style={{
                         background: 'rgba(30, 41, 59, 0.7)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         color: '#f1f5f9',
                         fontSize: '0.78rem',
                         fontWeight: 700,
@@ -1609,16 +1738,16 @@ export default function SchedulesPage() {
                       onClick={() => quickAddCell(name, 'NORMAL')}
                     >
                       <UserPlus size={12} color="#60a5fa" />
-                      + {name}
+                      <span>{name}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* SECTION 2: STANDALONE CONVENTION STATUS CHIPS */}
+              {/* SECTION 3: STANDALONE CONVENTION STATUS CHIPS */}
               <div className="mb-5">
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
-                  + O Agregar Etiqueta de Estado Independiente:
+                  + O Agregar Etiqueta de Estado Especial:
                 </label>
 
                 <div className="grid-2 gap-2.5">
@@ -1626,7 +1755,7 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.38))',
+                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.35))',
                       border: '1px solid #10b981',
                       color: '#34d399',
                       fontWeight: 800,
@@ -1644,7 +1773,7 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.22), rgba(2, 132, 199, 0.38))',
+                      background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(2, 132, 199, 0.35))',
                       border: '1px solid #0284c7',
                       color: '#38bdf8',
                       fontWeight: 800,
@@ -1662,7 +1791,7 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.22), rgba(234, 179, 8, 0.38))',
+                      background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(234, 179, 8, 0.35))',
                       border: '1px solid #eab308',
                       color: '#fbbf24',
                       fontWeight: 800,
@@ -1680,7 +1809,7 @@ export default function SchedulesPage() {
                     type="button"
                     className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(249, 115, 22, 0.38))',
+                      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.35))',
                       border: '1px solid #f97316',
                       color: '#fb923c',
                       fontWeight: 800,
@@ -1696,7 +1825,7 @@ export default function SchedulesPage() {
                 </div>
               </div>
 
-              {/* SECTION 3: OPTIONAL CUSTOM NOTE INPUT */}
+              {/* SECTION 4: OPTIONAL CUSTOM NOTE INPUT */}
               <div className="mb-5" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 14 }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'block' }}>
                   Nota o Horario Especial (Opcional)
@@ -1740,7 +1869,7 @@ export default function SchedulesPage() {
                   style={{ width: '100%', height: 42, fontSize: '0.9rem', fontWeight: 800 }}
                   onClick={() => setEditModal(null)}
                 >
-                  Listo / Cerrar
+                  Guardar y Cerrar
                 </button>
               </div>
             </div>
