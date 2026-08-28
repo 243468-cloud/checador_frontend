@@ -114,6 +114,9 @@ export default function CheckInPage() {
         const savedCount = localStorage.getItem(`tardies_${user?.userId}`);
         if (savedCount) setMonthlyTardiesCount(Number(savedCount));
       });
+
+    // Pre-warm GPS location in background so it resolves instantly on check-in button tap
+    getCurrentPosition().catch(() => {});
   }, [user]);
 
   const checkLocation = useCallback(async (): Promise<{ lat: number; lng: number } | null> => {

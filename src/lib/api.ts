@@ -385,17 +385,30 @@ export const leaveApi = {
 
 export function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
       reject(new Error('Tu dispositivo no soporta geolocalización'));
       return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, (err) => {
-      if (err.code === GeolocationPositionError.PERMISSION_DENIED) {
-        reject(new Error('Permiso de ubicación denegado. No puedes registrar asistencia.'));
-      } else {
-        reject(new Error('No se pudo obtener tu ubicación. Intenta de nuevo.'));
-      }
-    }, { timeout: 10000, enableHighAccuracy: true });
+
+    // Intento 1: Ubicación rápida (alta precisión o caché de 30 segundos, máx 4 segundos de espera)
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      (err) => {
+        // Intento 2: Fallback inmediato a triangulación Wi-Fi/red celular si el GPS satelital tarda en interiores
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          (err2) => {
+            if (err.code === 1 || err2.code === 1) { // PERMISSION_DENIED
+              reject(new Error('Permiso de ubicación denegado. Permite la ubicación en tu navegador para registrar asistencia.'));
+            } else {
+              reject(new Error('No se pudo obtener tu ubicación GPS. Asegúrate de tener el GPS activo e intenta de nuevo.'));
+            }
+          },
+          { timeout: 5000, enableHighAccuracy: false, maximumAge: 60000 }
+        );
+      },
+      { timeout: 4000, enableHighAccuracy: true, maximumAge: 30000 }
+    );
   });
 }
 
