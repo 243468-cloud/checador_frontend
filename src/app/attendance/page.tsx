@@ -308,7 +308,7 @@ export default function AttendancePage() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   padding: '12px 16px',
                   borderTop: '1px solid var(--color-border-light)',
                   fontSize: '0.82rem',
