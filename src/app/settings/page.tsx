@@ -165,7 +165,7 @@ export default function SettingsPage() {
 
         {/* 2. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
         {user?.role !== 'EMPLOYEE' && (
-          <div className="grid-2 gap-6">
+          <div className="grid-2-columns">
             {/* Turnos Oficiales */}
             <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '24px' }}>
               <h3 className="flex items-center gap-2" style={{ marginBottom: 20, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
