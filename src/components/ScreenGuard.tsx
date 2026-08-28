@@ -14,6 +14,9 @@ interface ScreenGuardProps {
 export default function ScreenGuard({ userName, userId, isLocationValid, children }: ScreenGuardProps) {
   const [timeStr, setTimeStr] = useState('');
   const [isBlurred, setIsBlurred] = useState(false);
+  const [securityCode, setSecurityCode] = useState('');
+  const [ping, setPing] = useState<number | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
 
   // Trigger real-time Security Alert Push notification to Admin & Superadmin when outside branch location
   useEffect(() => {
@@ -37,6 +40,59 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Real-time server latency ping check (every 12 seconds)
+  useEffect(() => {
+    const checkConnection = async () => {
+      const start = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch('/api/branches/public', { method: 'GET', signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          setPing(Date.now() - start);
+          setIsOnline(true);
+        } else {
+          setPing(null);
+          setIsOnline(false);
+        }
+      } catch (_) {
+        setPing(null);
+        setIsOnline(false);
+      }
+    };
+
+    checkConnection();
+    const interval = setInterval(checkConnection, 12000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Rolling OTP dynamic token generator (updates every 10 seconds)
+  useEffect(() => {
+    const updateCode = () => {
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.getMonth();
+      const hour = now.getHours();
+      const min = now.getMinutes();
+      const block = Math.floor(now.getSeconds() / 10);
+      const uid = userId || 0;
+      
+      const input = `${uid}-${day}-${month}-${hour}-${min}-${block}`;
+      let hash = 0;
+      for (let i = 0; i < input.length; i++) {
+        hash = input.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const token = Math.abs(hash).toString(16).toUpperCase().slice(0, 6);
+      setSecurityCode(`VG-${token}`);
+    };
+
+    updateCode();
+    const interval = setInterval(updateCode, 10000);
+    return () => clearInterval(interval);
+  }, [userId]);
 
   // Obscure screen when app loses focus / app switcher is opened
   useEffect(() => {
@@ -77,31 +133,61 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: isLocationValid === false
+          flexDirection: 'column',
+          gap: '6px',
+          background: isLocationValid === false || !isOnline
             ? 'linear-gradient(90deg, #991b1b, #ef4444)'
             : 'linear-gradient(90deg, #064e3b, #10b981)',
           color: '#ffffff',
-          padding: '6px 14px',
-          borderRadius: '8px',
+          padding: '10px 14px',
+          borderRadius: '12px',
           marginBottom: '16px',
-          fontSize: '0.76rem',
+          fontSize: '0.74rem',
           fontWeight: 700,
-          letterSpacing: '0.4px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+          letterSpacing: '0.3px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {isLocationValid === false ? <ShieldAlert size={15} /> : <ShieldCheck size={15} />}
-          <span>
-            {isLocationValid === false
-              ? 'CAPTURA NO VÁLIDA: FUERA DE SUCURSAL'
-              : 'GPS VERIFICADO: DENTRO DE SUCURSAL'}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {isLocationValid === false ? <ShieldAlert size={14} /> : <ShieldCheck size={14} />}
+            <span>
+              {isLocationValid === false
+                ? 'CAPTURA INVÁLIDA: FUERA DE LOCAL'
+                : 'GPS VERIFICADO: EN LOCAL'}
+            </span>
+          </div>
+          <div style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.9 }}>
+            {userName ? `${userName.split(' ')[0]} • ` : ''}{timeStr}
+          </div>
         </div>
-        <div style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.9 }}>
-          {userName ? `${userName} • ` : ''}{timeStr}
+
+        {/* Dynamic Code and Server Connection Ticker */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+          paddingTop: '6px',
+          fontSize: '0.68rem',
+          opacity: 0.95
+        }}>
+          <div>
+            CÓDIGO: <strong style={{ background: 'rgba(255,255,255,0.18)', padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.5px' }}>{securityCode}</strong>
+          </div>
+          <div>
+            {isOnline ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
+                SERVIDOR: ONLINE ({ping !== null ? `${ping}ms` : 'OK'})
+              </span>
+            ) : (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fca5a5' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', display: 'inline-block', boxShadow: '0 0 6px #ef4444' }} />
+                SERVIDOR: SIN CONEXIÓN ❌
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
