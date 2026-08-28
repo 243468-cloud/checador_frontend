@@ -187,6 +187,10 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
           fontWeight: 700,
           letterSpacing: '0.3px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '500px',
+          marginLeft: 'auto',
+          marginRight: 'auto',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
@@ -248,16 +252,15 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
       {isLocationValid === false && (
         <div
           style={{
-            position: 'absolute',
+            position: 'fixed',
             inset: 0,
-            zIndex: 99,
+            zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             background: 'rgba(15, 23, 42, 0.85)',
             backdropFilter: 'blur(12px)',
-            borderRadius: '16px',
             padding: '24px',
             textAlign: 'center',
             color: '#ffffff',
