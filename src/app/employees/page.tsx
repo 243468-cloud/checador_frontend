@@ -143,7 +143,7 @@ export default function EmployeesPage() {
           <div className="grid-3 stagger">
             {filtered.map(emp => (
               <div key={emp.id} className="card animate-slide-up" style={{ opacity: emp.active ? 1 : 0.55 }}>
-                <div className="flex items-start justify-between mb-4">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <div style={{
                     width: 46, height: 46,
                     borderRadius: '50%',
