@@ -20,6 +20,8 @@ import {
   Calendar,
   Filter,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const MONTHS = ['', 'Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -42,6 +44,10 @@ export default function ReportsPage() {
   const [downloading, setDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState<'table' | 'charts'>('table');
   const [filterEmployee, setFilterEmployee] = useState('ALL');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   const load = () => {
     setLoading(true);
@@ -96,6 +102,17 @@ export default function ReportsPage() {
       ? periodFilteredRecords
       : periodFilteredRecords.filter(r => r.employeeId === Number(filterEmployee));
   }, [periodFilteredRecords, filterEmployee]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [year, month, periodType, subPeriod, filterEmployee]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   // Analytics Metrics
   const total       = filtered.length;
@@ -379,7 +396,7 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(rec => (
+                    {paginatedRecords.map(rec => (
                       <tr key={rec.id}>
                         <td style={{ fontWeight: 600 }}>{rec.employeeName}</td>
                         <td style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
@@ -408,6 +425,69 @@ export default function ReportsPage() {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Pagination Controls Footer Toolbar */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderTop: '1px solid var(--color-border-light)',
+                    fontSize: '0.82rem',
+                    color: 'var(--color-text-muted)',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Filas por página:</span>
+                    <select
+                      className="form-select"
+                      value={pageSize}
+                      onChange={e => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                    <span style={{ marginLeft: 8 }}>
+                      Mostrando {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} registros
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <ChevronLeft size={16} />
+                      <span>Anterior</span>
+                    </button>
+
+                    <span style={{ fontWeight: 700, padding: '0 8px' }}>
+                      Página {currentPage} de {totalPages}
+                    </span>
+
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage >= totalPages}
+                      style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <span>Siguiente</span>
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

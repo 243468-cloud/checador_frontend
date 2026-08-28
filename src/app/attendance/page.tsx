@@ -17,10 +17,12 @@ import {
   Trash2,
   Save,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -28,6 +30,10 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState('ALL');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   // Edit Modal State for Admin/Superadmin
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
@@ -102,9 +108,22 @@ export default function AttendancePage() {
     }
   };
 
-  const filtered = filterStatus === 'ALL'
-    ? records
-    : records.filter(r => r.status === filterStatus);
+  const filtered = useMemo(() => {
+    return filterStatus === 'ALL'
+      ? records
+      : records.filter(r => r.status === filterStatus);
+  }, [records, filterStatus]);
+
+  // Reset to page 1 whenever date or filter status changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedDate, filterStatus]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   const fmt = (iso: string) => iso ? iso.split('T')[1]?.slice(0, 5) : '—';
 
@@ -203,9 +222,11 @@ export default function AttendancePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((rec, i) => (
+                  {paginatedRecords.map((rec, i) => (
                     <tr key={rec.id}>
-                      <td style={{ color: 'var(--color-text-faint)', fontSize: '0.8rem' }}>{i + 1}</td>
+                      <td style={{ color: 'var(--color-text-faint)', fontSize: '0.8rem' }}>
+                        {(currentPage - 1) * pageSize + i + 1}
+                      </td>
                       <td>
                         <div className="flex items-center gap-3">
                           <div style={{
@@ -281,6 +302,69 @@ export default function AttendancePage() {
                   ))}
                 </tbody>
               </table>
+
+              {/* Pagination Controls Footer Toolbar */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justify: 'space-between',
+                  padding: '12px 16px',
+                  borderTop: '1px solid var(--color-border-light)',
+                  fontSize: '0.82rem',
+                  color: 'var(--color-text-muted)',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Filas por página:</span>
+                  <select
+                    className="form-select"
+                    value={pageSize}
+                    onChange={e => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }}
+                  >
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span style={{ marginLeft: 8 }}>
+                    Mostrando {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} registros
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Anterior</span>
+                  </button>
+
+                  <span style={{ fontWeight: 700, padding: '0 8px' }}>
+                    Página {currentPage} de {totalPages}
+                  </span>
+
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages}
+                    style={{ padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <span>Siguiente</span>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
