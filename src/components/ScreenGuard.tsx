@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ShieldAlert, ShieldCheck, MapPinOff } from 'lucide-react';
+import { notificationApi } from '@/lib/api';
 
 interface ScreenGuardProps {
   userName?: string;
@@ -13,6 +14,18 @@ interface ScreenGuardProps {
 export default function ScreenGuard({ userName, userId, isLocationValid, children }: ScreenGuardProps) {
   const [timeStr, setTimeStr] = useState('');
   const [isBlurred, setIsBlurred] = useState(false);
+
+  // Trigger real-time Security Alert Push notification to Admin & Superadmin when outside branch location
+  useEffect(() => {
+    if (isLocationValid === false) {
+      const now = Date.now();
+      const lastAlert = Number(sessionStorage.getItem('last_security_alert_time') || '0');
+      if (now - lastAlert > 30000) { // 30s cooldown throttle to prevent alert spam
+        sessionStorage.setItem('last_security_alert_time', now.toString());
+        notificationApi.sendSecurityAlert('intentó capturar pantalla o consultar asistencia fuera del local').catch(() => {});
+      }
+    }
+  }, [isLocationValid]);
 
   // Live ticking clock for anti-spoofing verification
   useEffect(() => {

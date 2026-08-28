@@ -387,6 +387,20 @@ export const leaveApi = {
     }),
 };
 
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const notificationApi = {
+  getAll: () => apiFetch<any[]>('/api/notifications'),
+  getUnreadCount: () => apiFetch<{ count: number }>('/api/notifications/unread-count'),
+  markAllRead: () => apiFetch('/api/notifications/mark-all-read', { method: 'POST' }),
+  markOneRead: (id: number) => apiFetch(`/api/notifications/${id}/read`, { method: 'PATCH' }),
+  sendSecurityAlert: (details: string) =>
+    apiFetch<{ message: string }>('/api/notifications/security-alert', {
+      method: 'POST',
+      body: JSON.stringify({ details }),
+    }),
+};
+
 // ─── Geolocation helper ───────────────────────────────────────────────────────
 
 export function getCurrentPosition(): Promise<GeolocationPosition> {
