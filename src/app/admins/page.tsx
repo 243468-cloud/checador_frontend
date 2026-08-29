@@ -55,6 +55,12 @@ export default function AdminsPage() {
     try {
       if (editTarget) {
         await adminApi.update(editTarget.id, { fullName: form.fullName, email: form.email });
+        if (form.password && form.password.trim().length > 0) {
+          if (form.password.trim().length < 6) {
+            throw new Error("La nueva contraseña debe tener al menos 6 caracteres");
+          }
+          await adminApi.changePassword(editTarget.id, form.password.trim());
+        }
       } else {
         await adminApi.create({ username: form.username, password: form.password, fullName: form.fullName, email: form.email, branchId: Number(form.branchId) });
       }
@@ -133,7 +139,7 @@ export default function AdminsPage() {
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
-                  {!editTarget && (
+                  {!editTarget ? (
                     <>
                       <div className="form-group">
                         <label>Usuario *</label>
@@ -151,6 +157,11 @@ export default function AdminsPage() {
                         </select>
                       </div>
                     </>
+                  ) : (
+                    <div className="form-group">
+                      <label>Nueva Contraseña (opcional)</label>
+                      <input type="password" className="form-input" placeholder="Mínimo 6 caracteres (dejar vacío para no cambiar)" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+                    </div>
                   )}
                   <div className="form-group">
                     <label>Nombre Completo *</label>

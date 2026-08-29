@@ -286,6 +286,8 @@ export const adminApi = {
     apiFetch<Employee>(`/api/admins/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   toggleActive: (id: number) =>
     apiFetch(`/api/admins/${id}/toggle`, { method: 'PATCH' }),
+  changePassword: (id: number, password: string) =>
+    apiFetch(`/api/admins/${id}/password`, { method: 'PATCH', body: JSON.stringify({ password }) }),
 };
 
 // ─── Reports ──────────────────────────────────────────────────────────────────

@@ -66,6 +66,12 @@ export default function EmployeesPage() {
     try {
       if (editTarget) {
         await employeeApi.update(editTarget.id, { fullName: form.fullName, email: form.email, shiftType: form.shiftType as any });
+        if (form.password && form.password.trim().length > 0) {
+          if (form.password.trim().length < 6) {
+            throw new Error("La nueva contraseña debe tener al menos 6 caracteres");
+          }
+          await employeeApi.changePassword(editTarget.id, form.password.trim());
+        }
       } else {
         await employeeApi.create({ username: form.username, password: form.password, fullName: form.fullName, email: form.email, shiftType: form.shiftType });
       }
@@ -237,7 +243,7 @@ export default function EmployeesPage() {
 
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
-                  {!editTarget && (
+                  {!editTarget ? (
                     <>
                       <div className="form-group">
                         <label>Usuario *</label>
@@ -250,6 +256,12 @@ export default function EmployeesPage() {
                           onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required />
                       </div>
                     </>
+                  ) : (
+                    <div className="form-group">
+                      <label>Nueva Contraseña (opcional)</label>
+                      <input type="password" className="form-input" placeholder="Mínimo 6 caracteres (dejar vacío para no cambiar)" value={form.password}
+                        onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+                    </div>
                   )}
                   <div className="form-group">
                     <label>Nombre Completo *</label>
