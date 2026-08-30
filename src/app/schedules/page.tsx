@@ -675,11 +675,81 @@ export default function SchedulesPage() {
     });
   };
 
+  // ─── Convierte la respuesta de la API al formato interno ─────────────────────
+  const apiCellsToRosterRows = (cells: ApiRosterCell[]): RosterRow[] => {
+    const rowMap = new Map<string, RosterRow>();
+    cells.forEach(c => {
+      if (!rowMap.has(c.rowKey)) {
+        rowMap.set(c.rowKey, {
+          id: c.rowKey,
+          area: c.areaName,
+          shiftTime: c.shiftTime,
+          employees: {},
+        });
+      }
+      const row = rowMap.get(c.rowKey)!;
+      if (!row.employees[c.dayIndex]) row.employees[c.dayIndex] = [];
+
+      let cellObj: RosterCell = {
+        text: c.employeeName,
+        type: c.statusType as RosterCell['type'],
+      };
+
+      if (c.employeeName && c.employeeName.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(c.employeeName);
+          cellObj = {
+            ...parsed,
+            type: c.statusType as RosterCell['type'],
+          };
+        } catch {}
+      }
+
+      row.employees[c.dayIndex].push(cellObj);
+    });
+    return Array.from(rowMap.values());
+  };
+
+  // ─── Convierte el formato interno al formato que espera la API ────────────────
+  const rosterRowsToApiCells = (rows: RosterRow[], targetWeek: string = weekStart): Omit<ApiRosterCell, 'id' | 'branchId'>[] => {
+    const cells: Omit<ApiRosterCell, 'id' | 'branchId'>[] = [];
+    rows.forEach(row => {
+      for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+        const dayCells = row.employees[dayIdx] || [];
+        dayCells.forEach(cell => {
+          const payload = JSON.stringify({
+            text: cell.text,
+            type: cell.type,
+            shiftStartTime: cell.shiftStartTime,
+            shiftEndTime: cell.shiftEndTime,
+            secondShiftStartTime: cell.secondShiftStartTime,
+            secondShiftEndTime: cell.secondShiftEndTime,
+            targetArea: cell.targetArea,
+            reason: cell.reason,
+            createdBy: cell.createdBy,
+            createdAt: cell.createdAt,
+          });
+
+          cells.push({
+            rowKey: row.id,
+            areaName: row.area,
+            shiftTime: row.shiftTime,
+            dayIndex: dayIdx,
+            employeeName: payload.length <= 250 ? payload : cell.text,
+            statusType: cell.type,
+            weekStart: targetWeek,
+          });
+        });
+      }
+    });
+    return cells;
+  };
+
   // ─── Carga el roster desde la API (o localStorage por semana con migración) ─
-  useEffect(() => {
+  const fetchRosterFromApi = useCallback(() => {
     if (!weekStart) return;
     const weekStorageKey = `official_roster_rows_${weekStart}`;
-    const branchId = user?.branchId;
+    const activeBranchId = user?.branchId || 1;
 
     const loadFromLocalStorage = () => {
       const savedWeek = localStorage.getItem(weekStorageKey);
@@ -717,23 +787,28 @@ export default function SchedulesPage() {
       }
     };
 
-    if (branchId) {
-      scheduleApi.getRoster(branchId, weekStart)
-        .then(cells => {
-          if (cells.length > 0) {
-            const rows = sortRowsChronologically(apiCellsToRosterRows(cells));
-            setRosterRows(rows);
-            localStorage.setItem(weekStorageKey, JSON.stringify(rows));
-          } else {
-            loadFromLocalStorage();
-          }
-        })
-        .catch(() => {
+    setSyncStatus('saving');
+    scheduleApi.getRoster(activeBranchId, weekStart)
+      .then(cells => {
+        if (cells && cells.length > 0) {
+          const rows = sortRowsChronologically(apiCellsToRosterRows(cells));
+          setRosterRows(rows);
+          localStorage.setItem(weekStorageKey, JSON.stringify(rows));
+          setSyncStatus('saved');
+          setTimeout(() => setSyncStatus('idle'), 2000);
+        } else {
           loadFromLocalStorage();
-        });
-    } else {
-      loadFromLocalStorage();
-    }
+          setSyncStatus('idle');
+        }
+      })
+      .catch(() => {
+        loadFromLocalStorage();
+        setSyncStatus('idle');
+      });
+  }, [user?.branchId, weekStart, currentActualMondayStr]);
+
+  useEffect(() => {
+    fetchRosterFromApi();
 
     employeeApi.getAll()
       .then(setEmployees)
@@ -743,51 +818,21 @@ export default function SchedulesPage() {
     reportApi.getMonthly(now.getFullYear(), now.getMonth() + 1)
       .then(setAttendanceRecords)
       .catch(() => setAttendanceRecords([]));
-  }, [user?.branchId, weekStart, currentActualMondayStr]);
 
-  // ─── Convierte la respuesta de la API al formato interno ─────────────────────
-  const apiCellsToRosterRows = (cells: ApiRosterCell[]): RosterRow[] => {
-    const rowMap = new Map<string, RosterRow>();
-    cells.forEach(c => {
-      if (!rowMap.has(c.rowKey)) {
-        rowMap.set(c.rowKey, {
-          id: c.rowKey,
-          area: c.areaName,
-          shiftTime: c.shiftTime,
-          employees: {},
-        });
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRosterFromApi();
       }
-      const row = rowMap.get(c.rowKey)!;
-      if (!row.employees[c.dayIndex]) row.employees[c.dayIndex] = [];
-      row.employees[c.dayIndex].push({
-        text: c.employeeName,
-        type: c.statusType as RosterCell['type'],
-      });
-    });
-    return Array.from(rowMap.values());
-  };
+    };
 
-  // ─── Convierte el formato interno al formato que espera la API ────────────────
-  const rosterRowsToApiCells = (rows: RosterRow[], targetWeek: string = weekStart): Omit<ApiRosterCell, 'id' | 'branchId'>[] => {
-    const cells: Omit<ApiRosterCell, 'id' | 'branchId'>[] = [];
-    rows.forEach(row => {
-      for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
-        const dayCells = row.employees[dayIdx] || [];
-        dayCells.forEach(cell => {
-          cells.push({
-            rowKey: row.id,
-            areaName: row.area,
-            shiftTime: row.shiftTime,
-            dayIndex: dayIdx,
-            employeeName: cell.text,
-            statusType: cell.type,
-            weekStart: targetWeek,
-          });
-        });
-      }
-    });
-    return cells;
-  };
+    window.addEventListener('focus', handleFocusOrVisible);
+    document.addEventListener('visibilitychange', handleFocusOrVisible);
+
+    return () => {
+      window.removeEventListener('focus', handleFocusOrVisible);
+      document.removeEventListener('visibilitychange', handleFocusOrVisible);
+    };
+  }, [fetchRosterFromApi]);
 
   // ─── Guarda en API + localStorage en clave aislada por semana ─────────────────
   const saveRoster = (updated: RosterRow[], targetWeekStart: string = weekStart) => {
@@ -795,11 +840,11 @@ export default function SchedulesPage() {
     const weekStorageKey = `official_roster_rows_${targetWeekStart}`;
     localStorage.setItem(weekStorageKey, JSON.stringify(updated));
 
-    const branchId = user?.branchId;
-    if (branchId && targetWeekStart) {
+    const activeBranchId = user?.branchId || 1;
+    if (targetWeekStart) {
       setSyncStatus('saving');
       const cells = rosterRowsToApiCells(updated, targetWeekStart);
-      scheduleApi.saveRoster(branchId, targetWeekStart, cells)
+      scheduleApi.saveRoster(activeBranchId, targetWeekStart, cells)
         .then(() => {
           setSyncStatus('saved');
           setTimeout(() => setSyncStatus('idle'), 3000);
@@ -2139,6 +2184,29 @@ export default function SchedulesPage() {
               >
                 <Filter size={14} />
                 <span>Ordenar x Área</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={fetchRosterFromApi}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: syncStatus === 'saving' ? '#e0f2fe' : 'transparent',
+                  color: syncStatus === 'saving' ? '#0284c7' : '#64748b',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                }}
+                title="Actualizar y sincronizar horario desde el servidor"
+              >
+                <RefreshCw size={14} className={syncStatus === 'saving' ? 'animate-spin' : ''} />
+                <span>{syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? '¡Sincronizado!' : 'Sincronizar'}</span>
               </button>
             </div>
           </div>
