@@ -1746,44 +1746,44 @@ export default function SchedulesPage() {
               position: 'fixed',
               inset: 0,
               zIndex: 9999,
-              background: 'rgba(15, 23, 42, 0.45)',
-              backdropFilter: 'blur(6px)',
+              background: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '16px',
+              padding: '20px',
             }}
             onClick={() => setEditModal(null)}
           >
             <div
-              className="modal animate-slide-up"
+              className="animate-slide-up"
               style={{
                 width: '100%',
-                maxWidth: 520,
-                maxHeight: '90vh',
+                maxWidth: 540,
+                maxHeight: '88vh',
                 overflowY: 'auto',
                 background: '#ffffff',
                 border: '1px solid rgba(234, 88, 12, 0.25)',
-                borderRadius: 20,
-                boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 0 24px rgba(234, 88, 12, 0.08)',
-                padding: '24px',
+                borderRadius: 24,
+                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+                padding: '28px',
                 color: '#0f172a',
               }}
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+              <div className="flex items-start justify-between pb-4 mb-6" style={{ borderBottom: '1px solid #e2e8f0' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>
                     Edición de Casilla — {editModal.area}
                   </h3>
                   <div className="flex items-center gap-2 flex-wrap">
                     {editModal.shiftTime && (
-                      <span className="badge" style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 800, fontSize: '0.72rem', padding: '4px 10px' }}>
-                        {editModal.shiftTime}
+                      <span className="badge" style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 800, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 20 }}>
+                        Turno: {editModal.shiftTime}
                       </span>
                     )}
-                    <span className="badge" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', fontWeight: 800, fontSize: '0.72rem', padding: '4px 10px' }}>
+                    <span className="badge" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', fontWeight: 800, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 20 }}>
                       Día: {editModal.dayLabel}
                     </span>
                   </div>
@@ -1791,386 +1791,393 @@ export default function SchedulesPage() {
                 <button
                   type="button"
                   className="btn btn-ghost btn-icon"
-                  style={{ borderRadius: '50%', width: 34, height: 34, background: '#f1f5f9', color: '#64748b' }}
+                  style={{ borderRadius: '50%', width: 36, height: 36, background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer' }}
                   onClick={() => setEditModal(null)}
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* SECTION 1: ASSIGNED EMPLOYEES */}
-              <div className="mb-5">
-                <div className="flex items-center justify-between mb-2.5">
-                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Empleados Asignados en este Turno:
-                  </label>
+              <div className="flex flex-col gap-6">
+                {/* SECTION 1: ASSIGNED EMPLOYEES */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      Empleados Asignados en este Turno
+                    </label>
+                    {(() => {
+                      const targetRow = rosterRows.find(r => r.id === editModal.rowId);
+                      const currentItems = targetRow?.employees[editModal.dayIndex] || [];
+                      if (currentItems.length > 0) {
+                        return (
+                          <button
+                            className="btn flex items-center gap-1.5"
+                            style={{ fontSize: '0.75rem', color: '#e11d48', background: '#ffe4e6', border: '1px solid #fecdd3', padding: '4px 12px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                            onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
+                          >
+                            <Trash2 size={13} /> Limpiar Celda
+                          </button>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+
                   {(() => {
                     const targetRow = rosterRows.find(r => r.id === editModal.rowId);
                     const currentItems = targetRow?.employees[editModal.dayIndex] || [];
-                    if (currentItems.length > 0) {
+                    if (currentItems.length === 0) {
                       return (
-                        <button
-                          className="btn btn-ghost btn-sm flex items-center gap-1"
-                          style={{ fontSize: '0.72rem', color: '#e11d48', background: '#ffe4e6', padding: '3px 10px', borderRadius: 8, fontWeight: 700 }}
-                          onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
-                        >
-                          <Trash2 size={12} /> Limpiar Celda
-                        </button>
+                        <div className="p-4 text-center rounded-2xl" style={{ background: '#f8fafc', border: '2px dashed #cbd5e1' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>Celda vacía. Selecciona un empleado abajo para asignarlo.</span>
+                        </div>
                       );
                     }
-                    return null;
+                    return (
+                      <div className="flex flex-col gap-3">
+                        {currentItems.map((item, idx) => {
+                          const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
+                          return (
+                            <div
+                              key={idx}
+                              className="p-4 rounded-2xl flex flex-col gap-3"
+                              style={{
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                              }}
+                            >
+                              {/* Top Row: Avatar + Name + Trash Button */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    style={{
+                                      width: 38,
+                                      height: 38,
+                                      borderRadius: '50%',
+                                      background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                                      color: '#ffffff',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: '0.85rem',
+                                      fontWeight: 800,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {initials}
+                                  </div>
+                                  <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
+                                    {item.text}
+                                  </span>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                  style={{
+                                    background: '#ffe4e6',
+                                    border: '1px solid #fecdd3',
+                                    borderRadius: 8,
+                                    padding: '6px 14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    color: '#e11d48',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                  title="Quitar empleado de celda"
+                                >
+                                  <Trash2 size={14} />
+                                  <span>Quitar</span>
+                                </button>
+                              </div>
+
+                              {/* Bottom Row: Segmented Status Switcher Track */}
+                              <div className="grid grid-cols-4 gap-1.5 p-1.5 rounded-xl" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1' }}>
+                                <button
+                                  type="button"
+                                  style={{
+                                    background: item.type === 'NORMAL' ? '#ffffff' : 'transparent',
+                                    color: item.type === 'NORMAL' ? '#0f172a' : '#64748b',
+                                    boxShadow: item.type === 'NORMAL' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    fontSize: '0.78rem',
+                                    fontWeight: 800,
+                                    padding: '8px 4px',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
+                                >
+                                  Normal
+                                </button>
+
+                                <button
+                                  type="button"
+                                  style={{
+                                    background: item.type === 'DESCANSO' ? '#10b981' : 'transparent',
+                                    color: item.type === 'DESCANSO' ? '#ffffff' : '#64748b',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    fontSize: '0.78rem',
+                                    fontWeight: 800,
+                                    padding: '8px 4px',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
+                                >
+                                  Descanso
+                                </button>
+
+                                <button
+                                  type="button"
+                                  style={{
+                                    background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
+                                    color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#64748b',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    fontSize: '0.78rem',
+                                    fontWeight: 800,
+                                    padding: '8px 4px',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
+                                >
+                                  C. Turno
+                                </button>
+
+                                <button
+                                  type="button"
+                                  style={{
+                                    background: item.type === 'DOBLE_TURNO' ? '#ea580c' : 'transparent',
+                                    color: item.type === 'DOBLE_TURNO' ? '#ffffff' : '#64748b',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    fontSize: '0.78rem',
+                                    fontWeight: 800,
+                                    padding: '8px 4px',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
+                                >
+                                  Doble
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
                   })()}
                 </div>
 
-                {(() => {
-                  const targetRow = rosterRows.find(r => r.id === editModal.rowId);
-                  const currentItems = targetRow?.employees[editModal.dayIndex] || [];
-                  if (currentItems.length === 0) {
-                    return (
-                      <div className="p-4 text-center rounded-xl" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
-                        <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>Celda vacía. Selecciona un empleado abajo para asignarlo.</span>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div className="flex flex-col gap-2.5">
-                      {currentItems.map((item, idx) => {
-                        const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
-                        return (
-                          <div
-                            key={idx}
-                            className="p-3.5 rounded-xl flex flex-col gap-3"
-                            style={{
-                              background: '#f8fafc',
-                              border: '1px solid #e2e8f0',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                            }}
-                          >
-                            {/* Top Row: Avatar + Name + Trash Button */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2.5">
-                                <div
-                                  style={{
-                                    width: 34,
-                                    height: 34,
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-                                    color: '#ffffff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '0.82rem',
-                                    fontWeight: 800,
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  {initials}
-                                </div>
-                                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
-                                  {item.text}
-                                </span>
-                              </div>
+                {/* SECTION 2: ADD EMPLOYEE CHIPS */}
+                <div className="pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12, display: 'block' }}>
+                    + Agregar Empleado a este Turno
+                  </label>
+                  <div className="flex gap-2.5 flex-wrap">
+                    {uniqueAvailableNames.map((name, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="btn flex items-center gap-2 hover:scale-[1.03] transition-all"
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
+                          color: '#1e293b',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          padding: '8px 16px',
+                          borderRadius: 24,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                        }}
+                        onClick={() => quickAddCell(name, 'NORMAL')}
+                      >
+                        <UserPlus size={14} color="#ea580c" />
+                        <span>{name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                style={{
-                                  background: '#ffe4e6',
-                                  border: '1px solid #fecdd3',
-                                  borderRadius: 8,
-                                  padding: '5px 12px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 5,
-                                  color: '#e11d48',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                }}
-                                title="Quitar empleado de celda"
-                              >
-                                <Trash2 size={13} />
-                                <span>Quitar</span>
-                              </button>
-                            </div>
+                {/* SECTION 3: STANDALONE CONVENTION STATUS CHIPS */}
+                <div className="pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12, display: 'block' }}>
+                    + O Agregar Etiqueta de Estado Especial
+                  </label>
 
-                            {/* Bottom Row: Segmented Status Switcher Track */}
-                            <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
-                              <button
-                                type="button"
-                                style={{
-                                  background: item.type === 'NORMAL' ? '#ffffff' : 'transparent',
-                                  color: item.type === 'NORMAL' ? '#0f172a' : '#64748b',
-                                  boxShadow: item.type === 'NORMAL' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  fontSize: '0.74rem',
-                                  fontWeight: 800,
-                                  padding: '6px 4px',
-                                  textAlign: 'center',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease',
-                                }}
-                                onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
-                              >
-                                Normal
-                              </button>
-
-                              <button
-                                type="button"
-                                style={{
-                                  background: item.type === 'DESCANSO' ? '#10b981' : 'transparent',
-                                  color: item.type === 'DESCANSO' ? '#ffffff' : '#64748b',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  fontSize: '0.74rem',
-                                  fontWeight: 800,
-                                  padding: '6px 4px',
-                                  textAlign: 'center',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease',
-                                }}
-                                onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
-                              >
-                                Descanso
-                              </button>
-
-                              <button
-                                type="button"
-                                style={{
-                                  background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
-                                  color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#64748b',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  fontSize: '0.74rem',
-                                  fontWeight: 800,
-                                  padding: '6px 4px',
-                                  textAlign: 'center',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease',
-                                }}
-                                onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
-                              >
-                                C. Turno
-                              </button>
-
-                              <button
-                                type="button"
-                                style={{
-                                  background: item.type === 'DOBLE_TURNO' ? '#ea580c' : 'transparent',
-                                  color: item.type === 'DOBLE_TURNO' ? '#ffffff' : '#64748b',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  fontSize: '0.74rem',
-                                  fontWeight: 800,
-                                  padding: '6px 4px',
-                                  textAlign: 'center',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease',
-                                }}
-                                onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
-                              >
-                                Doble
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* SECTION 2: ADD EMPLOYEE CHIPS */}
-              <div className="mb-5" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
-                  + Agregar Empleado a este Turno:
-                </label>
-                <div className="flex gap-2 flex-wrap">
-                  {uniqueAvailableNames.map((name, idx) => (
+                  <div className="grid grid-cols-2 gap-3">
                     <button
-                      key={idx}
                       type="button"
-                      className="btn flex items-center gap-1.5 hover:scale-[1.03] transition-all"
+                      className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
                       style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        color: '#334155',
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        padding: '6px 14px',
-                        borderRadius: 20,
+                        background: '#ecfdf5',
+                        border: '1px solid #a7f3d0',
+                        color: '#047857',
+                        fontWeight: 800,
+                        fontSize: '0.82rem',
+                        padding: '11px 14px',
+                        borderRadius: 12,
+                        whiteSpace: 'nowrap',
                       }}
-                      onClick={() => quickAddCell(name, 'NORMAL')}
+                      onClick={() => quickAddCell('DESCANSO', 'DESCANSO')}
                     >
-                      <UserPlus size={13} color="#ea580c" />
-                      <span>{name}</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                      + DESCANSO
                     </button>
-                  ))}
+
+                    <button
+                      type="button"
+                      className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                      style={{
+                        background: '#f0f9ff',
+                        border: '1px solid #bae6fd',
+                        color: '#0369a1',
+                        fontWeight: 800,
+                        fontSize: '0.82rem',
+                        padding: '11px 14px',
+                        borderRadius: 12,
+                        whiteSpace: 'nowrap',
+                      }}
+                      onClick={() => quickAddCell('CAMBIO TURNO', 'CAMBIO_TURNO')}
+                    >
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0284c7', flexShrink: 0 }} />
+                      + CAMBIO TURNO
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                      style={{
+                        background: '#fffbeb',
+                        border: '1px solid #fef08a',
+                        color: '#b45309',
+                        fontWeight: 800,
+                        fontSize: '0.82rem',
+                        padding: '11px 14px',
+                        borderRadius: 12,
+                        whiteSpace: 'nowrap',
+                      }}
+                      onClick={() => quickAddCell('DOBLE TURNO', 'DOBLE_TURNO')}
+                    >
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#eab308', flexShrink: 0 }} />
+                      + DOBLE TURNO
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                      style={{
+                        background: '#fff7ed',
+                        border: '1px solid #ffedd5',
+                        color: '#c2410c',
+                        fontWeight: 800,
+                        fontSize: '0.82rem',
+                        padding: '11px 14px',
+                        borderRadius: 12,
+                        whiteSpace: 'nowrap',
+                      }}
+                      onClick={() => quickAddCell('CAMBIO AREA', 'CAMBIO_AREA')}
+                    >
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f97316', flexShrink: 0 }} />
+                      + CAMBIO ÁREA
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* SECTION 3: STANDALONE CONVENTION STATUS CHIPS */}
-              <div className="mb-5">
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'block' }}>
-                  + O Agregar Etiqueta de Estado Especial:
-                </label>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
-                    style={{
-                      background: '#ecfdf5',
-                      border: '1px solid #a7f3d0',
-                      color: '#047857',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      whiteSpace: 'nowrap',
-                    }}
-                    onClick={() => quickAddCell('DESCANSO', 'DESCANSO')}
-                  >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-                    + DESCANSO
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
-                    style={{
-                      background: '#f0f9ff',
-                      border: '1px solid #bae6fd',
-                      color: '#0369a1',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      whiteSpace: 'nowrap',
-                    }}
-                    onClick={() => quickAddCell('CAMBIO TURNO', 'CAMBIO_TURNO')}
-                  >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#0284c7', flexShrink: 0 }} />
-                    + CAMBIO TURNO
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
-                    style={{
-                      background: '#fffbeb',
-                      border: '1px solid #fef08a',
-                      color: '#b45309',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      whiteSpace: 'nowrap',
-                    }}
-                    onClick={() => quickAddCell('DOBLE TURNO', 'DOBLE_TURNO')}
-                  >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#eab308', flexShrink: 0 }} />
-                    + DOBLE TURNO
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
-                    style={{
-                      background: '#fff7ed',
-                      border: '1px solid #ffedd5',
-                      color: '#c2410c',
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      whiteSpace: 'nowrap',
-                    }}
-                    onClick={() => quickAddCell('CAMBIO AREA', 'CAMBIO_AREA')}
-                  >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f97316', flexShrink: 0 }} />
-                    + CAMBIO ÁREA
-                  </button>
+                {/* SECTION 4: OPTIONAL CUSTOM NOTE INPUT */}
+                <div className="pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8, display: 'block' }}>
+                    Nota o Horario Especial (Opcional)
+                  </label>
+                  <div className="flex items-center gap-3" style={{ width: '100%' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Ej. HIBERT 6PM, C-11-5, 8AM-6PM"
+                      value={customInput}
+                      onChange={e => setCustomInput(e.target.value)}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        color: '#0f172a',
+                        fontWeight: 700,
+                        borderRadius: 12,
+                        padding: '11px 16px',
+                        fontSize: '0.9rem',
+                        flex: 1,
+                        minWidth: 0,
+                        width: 'auto',
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && customInput.trim()) {
+                          quickAddCell(customInput, 'NORMAL');
+                          setCustomInput('');
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="btn flex items-center justify-center gap-2 px-5"
+                      style={{
+                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '0.88rem',
+                        borderRadius: 12,
+                        height: 46,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                      }}
+                      onClick={() => {
+                        if (customInput.trim()) {
+                          quickAddCell(customInput, 'NORMAL');
+                          setCustomInput('');
+                        }
+                      }}
+                    >
+                      <CornerDownLeft size={16} />
+                      Agregar
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* SECTION 4: OPTIONAL CUSTOM NOTE INPUT */}
-              <div className="mb-4" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'block' }}>
-                  Nota o Horario Especial (Opcional)
-                </label>
-                <div className="flex items-center gap-2" style={{ width: '100%' }}>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Ej. HIBERT 6PM, C-11-5, 8AM-6PM"
-                    value={customInput}
-                    onChange={e => setCustomInput(e.target.value)}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #cbd5e1',
-                      color: '#0f172a',
-                      fontWeight: 700,
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      flex: 1,
-                      minWidth: 0,
-                      width: 'auto',
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && customInput.trim()) {
-                        quickAddCell(customInput, 'NORMAL');
-                        setCustomInput('');
-                      }
-                    }}
-                  />
+                {/* MODAL FOOTER */}
+                <div className="pt-5 mt-2" style={{ borderTop: '2px solid #f1f5f9' }}>
                   <button
                     type="button"
-                    className="btn flex items-center justify-center gap-1.5 px-4"
+                    className="btn"
                     style={{
+                      width: '100%',
+                      height: 50,
+                      fontSize: '1rem',
+                      fontWeight: 800,
                       background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                       color: '#ffffff',
-                      fontWeight: 800,
-                      borderRadius: 10,
-                      height: 42,
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
+                      borderRadius: 14,
                       border: 'none',
+                      boxShadow: '0 6px 18px rgba(234, 88, 12, 0.35)',
+                      cursor: 'pointer',
                     }}
-                    onClick={() => {
-                      if (customInput.trim()) {
-                        quickAddCell(customInput, 'NORMAL');
-                        setCustomInput('');
-                      }
-                    }}
+                    onClick={() => setEditModal(null)}
                   >
-                    <CornerDownLeft size={14} />
-                    Agregar
+                    Guardar y Cerrar
                   </button>
                 </div>
-              </div>
-
-              {/* MODAL FOOTER */}
-              <div className="pt-3" style={{ borderTop: '1px solid #e2e8f0', marginTop: 16 }}>
-                <button
-                  type="button"
-                  className="btn"
-                  style={{
-                    width: '100%',
-                    height: 46,
-                    fontSize: '0.92rem',
-                    fontWeight: 800,
-                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-                    color: '#ffffff',
-                    borderRadius: 12,
-                    border: 'none',
-                    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
-                  }}
-                  onClick={() => setEditModal(null)}
-                >
-                  Guardar y Cerrar
-                </button>
               </div>
             </div>
           </div>
