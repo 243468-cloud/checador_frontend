@@ -374,7 +374,29 @@ export const scheduleApi = {
   /** Carga resumen de negocio, KPIs y balances calculados 100% en el backend. */
   getSummary: (weekStart: string, branchId?: number) =>
     apiFetch<ScheduleSummaryDTO>(`/api/schedules/summary?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`),
+
+  /** Carga la resolución diaria y lista de horarios individuales calculados 100% en el backend. */
+  getIndividualSchedules: (weekStart: string, branchId?: number) =>
+    apiFetch<EmployeeIndividualScheduleDTO[]>(`/api/schedules/individual?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`),
 };
+
+export interface DailyResolutionDTO {
+  dayIndex: number;
+  dayName: string;
+  date: string;
+  area: string;
+  shiftTime: string;
+  statusType: string;
+  displayText: string;
+  isRest: boolean;
+}
+
+export interface EmployeeIndividualScheduleDTO {
+  employeeName: string;
+  primaryArea: string;
+  hasAssignments: boolean;
+  days: DailyResolutionDTO[];
+}
 
 // ─── Leave Requests ───────────────────────────────────────────────────────────
 

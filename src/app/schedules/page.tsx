@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { employeeApi, reportApi, scheduleApi, AttendanceRecord, Employee, RosterCell as ApiRosterCell } from '@/lib/api';
+import { employeeApi, reportApi, scheduleApi, AttendanceRecord, Employee, RosterCell as ApiRosterCell, EmployeeIndividualScheduleDTO } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
@@ -598,6 +598,7 @@ export default function SchedulesPage() {
 
   // Inline Sub-Form State for Shift Changes, Double Shifts, and Area Transfers
   const [expandedSubFormIndex, setExpandedSubFormIndex] = useState<number | null>(null);
+  const [backendIndividualSchedules, setBackendIndividualSchedules] = useState<EmployeeIndividualScheduleDTO[]>([]);
   const [subFormState, setSubFormState] = useState<{
     shiftStartTime: string;
     shiftEndTime: string;
@@ -824,6 +825,23 @@ export default function SchedulesPage() {
       document.removeEventListener('visibilitychange', handleFocusOrVisible);
     };
   }, [fetchRosterFromApi]);
+
+  // Carga resolución 100% calculada en Backend para Horarios Individuales
+  const fetchBackendIndividualSchedules = useCallback(() => {
+    if (!weekStart) return;
+    const activeBranchId = user?.branchId || 1;
+    scheduleApi.getIndividualSchedules(weekStart, activeBranchId)
+      .then(res => {
+        if (Array.isArray(res)) {
+          setBackendIndividualSchedules(res);
+        }
+      })
+      .catch(() => {});
+  }, [weekStart, user?.branchId]);
+
+  useEffect(() => {
+    fetchBackendIndividualSchedules();
+  }, [fetchBackendIndividualSchedules, rosterRows]);
 
   // ─── Guarda en API + localStorage en clave aislada por semana ─────────────────
   const saveRoster = (updated: RosterRow[], targetWeekStart: string = weekStart) => {
@@ -1833,17 +1851,24 @@ export default function SchedulesPage() {
     doc.text(`Sucursal: Via Gourmet | Fecha de Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
 
     const headers = [['Día', 'Fecha', 'Área y Turno Asignado', 'Lapsos de Jornada', 'Origen / Estado']];
-    const rows = daysHeader.map((d, i) => {
+    
+    // ELIMINAR DÍAS DE DESCANSO DEL PDF (Mostrar ÚNICAMENTE días de trabajo efectivamente asignados)
+    const workDaysOnly = daysHeader.map((d, i) => {
       const res = getEmployeeScheduleForDay(employeeName, i, rosterRows);
-      const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso';
-      return [
-        d.day,
-        d.date,
-        isRest ? 'DESCANSO' : `${res.area} (${res.shiftTime})`,
-        isRest ? 'Día Libre' : res.shiftTime,
-        res.source === 'INDIVIDUAL' ? 'Excepción Individual' : res.source === 'GLOBAL_ROW' ? 'Horario Global Base' : 'Descanso Programado'
-      ];
+      return { day: d.day, date: d.date, res };
+    }).filter(item => {
+      const res = item.res;
+      const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso' || res.area === 'Descanso';
+      return !isRest;
     });
+
+    const rows = workDaysOnly.map(item => [
+      item.day,
+      item.date,
+      `${item.res.area} (${item.res.shiftTime})`,
+      item.res.shiftTime,
+      item.res.source === 'INDIVIDUAL' ? 'Excepción Individual' : 'Turno Asignado'
+    ]);
 
     autoTable(doc, {
       head: headers,
@@ -2516,6 +2541,94 @@ export default function SchedulesPage() {
 
           <div className="grid-2 gap-4">
             {(() => {
+              if (backendIndividualSchedules.length > 0) {
+                const list = user?.role === 'EMPLOYEE'
+                  ? backendIndividualSchedules.filter(s =>
+                      s.employeeName.toLowerCase().trim() === (user?.fullName || '').toLowerCase().trim() ||
+                      (user?.fullName || '').toLowerCase().includes(s.employeeName.toLowerCase()) ||
+                      s.employeeName.toLowerCase().includes((user?.fullName || '').toLowerCase())
+                    )
+                  : backendIndividualSchedules;
+
+                if (list.length === 0) {
+                  return (
+                    <div style={{ gridColumn: '1 / -1', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.84rem', fontWeight: 600 }}>
+                      No hay personal asignado en la matriz semanal activa.
+                    </div>
+                  );
+                }
+
+                return list.map(b => (
+                  <div
+                    key={b.employeeName}
+                    className="p-4 rounded-xl"
+                    style={{
+                      background: '#ffffff',
+                      border: user?.fullName === b.employeeName ? '2px solid #e11d48' : '1px solid var(--color-border)',
+                      boxShadow: user?.fullName === b.employeeName ? '0 0 15px rgba(225, 29, 72, 0.2)' : '0 4px 14px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          style={{
+                            width: 38, height: 38, borderRadius: 10,
+                            background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                            color: '#fff', fontWeight: 800, fontSize: '0.88rem',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 3px 10px rgba(225, 29, 72, 0.25)',
+                          }}
+                        >
+                          {b.employeeName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem' }}>{b.employeeName}</span>
+                            {user?.fullName === b.employeeName && (
+                              <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>TÚ</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>Área: {b.primaryArea}</div>
+                        </div>
+                      </div>
+
+                      <button
+                        className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                        onClick={() => exportIndividualPDF(b.employeeName)}
+                        style={{ fontSize: '0.75rem', color: '#e11d48', borderColor: 'rgba(225,29,72,0.3)', background: 'rgba(225,29,72,0.08)', fontWeight: 700 }}
+                      >
+                        <FileText size={13} />
+                        <span>PDF Horario</span>
+                      </button>
+                    </div>
+
+                    <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8fafc', padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      {b.days.map((d, i) => (
+                        <div key={i} className="flex flex-col items-center">
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{daysHeader[i]?.day || d.dayName.slice(0, 3)}</span>
+                          <span
+                            style={{
+                              fontSize: '0.65rem',
+                              fontWeight: 800,
+                              marginTop: '2px',
+                              padding: '3px 4px',
+                              borderRadius: '6px',
+                              width: '100%',
+                              background: d.isRest ? '#ecfdf5' : '#fff7ed',
+                              color: d.isRest ? '#047857' : '#c2410c',
+                              border: `1px solid ${d.isRest ? '#a7f3d0' : '#ffedd5'}`,
+                            }}
+                            title={`${d.dayName} ${d.date}: ${d.displayText}`}
+                          >
+                            {d.isRest ? 'Desc' : d.shiftTime}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              }
+
               const activeIndividualBalances = (user?.role === 'EMPLOYEE'
                 ? employeeBalances.filter(b =>
                     b.hasAssignments && (
