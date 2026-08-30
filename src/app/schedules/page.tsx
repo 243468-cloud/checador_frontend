@@ -2431,45 +2431,92 @@ export default function SchedulesPage() {
         )}
         {/* Modal: Edit Row Area & Shift Time */}
         {editRowModal && (
-          <div className="modal-overlay" onClick={() => setEditRowModal(null)}>
-            <div className="modal animate-slide-up" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3 className="modal-title flex items-center gap-2">
+          <div
+            className="modal-overlay"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setEditRowModal(null)}
+          >
+            <div
+              className="animate-slide-up"
+              style={{
+                width: '100%',
+                maxWidth: 480,
+                background: '#ffffff',
+                border: '1px solid rgba(234, 88, 12, 0.3)',
+                borderRadius: 20,
+                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 25px rgba(234, 88, 12, 0.12)',
+                padding: '24px',
+                color: '#0f172a',
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Edit2 size={18} color="#ea580c" />
                   Editar Área y Horario de Fila
                 </h3>
-                <button className="modal-close" onClick={() => setEditRowModal(null)}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-icon"
+                  style={{ borderRadius: '50%', width: 32, height: 32, background: '#f1f5f9', color: '#64748b' }}
+                  onClick={() => setEditRowModal(null)}
+                >
                   <X size={18} />
                 </button>
               </div>
 
               <form onSubmit={handleSaveRowEdit} className="flex flex-col gap-4">
                 <div className="form-group">
-                  <label className="form-label">Nombre del Área</label>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                    Nombre del Área
+                  </label>
                   <input
                     type="text"
                     className="form-input"
                     value={editRowModal.area}
                     onChange={e => setEditRowModal({ ...editRowModal, area: e.target.value })}
                     required
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Horario del Turno (ej. 7AM-3PM, 8AM-5PM, 3PM-11PM)</label>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                    Horario del Turno (ej. 7AM-3PM, 8AM-5PM, 3PM-11PM)
+                  </label>
                   <input
                     type="text"
                     className="form-input"
                     value={editRowModal.shiftTime}
                     onChange={e => setEditRowModal({ ...editRowModal, shiftTime: e.target.value })}
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 mt-2">
-                  <button type="button" className="btn btn-ghost" onClick={() => setEditRowModal(null)}>
+                <div className="flex justify-end gap-3 mt-4 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => setEditRowModal(null)}
+                    style={{ fontWeight: 700, color: '#64748b' }}
+                  >
                     Cancelar
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', color: '#ffffff', fontWeight: 800, borderRadius: 10, padding: '10px 20px', border: 'none', boxShadow: '0 4px 12px rgba(234, 88, 12, 0.3)' }}
+                  >
                     Guardar Cambios
                   </button>
                 </div>
@@ -2480,33 +2527,65 @@ export default function SchedulesPage() {
 
         {/* Modal: Edit Header Dates & Day Labels */}
         {showEditHeaderModal && (
-          <div className="modal-overlay" onClick={() => setShowEditHeaderModal(false)}>
-            <div className="modal animate-slide-up" style={{ maxWidth: 580 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3 className="modal-title flex items-center gap-2">
+          <div
+            className="modal-overlay"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setShowEditHeaderModal(false)}
+          >
+            <div
+              className="animate-slide-up"
+              style={{
+                width: '100%',
+                maxWidth: 600,
+                background: '#ffffff',
+                border: '1px solid rgba(234, 88, 12, 0.3)',
+                borderRadius: 20,
+                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+                padding: '24px',
+                color: '#0f172a',
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', items: 'center', gap: 8 }}>
                   <Calendar size={18} color="#ea580c" />
                   Personalizar Fechas y Encabezados del Rol
                 </h3>
-                <button className="modal-close" onClick={() => setShowEditHeaderModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-icon"
+                  style={{ borderRadius: '50%', width: 32, height: 32, background: '#f1f5f9', color: '#64748b' }}
+                  onClick={() => setShowEditHeaderModal(false)}
+                >
                   <X size={18} />
                 </button>
               </div>
 
               <div className="flex flex-col gap-3 my-2">
-                <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                <p style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>
                   Edita la letra del día (L, M, M...) y el número de fecha (24, 25...) para cada uno de los 7 días de la semana:
                 </p>
 
                 <div className="grid-7 gap-2">
                   {daysHeader.map((d, idx) => (
-                    <div key={idx} className="flex flex-col gap-1 p-2 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ea580c', textAlign: 'center' }}>
+                    <div key={idx} className="flex flex-col gap-1 p-2.5 rounded-xl" style={{ background: '#f8fafc', border: '1px solid #cbd5e1' }}>
+                      <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ea580c', textAlign: 'center' }}>
                         Día {idx + 1}
                       </label>
                       <input
                         type="text"
                         className="form-input text-center"
-                        style={{ padding: '4px', fontSize: '0.85rem', fontWeight: 800 }}
+                        style={{ padding: '6px 4px', fontSize: '0.88rem', fontWeight: 800, background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1' }}
                         value={d.day}
                         onChange={e => handleUpdateHeaderDay(idx, e.target.value, d.date)}
                         placeholder="Día"
@@ -2514,7 +2593,7 @@ export default function SchedulesPage() {
                       <input
                         type="text"
                         className="form-input text-center"
-                        style={{ padding: '4px', fontSize: '0.8rem', fontWeight: 700 }}
+                        style={{ padding: '6px 4px', fontSize: '0.82rem', fontWeight: 700, background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1' }}
                         value={d.date}
                         onChange={e => handleUpdateHeaderDay(idx, d.day, e.target.value)}
                         placeholder="Fecha"
@@ -2524,8 +2603,13 @@ export default function SchedulesPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-4 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-                <button type="button" className="btn btn-primary" onClick={() => setShowEditHeaderModal(false)}>
+              <div className="flex justify-end gap-3 mt-5 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', color: '#ffffff', fontWeight: 800, borderRadius: 10, padding: '10px 20px', border: 'none' }}
+                  onClick={() => setShowEditHeaderModal(false)}
+                >
                   Aceptar y Guardar Encabezados
                 </button>
               </div>
@@ -2535,20 +2619,52 @@ export default function SchedulesPage() {
 
         {/* Modal: Flexible Schedule Report Configuration (PDF & Excel) */}
         {showReportConfigModal && (
-          <div className="modal-overlay" onClick={() => setShowReportConfigModal(false)}>
-            <div className="modal animate-slide-up" style={{ maxWidth: 580 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3 className="modal-title flex items-center gap-2">
+          <div
+            className="modal-overlay"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setShowReportConfigModal(false)}
+          >
+            <div
+              className="animate-slide-up"
+              style={{
+                width: '100%',
+                maxWidth: 580,
+                background: '#ffffff',
+                border: '1px solid rgba(225, 29, 72, 0.3)',
+                borderRadius: 20,
+                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+                padding: '24px',
+                color: '#0f172a',
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Sliders size={18} color="#e11d48" />
                   Configurar y Exportar Reporte de Horarios ({reportFormat})
                 </h3>
-                <button className="modal-close" onClick={() => setShowReportConfigModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-icon"
+                  style={{ borderRadius: '50%', width: 32, height: 32, background: '#f1f5f9', color: '#64748b' }}
+                  onClick={() => setShowReportConfigModal(false)}
+                >
                   <X size={18} />
                 </button>
               </div>
 
               <div className="flex flex-col gap-4 my-2">
-                <div className="p-3 rounded-xl" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+                <div className="p-3.5 rounded-xl" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
                   <div className="flex items-center gap-2" style={{ color: '#047857', fontWeight: 800, fontSize: '0.82rem' }}>
                     <CheckCircle2 size={16} />
                     <span>Reporte Exclusivo de Horarios (Pure Roster)</span>
@@ -2559,40 +2675,51 @@ export default function SchedulesPage() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Título Principal del Reporte</label>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                    Título Principal del Reporte
+                  </label>
                   <input
                     type="text"
                     className="form-input"
                     value={reportConfig.title}
                     onChange={e => setReportConfig({ ...reportConfig, title: e.target.value })}
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
                   />
                 </div>
 
                 <div className="grid-2 gap-3">
                   <div className="form-group">
-                    <label className="form-label">Elaboró / Responsables</label>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                      Elaboró / Responsables
+                    </label>
                     <input
                       type="text"
                       className="form-input"
                       value={reportConfig.prepBy}
                       onChange={e => setReportConfig({ ...reportConfig, prepBy: e.target.value })}
+                      style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Autorizó / Firma</label>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                      Autorizó / Firma
+                    </label>
                     <input
                       type="text"
                       className="form-input"
                       value={reportConfig.approvedBy}
                       onChange={e => setReportConfig({ ...reportConfig, approvedBy: e.target.value })}
+                      style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
                     />
                   </div>
                 </div>
 
                 {reportFormat === 'PDF' && (
                   <div className="form-group">
-                    <label className="form-label">Orientación de Página (PDF)</label>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                      Orientación de Página (PDF)
+                    </label>
                     <div className="grid-2 gap-2">
                       <button
                         type="button"
@@ -2639,24 +2766,27 @@ export default function SchedulesPage() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Notas u Observaciones del Pie</label>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
+                    Notas u Observaciones del Pie
+                  </label>
                   <textarea
                     className="form-input"
                     rows={2}
                     value={reportConfig.notes}
                     onChange={e => setReportConfig({ ...reportConfig, notes: e.target.value })}
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-4 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowReportConfigModal(false)}>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowReportConfigModal(false)} style={{ fontWeight: 700, color: '#64748b' }}>
                   Cancelar
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary flex items-center gap-2"
-                  style={{ background: reportFormat === 'PDF' ? 'linear-gradient(135deg, #e11d48, #be123c)' : 'linear-gradient(135deg, #059669, #047857)', color: '#ffffff' }}
+                  style={{ background: reportFormat === 'PDF' ? 'linear-gradient(135deg, #e11d48, #be123c)' : 'linear-gradient(135deg, #059669, #047857)', color: '#ffffff', fontWeight: 800, borderRadius: 10, padding: '10px 20px', border: 'none' }}
                   onClick={() => {
                     setShowReportConfigModal(false);
                     if (reportFormat === 'PDF') {
