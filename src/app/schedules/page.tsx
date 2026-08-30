@@ -2016,94 +2016,108 @@ export default function SchedulesPage() {
                   + O Agregar Etiqueta de Estado Especial:
                 </label>
 
-                <div className="grid-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
                     style={{
                       background: '#ecfdf5',
                       border: '1px solid #a7f3d0',
                       color: '#047857',
                       fontWeight: 800,
-                      fontSize: '0.8rem',
-                      padding: '9px 12px',
+                      fontSize: '0.78rem',
+                      padding: '8px 10px',
                       borderRadius: 10,
+                      whiteSpace: 'nowrap',
                     }}
                     onClick={() => quickAddCell('DESCANSO', 'DESCANSO')}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
                     + DESCANSO
                   </button>
 
                   <button
                     type="button"
-                    className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
                     style={{
                       background: '#f0f9ff',
                       border: '1px solid #bae6fd',
                       color: '#0369a1',
                       fontWeight: 800,
-                      fontSize: '0.8rem',
-                      padding: '9px 12px',
+                      fontSize: '0.78rem',
+                      padding: '8px 10px',
                       borderRadius: 10,
+                      whiteSpace: 'nowrap',
                     }}
                     onClick={() => quickAddCell('CAMBIO TURNO', 'CAMBIO_TURNO')}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0284c7' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#0284c7', flexShrink: 0 }} />
                     + CAMBIO TURNO
                   </button>
 
                   <button
                     type="button"
-                    className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
                     style={{
                       background: '#fffbeb',
                       border: '1px solid #fef08a',
                       color: '#b45309',
                       fontWeight: 800,
-                      fontSize: '0.8rem',
-                      padding: '9px 12px',
+                      fontSize: '0.78rem',
+                      padding: '8px 10px',
                       borderRadius: 10,
+                      whiteSpace: 'nowrap',
                     }}
                     onClick={() => quickAddCell('DOBLE TURNO', 'DOBLE_TURNO')}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#eab308' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#eab308', flexShrink: 0 }} />
                     + DOBLE TURNO
                   </button>
 
                   <button
                     type="button"
-                    className="btn flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                    className="btn flex items-center justify-center gap-1.5 hover:scale-[1.02] transition-transform"
                     style={{
                       background: '#fff7ed',
                       border: '1px solid #ffedd5',
                       color: '#c2410c',
                       fontWeight: 800,
-                      fontSize: '0.8rem',
-                      padding: '9px 12px',
+                      fontSize: '0.78rem',
+                      padding: '8px 10px',
                       borderRadius: 10,
+                      whiteSpace: 'nowrap',
                     }}
                     onClick={() => quickAddCell('CAMBIO AREA', 'CAMBIO_AREA')}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f97316' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f97316', flexShrink: 0 }} />
                     + CAMBIO ÁREA
                   </button>
                 </div>
               </div>
 
               {/* SECTION 4: OPTIONAL CUSTOM NOTE INPUT */}
-              <div className="mb-5" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+              <div className="mb-4" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'block' }}>
                   Nota o Horario Especial (Opcional)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2" style={{ width: '100%' }}>
                   <input
                     type="text"
                     className="form-input"
                     placeholder="Ej. HIBERT 6PM, C-11-5, 8AM-6PM"
                     value={customInput}
                     onChange={e => setCustomInput(e.target.value)}
-                    style={{ background: '#ffffff', borderColor: '#cbd5e1', color: '#0f172a' }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      color: '#0f172a',
+                      fontWeight: 700,
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      flex: 1,
+                      minWidth: 0,
+                      width: 'auto',
+                    }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' && customInput.trim()) {
                         quickAddCell(customInput, 'NORMAL');
@@ -2113,8 +2127,17 @@ export default function SchedulesPage() {
                   />
                   <button
                     type="button"
-                    className="btn flex items-center gap-1.5 px-4"
-                    style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', color: '#ffffff', fontWeight: 800 }}
+                    className="btn flex items-center justify-center gap-1.5 px-4"
+                    style={{
+                      background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      borderRadius: 10,
+                      height: 42,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                      border: 'none',
+                    }}
                     onClick={() => {
                       if (customInput.trim()) {
                         quickAddCell(customInput, 'NORMAL');
@@ -2129,13 +2152,13 @@ export default function SchedulesPage() {
               </div>
 
               {/* MODAL FOOTER */}
-              <div className="pt-2">
+              <div className="pt-3" style={{ borderTop: '1px solid #e2e8f0', marginTop: 16 }}>
                 <button
                   type="button"
                   className="btn"
                   style={{
                     width: '100%',
-                    height: 44,
+                    height: 46,
                     fontSize: '0.92rem',
                     fontWeight: 800,
                     background: 'linear-gradient(135deg, #ea580c, #c2410c)',
