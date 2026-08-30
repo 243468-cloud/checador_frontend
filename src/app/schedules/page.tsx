@@ -70,6 +70,94 @@ export interface EmployeeBalance {
   statusBalance: 'EQUILIBRADO' | 'ELEVADO' | 'REDUCIDO';
 }
 
+export interface DailyScheduleResolution {
+  area: string;
+  shiftTime: string;
+  type: 'NORMAL' | 'DESCANSO' | 'CAMBIO_TURNO' | 'DOBLE_TURNO' | 'CAMBIO_AREA';
+  source: 'INDIVIDUAL' | 'GLOBAL_ROW' | 'EXPLICIT_REST';
+  displayText: string;
+}
+
+export function getEmployeeScheduleForDay(
+  employeeName: string,
+  dayIdx: number,
+  rosterRows: RosterRow[]
+): DailyScheduleResolution {
+  const normEmpName = employeeName.trim().toUpperCase();
+
+  // (1) Excepción u homónimo individual explícito para esta persona en cualquier fila para este día
+  for (const row of rosterRows) {
+    const cells = row.employees[dayIdx] || [];
+    const matchCell = cells.find(c => {
+      const txt = c.text.trim().toUpperCase();
+      const firstWord = txt.split(' ')[0];
+      return txt === normEmpName || firstWord === normEmpName;
+    });
+
+    if (matchCell) {
+      if (matchCell.type === 'DESCANSO' || matchCell.text.toUpperCase().includes('DESCANSO')) {
+        return {
+          area: row.area,
+          shiftTime: 'Descanso',
+          type: 'DESCANSO',
+          source: 'EXPLICIT_REST',
+          displayText: 'DESCANSO',
+        };
+      }
+      return {
+        area: row.area,
+        shiftTime: row.shiftTime || 'Jornada Regular',
+        type: matchCell.type,
+        source: 'INDIVIDUAL',
+        displayText: `${row.area} (${row.shiftTime || 'Turno Regular'})`,
+      };
+    }
+  }
+
+  // (2) Si no hay asignación individual explícita para este día, heredar el horario global del área principal
+  let primaryRow = rosterRows.find(row => {
+    return Object.values(row.employees).some(dayCells =>
+      dayCells.some(c => {
+        const txt = c.text.trim().toUpperCase();
+        return txt === normEmpName || txt.split(' ')[0] === normEmpName;
+      })
+    );
+  });
+
+  if (!primaryRow && rosterRows.length > 0) {
+    primaryRow = rosterRows[0];
+  }
+
+  if (primaryRow) {
+    if (primaryRow.shiftTime.toUpperCase().includes('DESCANSO')) {
+      return {
+        area: primaryRow.area,
+        shiftTime: 'Descanso',
+        type: 'DESCANSO',
+        source: 'EXPLICIT_REST',
+        displayText: 'DESCANSO GLOBAL',
+      };
+    }
+
+    return {
+      area: primaryRow.area,
+      shiftTime: primaryRow.shiftTime || '7AM-3PM',
+      type: 'NORMAL',
+      source: 'GLOBAL_ROW',
+      displayText: `${primaryRow.area} (${primaryRow.shiftTime || 'Horario Global Base'})`,
+    };
+  }
+
+  // (3) Fallback ante ausencia total
+  return {
+    area: 'General',
+    shiftTime: '7AM-3PM',
+    type: 'NORMAL',
+    source: 'GLOBAL_ROW',
+    displayText: 'Horario Global Base',
+  };
+}
+
 const DEFAULT_DAYS_HEADER = [
   { day: 'L', date: '24' },
   { day: 'M', date: '25' },
@@ -353,6 +441,76 @@ export default function SchedulesPage() {
     return nextMonday.toISOString().split('T')[0];
   });
   const [newWeekMode, setNewWeekMode] = useState<'COPY' | 'EMPTY'>('COPY');
+
+  // Current actual Monday string
+  const currentActualMondayStr = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.setDate(diff));
+    return monday.toISOString().split('T')[0];
+  }, []);
+
+  // Carousel Weeks Generator for Week History
+  const carouselWeeks = useMemo(() => {
+    const weeks: {
+      mondayStr: string;
+      label: string;
+      status: 'ACTUAL' | 'PRÓXIMA' | 'PASADA';
+      isCurrentActual: boolean;
+    }[] = [];
+
+    const getWeekLabel = (monStr: string) => {
+      const parts = monStr.split('-');
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const monDate = new Date(y, m, d);
+      const sunDate = new Date(y, m, d + 6);
+
+      const monDay = monDate.getDate();
+      const monMonth = monDate.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+      const sunDay = sunDate.getDate();
+      const sunMonth = sunDate.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+
+      return `${monDay} ${monMonth} - ${sunDay} ${sunMonth}`;
+    };
+
+    const baseDate = new Date(currentActualMondayStr + 'T00:00:00');
+
+    for (let offset = -4; offset <= 3; offset++) {
+      const wDate = new Date(baseDate);
+      wDate.setDate(baseDate.getDate() + offset * 7);
+      const monStr = wDate.toISOString().split('T')[0];
+
+      let status: 'ACTUAL' | 'PRÓXIMA' | 'PASADA' = 'PASADA';
+      if (monStr === currentActualMondayStr) status = 'ACTUAL';
+      else if (monStr > currentActualMondayStr) status = 'PRÓXIMA';
+
+      weeks.push({
+        mondayStr: monStr,
+        label: getWeekLabel(monStr),
+        status,
+        isCurrentActual: monStr === currentActualMondayStr,
+      });
+    }
+
+    if (!weeks.some(w => w.mondayStr === weekStart)) {
+      let status: 'ACTUAL' | 'PRÓXIMA' | 'PASADA' = 'PASADA';
+      if (weekStart === currentActualMondayStr) status = 'ACTUAL';
+      else if (weekStart > currentActualMondayStr) status = 'PRÓXIMA';
+
+      weeks.push({
+        mondayStr: weekStart,
+        label: getWeekLabel(weekStart),
+        status,
+        isCurrentActual: weekStart === currentActualMondayStr,
+      });
+      weeks.sort((a, b) => a.mondayStr.localeCompare(b.mondayStr));
+    }
+
+    return weeks;
+  }, [currentActualMondayStr, weekStart]);
 
   // Dynamic Week Header Calculator
   const calculateDaysHeader = useCallback((startStr: string) => {
@@ -1333,18 +1491,17 @@ export default function SchedulesPage() {
     doc.setFont('helvetica', 'normal');
     doc.text(`Sucursal: Via Gourmet | Fecha de Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
 
-    const headers = [['Día', 'Fecha', 'Turno Asignado', 'Lapsos de Jornada', 'Estado / Tipo']];
+    const headers = [['Día', 'Fecha', 'Área y Turno Asignado', 'Lapsos de Jornada', 'Origen / Estado']];
     const rows = daysHeader.map((d, i) => {
-      let shiftText = 'Descanso';
-      let timeText = '—';
-      rosterRows.forEach(r => {
-        const cells = r.employees[i] || [];
-        if (cells.some(c => c.text.toLowerCase().includes(employeeName.toLowerCase()))) {
-          shiftText = `${r.area} (${r.shiftTime})`;
-          timeText = r.shiftTime;
-        }
-      });
-      return [d.day, d.date, shiftText, timeText, shiftText.includes('Descanso') ? 'Día Libre' : 'Jornada Laboral'];
+      const res = getEmployeeScheduleForDay(employeeName, i, rosterRows);
+      const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso';
+      return [
+        d.day,
+        d.date,
+        isRest ? 'DESCANSO' : `${res.area} (${res.shiftTime})`,
+        isRest ? 'Día Libre' : res.shiftTime,
+        res.source === 'INDIVIDUAL' ? 'Excepción Individual' : res.source === 'GLOBAL_ROW' ? 'Horario Global Base' : 'Descanso Programado'
+      ];
     });
 
     autoTable(doc, {
@@ -1484,6 +1641,132 @@ export default function SchedulesPage() {
               <FileText size={16} />
               <span>Configurar y Exportar PDF</span>
             </button>
+          </div>
+        </div>
+
+        {/* PARTE 5 — CARRUSEL DE HISTORIAL DE SEMANAS */}
+        <div style={{ background: '#ffffff', borderRadius: 16, padding: '14px 18px', border: '1px solid #e2e8f0', boxShadow: '0 4px 14px rgba(0,0,0,0.03)', marginBottom: 24 }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} color="#ea580c" />
+              <span style={{ fontSize: '0.82rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Historial y Programación de Semanas
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const carouselContainer = document.getElementById('week-carousel-strip');
+                  if (carouselContainer) carouselContainer.scrollBy({ left: -220, behavior: 'smooth' });
+                }}
+                style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}
+                title="Semanas anteriores"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const carouselContainer = document.getElementById('week-carousel-strip');
+                  if (carouselContainer) carouselContainer.scrollBy({ left: 220, behavior: 'smooth' });
+                }}
+                style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}
+                title="Semanas siguientes"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="week-carousel-strip"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              overflowX: 'auto',
+              scrollBehavior: 'smooth',
+              paddingBottom: 6,
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
+            }}
+          >
+            {carouselWeeks.map(w => {
+              const isActive = w.mondayStr === weekStart;
+              return (
+                <div
+                  key={w.mondayStr}
+                  onClick={() => {
+                    setWeekStart(w.mondayStr);
+                    const updated = calculateDaysHeader(w.mondayStr);
+                    setDaysHeader(updated);
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    background: isActive ? 'linear-gradient(135deg, #ea580c, #c2410c)' : '#f8fafc',
+                    color: isActive ? '#ffffff' : '#334155',
+                    border: isActive ? 'none' : '1px solid #e2e8f0',
+                    boxShadow: isActive ? '0 6px 18px rgba(234, 88, 12, 0.3)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                    minWidth: 155,
+                    transition: 'all 0.18s ease',
+                    opacity: w.status === 'PASADA' && !isActive ? 0.75 : 1,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                    <span style={{ fontSize: '0.66rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isActive ? 0.95 : 0.7 }}>
+                      {w.status === 'ACTUAL' ? '● Actual' : w.status === 'PRÓXIMA' ? '📅 Próxima' : 'Archivo'}
+                    </span>
+                    {w.isCurrentActual && !isActive && (
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                    {w.label}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Special CTA Card at the end of carousel: [+] Crear Próxima Semana */}
+            {!isReadOnly && (
+              <div
+                onClick={() => {
+                  const curr = new Date(weekStart + 'T00:00:00');
+                  curr.setDate(curr.getDate() + 7);
+                  setNewWeekDate(curr.toISOString().split('T')[0]);
+                  setShowNewWeekModal(true);
+                }}
+                style={{
+                  flexShrink: 0,
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  background: '#ffffff',
+                  color: '#ea580c',
+                  border: '1.5px dashed #ea580c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  minWidth: 160,
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  fontSize: '0.8rem',
+                  transition: 'all 0.18s ease',
+                }}
+                title="Crear matriz para una semana futura"
+              >
+                <CalendarPlus size={16} />
+                <span>+ Crear Semana</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1889,28 +2172,29 @@ export default function SchedulesPage() {
                   </button>
                 </div>
 
-                <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8f6f0', padding: '8px', borderRadius: '8px', border: '1px solid #e5e1da' }}>
+                <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8fafc', padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   {daysHeader.map((d, i) => {
-                    let assignedShift = 'Descanso';
-                    rosterRows.forEach(r => {
-                      const cells = r.employees[i] || [];
-                      if (cells.some(c => c.text.toLowerCase().includes(b.name.toLowerCase()))) {
-                        assignedShift = r.shiftTime || r.area;
-                      }
-                    });
+                    const res = getEmployeeScheduleForDay(b.name, i, rosterRows);
+                    const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso';
 
                     return (
                       <div key={i} className="flex flex-col items-center">
-                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#475569' }}>{d.day}</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{d.day}</span>
                         <span
                           style={{
-                            fontSize: '0.65rem', fontWeight: 700, marginTop: '2px', padding: '2px 4px', borderRadius: '4px', width: '100%',
-                            background: assignedShift === 'Descanso' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(225, 29, 72, 0.12)',
-                            color: assignedShift === 'Descanso' ? '#047857' : '#be123c',
-                            border: assignedShift === 'Descanso' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(225, 29, 72, 0.3)',
+                            fontSize: '0.65rem',
+                            fontWeight: 800,
+                            marginTop: '2px',
+                            padding: '3px 4px',
+                            borderRadius: '6px',
+                            width: '100%',
+                            background: isRest ? '#ecfdf5' : res.source === 'INDIVIDUAL' ? '#fff7ed' : '#f0f9ff',
+                            color: isRest ? '#047857' : res.source === 'INDIVIDUAL' ? '#c2410c' : '#0369a1',
+                            border: `1px solid ${isRest ? '#a7f3d0' : res.source === 'INDIVIDUAL' ? '#ffedd5' : '#bae6fd'}`,
                           }}
+                          title={`${d.day} ${d.date}: ${res.displayText}`}
                         >
-                          {assignedShift === 'Descanso' ? 'Desc' : assignedShift}
+                          {isRest ? 'Desc' : res.shiftTime || res.area}
                         </span>
                       </div>
                     );
