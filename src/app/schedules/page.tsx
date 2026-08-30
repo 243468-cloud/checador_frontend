@@ -181,6 +181,90 @@ const INITIAL_ROSTER: RosterRow[] = [
 
 const PRESET_NAMES = ['ITZA', 'HIBERT', 'PAULINA', 'ORIANA', 'LUIS', 'LEO', 'JARETH', 'GAEL', 'DIDI'];
 
+// Componente Táctil para Deslizar a la Izquierda y Eliminar
+function SwipeableItem({
+  children,
+  onDelete,
+}: {
+  children: React.ReactNode;
+  onDelete: () => void;
+}) {
+  const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startXRef = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    startXRef[1](clientX);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDragging || startXRef[0] === null) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const deltaX = clientX - startXRef[0];
+    if (deltaX < 0) {
+      setTranslateX(Math.max(-100, deltaX));
+    } else {
+      setTranslateX(0);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    startXRef[1](null);
+    if (translateX < -45) {
+      setTranslateX(-80);
+    } else {
+      setTranslateX(0);
+    }
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl" style={{ borderRadius: 12, userSelect: 'none' }}>
+      {/* Fondo Rojo Revelado al Deslizar */}
+      <div
+        className="absolute inset-y-0 right-0 flex items-center justify-end px-3"
+        style={{
+          background: 'linear-gradient(135deg, #e11d48, #be123c)',
+          color: '#ffffff',
+          width: '100%',
+          borderRadius: 12,
+          cursor: 'pointer',
+        }}
+        onClick={() => {
+          setTranslateX(0);
+          onDelete();
+        }}
+      >
+        <div className="flex items-center gap-1.5 font-extrabold text-xs" style={{ paddingRight: 12 }}>
+          <Trash2 size={16} color="#ffffff" />
+          <span>Eliminar</span>
+        </div>
+      </div>
+
+      {/* Contenido Deslizable */}
+      <div
+        style={{
+          transform: `translateX(${translateX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+          position: 'relative',
+          zIndex: 2,
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleTouchStart}
+        onMouseMove={handleTouchMove}
+        onMouseUp={handleTouchEnd}
+        onMouseLeave={handleTouchEnd}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function SchedulesPage() {
   const { user } = useAuth();
   const [rosterRows, setRosterRows] = useState<RosterRow[]>(INITIAL_ROSTER);
@@ -1936,7 +2020,7 @@ export default function SchedulesPage() {
                             const isStandaloneTag = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(item.text.toUpperCase());
                             const isKnownEmployee = uniqueAvailableNames.some(n => n.trim().toUpperCase() === item.text.trim().toUpperCase());
 
-                            // Si es una etiqueta especial o una nota personalizada (como HOLA), renderizar como banner limpio
+                            // Si es una etiqueta especial o una nota personalizada (como HOLA), renderizar como banner limpio con deslizamiento
                             if (isStandaloneTag || !isKnownEmployee) {
                               let badgeBg = '#f5f5f4';
                               let badgeBorder = '#e7e5e4';
@@ -1953,174 +2037,159 @@ export default function SchedulesPage() {
                               }
 
                               return (
-                                <div
-                                  key={idx}
-                                  className="p-2.5 rounded-xl flex items-center justify-between"
-                                  style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
-                                >
-                                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: badgeColor }}>
-                                    {!isKnownEmployee && !isStandaloneTag ? `Nota: ${item.text}` : item.text}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                    className="transition-all hover:scale-105 active:scale-95"
-                                    style={{
-                                      background: '#ffffff',
-                                      border: '1px solid #cbd5e1',
-                                      borderRadius: '50%',
-                                      width: 26,
-                                      height: 26,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      color: '#e11d48',
-                                      cursor: 'pointer',
-                                      flexShrink: 0,
-                                    }}
-                                    title="Quitar"
+                                <SwipeableItem key={idx} onDelete={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}>
+                                  <div
+                                    className="p-2.5 rounded-xl flex items-center justify-between"
+                                    style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
                                   >
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
+                                    <span style={{ fontWeight: 700, fontSize: '0.82rem', color: badgeColor }}>
+                                      {!isKnownEmployee && !isStandaloneTag ? `Nota: ${item.text}` : item.text}
+                                    </span>
+                                    <span className="flex items-center gap-1" style={{ fontSize: '0.68rem', color: '#a8a29e', fontWeight: 600 }}>
+                                      Desliza ⟵
+                                    </span>
+                                  </div>
+                                </SwipeableItem>
                               );
                             }
 
                             const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
 
                             return (
-                              <div
-                                key={idx}
-                                className="p-3 rounded-xl flex flex-col gap-2.5"
-                                style={{
-                                  background: '#ffffff',
-                                  border: '1px solid #cbd5e1',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                                }}
-                              >
-                                {/* Fila 1: Avatar + Nombre a la izquierda, Botón Borrar a la derecha */}
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2.5">
-                                    <div
-                                      style={{
-                                        width: 32,
-                                        height: 32,
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-                                        color: '#ffffff',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.8rem',
-                                        fontWeight: 800,
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      {initials}
+                              <SwipeableItem key={idx} onDelete={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}>
+                                <div
+                                  className="p-3 rounded-xl flex flex-col gap-2.5"
+                                  style={{
+                                    background: '#ffffff',
+                                    border: '1px solid #cbd5e1',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                                  }}
+                                >
+                                  {/* Fila 1: Avatar + Nombre a la izquierda, Indicador táctil / Borrar a la derecha */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                      <div
+                                        style={{
+                                          width: 32,
+                                          height: 32,
+                                          borderRadius: '50%',
+                                          background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                                          color: '#ffffff',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontSize: '0.8rem',
+                                          fontWeight: 800,
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        {initials}
+                                      </div>
+                                      <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
+                                        {item.text}
+                                      </span>
                                     </div>
-                                    <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
-                                      {item.text}
-                                    </span>
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveCell(editModal.rowId, editModal.dayIndex, idx);
+                                      }}
+                                      className="transition-all hover:scale-105 active:scale-95 flex items-center gap-1"
+                                      style={{
+                                        background: '#fff1f2',
+                                        border: '1px solid #ffe4e6',
+                                        borderRadius: 12,
+                                        padding: '4px 8px',
+                                        color: '#e11d48',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                      }}
+                                      title="Desliza a la izquierda o toca para eliminar"
+                                    >
+                                      <Trash2 size={12} />
+                                      <span style={{ fontSize: '0.65rem' }}>⟵ Deslizar</span>
+                                    </button>
                                   </div>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                    className="transition-all hover:scale-105 active:scale-95"
-                                    style={{
-                                      background: '#fff1f2',
-                                      border: '1px solid #ffe4e6',
-                                      borderRadius: '50%',
-                                      width: 28,
-                                      height: 28,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      color: '#e11d48',
-                                      cursor: 'pointer',
-                                      flexShrink: 0,
-                                    }}
-                                    title="Eliminar empleado"
-                                  >
-                                    <Trash2 size={13} />
-                                  </button>
+                                  {/* Fila 2: Selector de Estado de Ancho Completo */}
+                                  <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                    <button
+                                      type="button"
+                                      style={{
+                                        background: item.type === 'NORMAL' ? '#ecfdf5' : 'transparent',
+                                        color: item.type === 'NORMAL' ? '#047857' : '#64748b',
+                                        border: item.type === 'NORMAL' ? '1px solid #a7f3d0' : '1px solid transparent',
+                                        borderRadius: 6,
+                                        fontSize: '0.72rem',
+                                        fontWeight: 800,
+                                        padding: '4px 2px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                      }}
+                                      onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
+                                    >
+                                      Normal
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      style={{
+                                        background: item.type === 'DESCANSO' ? '#f0f9ff' : 'transparent',
+                                        color: item.type === 'DESCANSO' ? '#0369a1' : '#64748b',
+                                        border: item.type === 'DESCANSO' ? '1px solid #bae6fd' : '1px solid transparent',
+                                        borderRadius: 6,
+                                        fontSize: '0.72rem',
+                                        fontWeight: 800,
+                                        padding: '4px 2px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                      }}
+                                      onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
+                                    >
+                                      Descanso
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      style={{
+                                        background: item.type === 'CAMBIO_TURNO' ? '#eff6ff' : 'transparent',
+                                        color: item.type === 'CAMBIO_TURNO' ? '#1d4ed8' : '#64748b',
+                                        border: item.type === 'CAMBIO_TURNO' ? '1px solid #bfdbfe' : '1px solid transparent',
+                                        borderRadius: 6,
+                                        fontSize: '0.72rem',
+                                        fontWeight: 800,
+                                        padding: '4px 2px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                      }}
+                                      onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
+                                    >
+                                      C.Turno
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      style={{
+                                        background: item.type === 'DOBLE_TURNO' ? '#fffbeb' : 'transparent',
+                                        color: item.type === 'DOBLE_TURNO' ? '#b45309' : '#64748b',
+                                        border: item.type === 'DOBLE_TURNO' ? '1px solid #fef08a' : '1px solid transparent',
+                                        borderRadius: 6,
+                                        fontSize: '0.72rem',
+                                        fontWeight: 800,
+                                        padding: '4px 2px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                      }}
+                                      onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
+                                    >
+                                      Doble
+                                    </button>
+                                  </div>
                                 </div>
-
-                                {/* Fila 2: Selector de Estado de Ancho Completo */}
-                                <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                                  <button
-                                    type="button"
-                                    style={{
-                                      background: item.type === 'NORMAL' ? '#ecfdf5' : 'transparent',
-                                      color: item.type === 'NORMAL' ? '#047857' : '#64748b',
-                                      border: item.type === 'NORMAL' ? '1px solid #a7f3d0' : '1px solid transparent',
-                                      borderRadius: 6,
-                                      fontSize: '0.72rem',
-                                      fontWeight: 800,
-                                      padding: '4px 2px',
-                                      textAlign: 'center',
-                                      cursor: 'pointer',
-                                    }}
-                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
-                                  >
-                                    Normal
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    style={{
-                                      background: item.type === 'DESCANSO' ? '#f0f9ff' : 'transparent',
-                                      color: item.type === 'DESCANSO' ? '#0369a1' : '#64748b',
-                                      border: item.type === 'DESCANSO' ? '1px solid #bae6fd' : '1px solid transparent',
-                                      borderRadius: 6,
-                                      fontSize: '0.72rem',
-                                      fontWeight: 800,
-                                      padding: '4px 2px',
-                                      textAlign: 'center',
-                                      cursor: 'pointer',
-                                    }}
-                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
-                                  >
-                                    Descanso
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    style={{
-                                      background: item.type === 'CAMBIO_TURNO' ? '#eff6ff' : 'transparent',
-                                      color: item.type === 'CAMBIO_TURNO' ? '#1d4ed8' : '#64748b',
-                                      border: item.type === 'CAMBIO_TURNO' ? '1px solid #bfdbfe' : '1px solid transparent',
-                                      borderRadius: 6,
-                                      fontSize: '0.72rem',
-                                      fontWeight: 800,
-                                      padding: '4px 2px',
-                                      textAlign: 'center',
-                                      cursor: 'pointer',
-                                    }}
-                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
-                                  >
-                                    C.Turno
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    style={{
-                                      background: item.type === 'DOBLE_TURNO' ? '#fffbeb' : 'transparent',
-                                      color: item.type === 'DOBLE_TURNO' ? '#b45309' : '#64748b',
-                                      border: item.type === 'DOBLE_TURNO' ? '1px solid #fef08a' : '1px solid transparent',
-                                      borderRadius: 6,
-                                      fontSize: '0.72rem',
-                                      fontWeight: 800,
-                                      padding: '4px 2px',
-                                      textAlign: 'center',
-                                      cursor: 'pointer',
-                                    }}
-                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
-                                  >
-                                    Doble
-                                  </button>
-                                </div>
-                              </div>
+                              </SwipeableItem>
                             );
                           })}
                         </div>
