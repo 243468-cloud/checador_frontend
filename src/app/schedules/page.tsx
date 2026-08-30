@@ -1652,8 +1652,8 @@ export default function SchedulesPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Crear Próxima Semana Button (Requirement 10) */}
+          <div className="page-actions flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            {/* Crear Próxima Semana Button */}
             {!isReadOnly && (
               <button
                 type="button"

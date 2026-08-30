@@ -1298,7 +1298,7 @@ tbody td {
     flex-direction: column;
     align-items: stretch !important;
     width: 100% !important;
-    gap: 10px !important;
+    gap: 16px !important;
   }
 
   .input-wrapper {
