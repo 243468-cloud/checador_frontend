@@ -241,39 +241,39 @@ export default function NotificationBell() {
         title="Notificaciones"
         style={{
           position: 'relative',
-          background: open ? 'rgba(225, 29, 72, 0.12)' : '#ffffff',
-          border: '1px solid',
-          borderColor: open ? 'rgba(225, 29, 72, 0.35)' : 'rgba(225, 29, 72, 0.15)',
-          borderRadius: '10px',
-          padding: '8px 10px',
-          cursor: 'pointer',
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          background: open ? '#ffe4e6' : '#fff1f2',
+          border: '1px solid #fecdd3',
           color: '#e11d48',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          transition: 'all 0.2s ease',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 1px 3px rgba(225, 29, 72, 0.08)',
+          transition: 'all 0.15s ease',
         }}
+        className="active:scale-90 transition-transform"
       >
         <Bell size={18} color="#e11d48" />
         {unread > 0 && (
           <span style={{
             position: 'absolute',
-            top: '-6px',
-            right: '-6px',
+            top: 2,
+            right: 2,
             background: '#e11d48',
-            color: '#fff',
-            fontSize: '11px',
-            fontWeight: 800,
-            borderRadius: '999px',
-            minWidth: '18px',
-            height: '18px',
+            color: '#ffffff',
+            fontSize: '0.6rem',
+            fontWeight: 900,
+            borderRadius: 10,
+            padding: '1px 4px',
+            minWidth: 16,
+            height: 16,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '0 4px',
-            boxShadow: '0 0 0 2px #ffffff, 0 2px 6px rgba(225, 29, 72, 0.4)',
-            animation: 'pulse 2s infinite',
+            border: '2px solid #ffffff',
           }}>
             {unread > 99 ? '99+' : unread}
           </span>

@@ -715,23 +715,31 @@ tbody td {
 }
 
 .mobile-menu-toggle-btn {
-  background: #f5f2eb;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  color: #0f172a;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  color: #334155;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .mobile-menu-toggle-btn:hover {
-  background: rgba(225, 29, 72, 0.08);
-  border-color: rgba(225, 29, 72, 0.3);
-  color: #e11d48;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.mobile-menu-toggle-btn:active {
+  transform: scale(0.90);
+  background: #e2e8f0;
 }
 
 .mobile-logo-box {
@@ -748,24 +756,32 @@ tbody td {
 }
 
 .header-logout-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(225, 29, 72, 0.08);
-  border: 1px solid rgba(225, 29, 72, 0.25);
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
   color: #e11d48;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(225, 29, 72, 0.08);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .header-logout-btn:hover {
-  background: rgba(225, 29, 72, 0.18);
-  border-color: rgba(225, 29, 72, 0.4);
+  background: #ffe4e6;
+  border-color: #fda4af;
   color: #be123c;
+}
+
+.header-logout-btn:active {
+  transform: scale(0.90);
+  background: #fecdd3;
 }
 
 .mobile-drawer-overlay {

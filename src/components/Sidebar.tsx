@@ -99,8 +99,7 @@ export default function Sidebar() {
             className="header-logout-btn"
             title="Cerrar sesión"
           >
-            <LogOut size={16} />
-            <span className="hide-mobile-sm">Salir</span>
+            <LogOut size={18} />
           </button>
         </div>
       </header>
