@@ -34,6 +34,11 @@ import {
   Award,
   Filter,
   Sliders,
+  Edit2,
+  Copy,
+  Download,
+  Printer,
+  Settings,
 } from 'lucide-react';
 
 export interface RosterCell {
@@ -192,6 +197,29 @@ export default function SchedulesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
 
+  // Dynamic Week Header Calculator
+  const calculateDaysHeader = useCallback((startStr: string) => {
+    try {
+      const parts = startStr.split('-');
+      if (parts.length !== 3) return DEFAULT_DAYS_HEADER;
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const startDate = new Date(y, m, d);
+      const dayLetters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+      return Array.from({ length: 7 }, (_, i) => {
+        const dt = new Date(startDate);
+        dt.setDate(startDate.getDate() + i);
+        return {
+          day: dayLetters[i],
+          date: String(dt.getDate()).padStart(2, '0'),
+        };
+      });
+    } catch {
+      return DEFAULT_DAYS_HEADER;
+    }
+  }, []);
+
   // Single Cell Edit Modal State
   const [editModal, setEditModal] = useState<{
     rowId: string;
@@ -200,6 +228,31 @@ export default function SchedulesPage() {
     shiftTime: string;
     dayLabel: string;
   } | null>(null);
+
+  // Row Edit Modal State
+  const [editRowModal, setEditRowModal] = useState<{
+    id: string;
+    area: string;
+    shiftTime: string;
+  } | null>(null);
+
+  // Header Date / Label Edit Modal State
+  const [showEditHeaderModal, setShowEditHeaderModal] = useState(false);
+
+  // Report Config Modal State (100% Schedule Pure & Configurable Report)
+  const [showReportConfigModal, setShowReportConfigModal] = useState(false);
+  const [reportFormat, setReportFormat] = useState<'PDF' | 'EXCEL'>('PDF');
+  const [reportConfig, setReportConfig] = useState({
+    title: 'ROL SEMANAL DE HORARIOS Y TURNOS DE TRABAJO',
+    subtitle: '',
+    includeSummary: true,
+    includeLegend: true,
+    orientation: 'landscape' as 'landscape' | 'portrait',
+    prepBy: 'Gerente de Operaciones',
+    approvedBy: 'Recursos Humanos',
+    notes: 'Horarios programados sujetos a cambios por necesidades operativas previa autorización.',
+    onlyRosterData: true,
+  });
 
   // Global / Bulk Edit Modal State
   const [showGlobalModal, setShowGlobalModal] = useState(false);
@@ -392,6 +445,50 @@ export default function SchedulesPage() {
     copy[index] = copy[index + 1];
     copy[index + 1] = temp;
     saveRoster(copy);
+  };
+
+  // ─── Row & Header Customization Helpers ─────────────────────────────────────
+  const handleSaveRowEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRowModal) return;
+    const updated = rosterRows.map(r => {
+      if (r.id === editRowModal.id) {
+        return {
+          ...r,
+          area: editRowModal.area.trim().toUpperCase(),
+          shiftTime: editRowModal.shiftTime.trim().toUpperCase(),
+        };
+      }
+      return r;
+    });
+    saveRoster(updated);
+    setEditRowModal(null);
+  };
+
+  const handleDuplicateRow = (rowId: string) => {
+    const rowToDup = rosterRows.find(r => r.id === rowId);
+    if (!rowToDup) return;
+    const duplicated: RosterRow = {
+      ...JSON.parse(JSON.stringify(rowToDup)),
+      id: `r-${Date.now()}`,
+      area: `${rowToDup.area} (COPIA)`,
+    };
+    const rowIdx = rosterRows.findIndex(r => r.id === rowId);
+    const newRows = [...rosterRows];
+    newRows.splice(rowIdx + 1, 0, duplicated);
+    saveRoster(newRows);
+  };
+
+  const handleDeleteRow = (rowId: string) => {
+    if (rosterRows.length <= 1) return;
+    const filtered = rosterRows.filter(r => r.id !== rowId);
+    saveRoster(filtered);
+  };
+
+  const handleUpdateHeaderDay = (index: number, dayText: string, dateText: string) => {
+    const updated = [...daysHeader];
+    updated[index] = { day: dayText.trim().toUpperCase(), date: dateText.trim() };
+    setDaysHeader(updated);
   };
 
   // -------------------------------------------------------------
@@ -698,11 +795,16 @@ export default function SchedulesPage() {
   };
 
   // -------------------------------------------------------------
-  // EXPORT TO EXCEL
+  // EXPORT TO EXCEL (100% PURE SCHEDULE DATA & CONFIGURABLE)
   // -------------------------------------------------------------
-  const exportRosterToExcel = () => {
+  const exportRosterToExcelWithConfig = () => {
     const headerRow = ['ÁREA / TURNO', ...daysHeader.map(d => `${d.day} ${d.date}`)];
-    const rowsData: any[] = [headerRow];
+    const rowsData: any[] = [
+      [reportConfig.title.toUpperCase()],
+      [`Sucursal: ${user?.branchName || reportConfig.subtitle || 'Central'} | Semana del ${daysHeader[0].date} al ${daysHeader[6].date}`],
+      [],
+      headerRow
+    ];
 
     rosterRows.forEach(row => {
       const areaLabel = `${row.area} ${row.shiftTime ? `(${row.shiftTime})` : ''}`;
@@ -713,27 +815,33 @@ export default function SchedulesPage() {
       rowsData.push([areaLabel, ...cellValues]);
     });
 
-    rowsData.push([]);
-    rowsData.push(['BALANCE GENERAL Y HORAS EXTRA ACUMULADAS']);
-    rowsData.push(['Empleado', 'Área Principal', 'Días Trab.', 'Descansos', 'Dobles', 'Horas Prog.', 'Horas Reales', 'Horas Extra', 'Balance Carga']);
+    if (reportConfig.includeSummary) {
+      rowsData.push([]);
+      rowsData.push(['RESUMEN DE HORARIOS Y BALANCE DE CARGA (EXCLUSIVO ROL)']);
+      rowsData.push(['Empleado', 'Área Principal', 'Días Trab.', 'Descansos', 'Dobles', 'Horas Programadas', 'Horas Estimadas', 'Balance Carga']);
 
-    employeeBalances.forEach(b => {
-      rowsData.push([
-        b.name,
-        b.primaryArea,
-        b.workDays,
-        b.restDays,
-        b.doubleShifts,
-        `${b.totalScheduledHours} hrs`,
-        `${b.actualWorkedHours} hrs`,
-        `+${b.overtimeHours} hrs extra`,
-        b.statusBalance,
-      ]);
-    });
+      employeeBalances.forEach(b => {
+        rowsData.push([
+          b.name,
+          b.primaryArea,
+          b.workDays,
+          b.restDays,
+          b.doubleShifts,
+          `${b.totalScheduledHours} hrs`,
+          `${b.actualWorkedHours} hrs`,
+          b.statusBalance,
+        ]);
+      });
+    }
+
+    if (reportConfig.notes) {
+      rowsData.push([]);
+      rowsData.push(['NOTAS Y OBSERVACIONES:', reportConfig.notes]);
+    }
 
     const worksheet = XLSX.utils.aoa_to_sheet(rowsData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Rol Semanal y Horas Extra');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Rol Semanal');
 
     worksheet['!cols'] = [
       { wch: 24 },
@@ -741,35 +849,42 @@ export default function SchedulesPage() {
       { wch: 18 }, { wch: 18 }, { wch: 18 },
     ];
 
-    XLSX.writeFile(workbook, `Rol_Semanal_y_Horas_Extra_${user?.branchName || 'Empresa'}.xlsx`);
+    XLSX.writeFile(workbook, `Reporte_Rol_Semanal_${user?.branchName || 'Empresa'}.xlsx`);
   };
 
   // -------------------------------------------------------------
-  // EXPORT TO PDF (WITH COLOR PARAMETERS HIGHLIGHT & LEGEND BOXES)
+  // EXPORT TO PDF (100% PURE SCHEDULE DATA & CONFIGURABLE)
   // -------------------------------------------------------------
-  const exportRosterToPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const exportRosterToPDFWithConfig = () => {
+    const isLandscape = reportConfig.orientation === 'landscape';
+    const doc = new jsPDF({
+      orientation: reportConfig.orientation,
+      unit: 'mm',
+      format: 'a4',
+    });
 
-    // Page Header
+    const pageWidth = isLandscape ? 297 : 210;
+
+    // Header Top Bar
     doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, 297, 24, 'F');
+    doc.rect(0, 0, pageWidth, 24, 'F');
 
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
-    doc.text('ROL SEMANAL DE HORARIOS Y TURNOS DE TRABAJO', 14, 12);
+    doc.text(reportConfig.title.toUpperCase(), 14, 12);
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(148, 163, 184);
-    doc.text(`Sucursal: ${user?.branchName || 'Sucursal Central'} | Emitido: ${new Date().toLocaleDateString('es-MX')}`, 14, 19);
+    const subText = `Sucursal: ${user?.branchName || reportConfig.subtitle || 'Central'} | Semana del ${daysHeader[0].date} al ${daysHeader[6].date} | Emitido: ${new Date().toLocaleDateString('es-MX')}`;
+    doc.text(subText, 14, 19);
 
     const tableHeaders = [
       ['ÁREA / TURNO', ...daysHeader.map(d => `${d.day}\n${d.date}`)]
     ];
 
     const tableBody: any[] = [];
-
     rosterRows.forEach(row => {
       const areaLabel = `${row.area}\n${row.shiftTime}`;
       const dayCells = daysHeader.map((_, dayIdx) => {
@@ -793,6 +908,8 @@ export default function SchedulesPage() {
       tableBody.push([areaLabel, ...dayCells]);
     });
 
+    const colWidth = (pageWidth - 42) / 7;
+
     autoTable(doc, {
       head: tableHeaders,
       body: tableBody,
@@ -814,14 +931,14 @@ export default function SchedulesPage() {
         cellPadding: 4,
       },
       columnStyles: {
-        0: { cellWidth: 35, fillColor: [248, 250, 252], fontStyle: 'bold' },
-        1: { cellWidth: 34 },
-        2: { cellWidth: 34 },
-        3: { cellWidth: 34 },
-        4: { cellWidth: 34 },
-        5: { cellWidth: 34 },
-        6: { cellWidth: 34 },
-        7: { cellWidth: 34 },
+        0: { cellWidth: 28, fillColor: [248, 250, 252], fontStyle: 'bold' },
+        1: { cellWidth: colWidth },
+        2: { cellWidth: colWidth },
+        3: { cellWidth: colWidth },
+        4: { cellWidth: colWidth },
+        5: { cellWidth: colWidth },
+        6: { cellWidth: colWidth },
+        7: { cellWidth: colWidth },
       },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index > 0) {
@@ -830,27 +947,25 @@ export default function SchedulesPage() {
           const rowData = rosterRows[rowIndex];
           if (rowData) {
             const items = rowData.employees[dayIndex] || [];
-
-            // Check if cell contains status types or keywords
             const hasDescanso = items.some(i => i.type === 'DESCANSO' || i.text.toUpperCase().includes('DESCANSO'));
             const hasCambioTurno = items.some(i => i.type === 'CAMBIO_TURNO' || i.text.toUpperCase().includes('CAMBIO TURNO'));
             const hasDobleTurno = items.some(i => i.type === 'DOBLE_TURNO' || i.text.toUpperCase().includes('DOBLE TURNO'));
             const hasCambioArea = items.some(i => i.type === 'CAMBIO_AREA' || i.text.toUpperCase().includes('CAMBIO AREA'));
 
             if (hasDescanso) {
-              data.cell.styles.fillColor = [16, 185, 129]; // Green
+              data.cell.styles.fillColor = [16, 185, 129];
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
             } else if (hasCambioTurno) {
-              data.cell.styles.fillColor = [2, 132, 199]; // Blue
+              data.cell.styles.fillColor = [2, 132, 199];
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
             } else if (hasDobleTurno) {
-              data.cell.styles.fillColor = [234, 179, 8]; // Yellow
+              data.cell.styles.fillColor = [234, 179, 8];
               data.cell.styles.textColor = [0, 0, 0];
               data.cell.styles.fontStyle = 'bold';
             } else if (hasCambioArea) {
-              data.cell.styles.fillColor = [249, 115, 22]; // Orange
+              data.cell.styles.fillColor = [249, 115, 22];
               data.cell.styles.textColor = [255, 255, 255];
               data.cell.styles.fontStyle = 'bold';
             }
@@ -859,47 +974,58 @@ export default function SchedulesPage() {
       },
     });
 
-    const finalY1 = (doc as any).lastAutoTable.finalY || 160;
+    let currentY = (doc as any).lastAutoTable.finalY || 160;
 
-    // COLOR LEGEND BOXES ON PAGE 1
-    doc.setFillColor(16, 185, 129); doc.rect(14, finalY1 + 6, 26, 6, 'F');
-    doc.setTextColor(255, 255, 255); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-    doc.text('DESCANSO', 17, finalY1 + 10.2);
+    // Legend Boxes
+    if (reportConfig.includeLegend) {
+      doc.setFillColor(16, 185, 129); doc.rect(14, currentY + 6, 26, 6, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+      doc.text('DESCANSO', 17, currentY + 10.2);
 
-    doc.setFillColor(2, 132, 199); doc.rect(44, finalY1 + 6, 30, 6, 'F');
-    doc.text('CAMBIO TURNO', 46, finalY1 + 10.2);
+      doc.setFillColor(2, 132, 199); doc.rect(44, currentY + 6, 30, 6, 'F');
+      doc.text('CAMBIO TURNO', 46, currentY + 10.2);
 
-    doc.setFillColor(234, 179, 8); doc.rect(78, finalY1 + 6, 28, 6, 'F');
-    doc.setTextColor(0, 0, 0);
-    doc.text('DOBLE TURNO', 80, finalY1 + 10.2);
+      doc.setFillColor(234, 179, 8); doc.rect(78, currentY + 6, 28, 6, 'F');
+      doc.setTextColor(0, 0, 0);
+      doc.text('DOBLE TURNO', 80, currentY + 10.2);
 
-    doc.setFillColor(249, 115, 22); doc.rect(110, finalY1 + 6, 28, 6, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.text('CAMBIO AREA', 112, finalY1 + 10.2);
+      doc.setFillColor(249, 115, 22); doc.rect(110, currentY + 6, 28, 6, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.text('CAMBIO AREA', 112, currentY + 10.2);
 
-    // SIGNATURE LINES ON PAGE 1
+      currentY += 16;
+    }
+
+    // Custom Signatures
     doc.setDrawColor(203, 213, 225);
-    doc.line(14, finalY1 + 22, 90, finalY1 + 22);
-    doc.line(200, finalY1 + 22, 276, finalY1 + 22);
+    doc.line(14, currentY + 14, 80, currentY + 14);
+    doc.line(pageWidth - 80, currentY + 14, pageWidth - 14, currentY + 14);
 
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
     doc.setFont('helvetica', 'normal');
-    doc.text('Firma Gerente de Operaciones', 14, finalY1 + 26);
-    doc.text('Firma y Sello Recursos Humanos', 200, finalY1 + 26);
+    doc.text(`Elaboró / ${reportConfig.prepBy}`, 14, currentY + 18);
+    doc.text(`Autorizó / ${reportConfig.approvedBy}`, pageWidth - 80, currentY + 18);
 
-    // Page 2: Balance General & Horas Extra Table (Solo ADMIN y SUPERUSER)
-    if (!isReadOnly) {
+    if (reportConfig.notes) {
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Nota: ${reportConfig.notes}`, 14, currentY + 24);
+    }
+
+    // Page 2: Summary Page based EXCLUSIVELY on Roster Data
+    if (reportConfig.includeSummary) {
       doc.addPage();
       doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, 297, 24, 'F');
+      doc.rect(0, 0, pageWidth, 24, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
+      doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
-      doc.text('BALANCE GENERAL Y CONTROL DE HORAS EXTRA (CHECK-OUT)', 14, 14);
+      doc.text('RESUMEN Y BALANCE DE HORARIOS PROGRAMADOS (EXCLUSIVO ROL)', 14, 14);
 
       const balanceHeaders = [
-        ['Empleado', 'Área Principal', 'Días Trab.', 'Descansos', 'Dobles', 'Horas Prog.', 'Horas Reales', 'Horas Extra (Checkout)', 'Balance Carga']
+        ['Empleado', 'Área Principal', 'Días Trab.', 'Descansos', 'Dobles', 'Horas Programadas', 'Horas Estimadas', 'Balance Carga']
       ];
 
       const balanceRows = employeeBalances.map(b => [
@@ -910,7 +1036,6 @@ export default function SchedulesPage() {
         `${b.doubleShifts}`,
         `${b.totalScheduledHours}h`,
         `${b.actualWorkedHours}h`,
-        `+${b.overtimeHours}h extra`,
         b.statusBalance,
       ]);
 
@@ -932,19 +1057,18 @@ export default function SchedulesPage() {
       });
 
       const finalY2 = (doc as any).lastAutoTable.finalY || 160;
-
       doc.setDrawColor(203, 213, 225);
-      doc.line(14, finalY2 + 22, 90, finalY2 + 22);
-      doc.line(200, finalY2 + 22, 276, finalY2 + 22);
+      doc.line(14, finalY2 + 20, 80, finalY2 + 20);
+      doc.line(pageWidth - 80, finalY2 + 20, pageWidth - 14, finalY2 + 20);
 
       doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
       doc.setFont('helvetica', 'normal');
-      doc.text('Firma Gerente de Operaciones', 14, finalY2 + 26);
-      doc.text('Firma y Sello Recursos Humanos', 200, finalY2 + 26);
+      doc.text(`Firma / ${reportConfig.prepBy}`, 14, finalY2 + 24);
+      doc.text(`Firma y Sello / ${reportConfig.approvedBy}`, pageWidth - 80, finalY2 + 24);
     }
 
-    doc.save(`Rol_Semanal_${user?.branchName || 'Empresa'}.pdf`);
+    doc.save(`Reporte_Rol_Semanal_${user?.branchName || 'Empresa'}.pdf`);
   };
 
   const exportIndividualPDF = (employeeName: string) => {
@@ -1004,16 +1128,42 @@ export default function SchedulesPage() {
       <Sidebar />
       <main className="main-content animate-fade-in">
         {/* Header */}
-        <div className="page-header mb-6">
+        <div className="page-header mb-6 flex-wrap gap-4">
           <div>
             <h1 className="page-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
-              Rol Semanal y Control de Horas Extra
+              Rol Semanal y Control de Horarios
             </h1>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: 2 }}>
+              Edición 100% interactiva de la matriz de turnos y generación de reportes puros de horario.
+            </p>
           </div>
 
-          <div className="page-actions">
+          {/* Date Picker Selector */}
+          <div className="flex items-center gap-2" style={{ background: '#f8fafc', padding: '6px 12px', borderRadius: 12, border: '1px solid #cbd5e1' }}>
+            <Calendar size={16} color="#ea580c" />
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>Semana del Lunes:</span>
+            <input
+              type="date"
+              className="form-input"
+              value={weekStart}
+              onChange={e => setWeekStart(e.target.value)}
+              style={{ padding: '3px 8px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 8, background: '#ffffff' }}
+            />
+          </div>
+
+          <div className="page-actions flex-wrap gap-2">
             {!isReadOnly && (
               <>
+                <button
+                  className="btn btn-ghost flex items-center gap-1.5"
+                  onClick={() => setShowEditHeaderModal(true)}
+                  title="Personalizar etiquetas y números de los días del encabezado"
+                  style={{ fontSize: '0.8rem', padding: '8px 12px', background: '#f1f5f9', color: '#0f172a', fontWeight: 700 }}
+                >
+                  <Edit2 size={14} color="#ea580c" />
+                  <span>Editar Fechas</span>
+                </button>
+
                 <button
                   id="btn-open-global-modal"
                   className="btn btn-warning flex items-center gap-2"
@@ -1025,7 +1175,7 @@ export default function SchedulesPage() {
                   style={{ fontSize: '0.82rem', padding: '8px 14px' }}
                 >
                   <Zap size={15} />
-                  <span>Cambio Global / Masivo</span>
+                  <span>Cambio Masivo</span>
                 </button>
 
                 <button
@@ -1041,7 +1191,10 @@ export default function SchedulesPage() {
                 <button
                   id="btn-export-excel-roster"
                   className="btn btn-ghost flex items-center gap-2"
-                  onClick={exportRosterToExcel}
+                  onClick={() => {
+                    setReportFormat('EXCEL');
+                    setShowReportConfigModal(true);
+                  }}
                   style={{ fontSize: '0.82rem', padding: '8px 14px' }}
                 >
                   <FileSpreadsheet size={15} color="#059669" />
@@ -1053,7 +1206,10 @@ export default function SchedulesPage() {
             <button
               id="btn-export-pdf-roster"
               className="btn btn-primary flex items-center gap-2"
-              onClick={exportRosterToPDF}
+              onClick={() => {
+                setReportFormat('PDF');
+                setShowReportConfigModal(true);
+              }}
               style={{
                 background: 'linear-gradient(135deg, #e11d48, #be123c)',
                 color: '#ffffff',
@@ -1065,7 +1221,7 @@ export default function SchedulesPage() {
               }}
             >
               <FileText size={15} />
-              <span>Exportar PDF</span>
+              <span>Configurar y Exportar PDF</span>
             </button>
           </div>
 
@@ -1180,6 +1336,26 @@ export default function SchedulesPage() {
 
                         {!isReadOnly && (
                           <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm p-1"
+                              onClick={() => setEditRowModal({ id: row.id, area: row.area, shiftTime: row.shiftTime })}
+                              title={`Editar nombre de área y horario para ${row.area}`}
+                              style={{ color: '#ea580c', borderRadius: 4 }}
+                            >
+                              <Edit2 size={13} />
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm p-1"
+                              onClick={() => handleDuplicateRow(row.id)}
+                              title={`Duplicar fila ${row.area}`}
+                              style={{ color: '#0284c7', borderRadius: 4 }}
+                            >
+                              <Copy size={13} />
+                            </button>
+
                             <div className="flex flex-col gap-0.5">
                               <button
                                 type="button"
@@ -1202,13 +1378,25 @@ export default function SchedulesPage() {
                                 ▼
                               </button>
                             </div>
+
                             <button
+                              type="button"
                               className="btn btn-ghost btn-sm p-1"
                               onClick={() => openGlobalModalForRow(row.id)}
-                              title={`Edición global para fila ${row.area}`}
+                              title={`Edición masiva para la fila ${row.area}`}
                               style={{ color: '#fbbf24', borderRadius: 4 }}
                             >
                               <Zap size={13} />
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm p-1"
+                              onClick={() => handleDeleteRow(row.id)}
+                              title={`Eliminar fila ${row.area}`}
+                              style={{ color: '#ef4444', borderRadius: 4 }}
+                            >
+                              <Trash2 size={13} />
                             </button>
                           </div>
                         )}
@@ -2238,6 +2426,250 @@ export default function SchedulesPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+        {/* Modal: Edit Row Area & Shift Time */}
+        {editRowModal && (
+          <div className="modal-overlay" onClick={() => setEditRowModal(null)}>
+            <div className="modal animate-slide-up" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title flex items-center gap-2">
+                  <Edit2 size={18} color="#ea580c" />
+                  Editar Área y Horario de Fila
+                </h3>
+                <button className="modal-close" onClick={() => setEditRowModal(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveRowEdit} className="flex flex-col gap-4">
+                <div className="form-group">
+                  <label className="form-label">Nombre del Área</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editRowModal.area}
+                    onChange={e => setEditRowModal({ ...editRowModal, area: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Horario del Turno (ej. 7AM-3PM, 8AM-5PM, 3PM-11PM)</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editRowModal.shiftTime}
+                    onChange={e => setEditRowModal({ ...editRowModal, shiftTime: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 mt-2">
+                  <button type="button" className="btn btn-ghost" onClick={() => setEditRowModal(null)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Header Dates & Day Labels */}
+        {showEditHeaderModal && (
+          <div className="modal-overlay" onClick={() => setShowEditHeaderModal(false)}>
+            <div className="modal animate-slide-up" style={{ maxWidth: 580 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title flex items-center gap-2">
+                  <Calendar size={18} color="#ea580c" />
+                  Personalizar Fechas y Encabezados del Rol
+                </h3>
+                <button className="modal-close" onClick={() => setShowEditHeaderModal(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3 my-2">
+                <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  Edita la letra del día (L, M, M...) y el número de fecha (24, 25...) para cada uno de los 7 días de la semana:
+                </p>
+
+                <div className="grid-7 gap-2">
+                  {daysHeader.map((d, idx) => (
+                    <div key={idx} className="flex flex-col gap-1 p-2 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                      <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ea580c', textAlign: 'center' }}>
+                        Día {idx + 1}
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input text-center"
+                        style={{ padding: '4px', fontSize: '0.85rem', fontWeight: 800 }}
+                        value={d.day}
+                        onChange={e => handleUpdateHeaderDay(idx, e.target.value, d.date)}
+                        placeholder="Día"
+                      />
+                      <input
+                        type="text"
+                        className="form-input text-center"
+                        style={{ padding: '4px', fontSize: '0.8rem', fontWeight: 700 }}
+                        value={d.date}
+                        onChange={e => handleUpdateHeaderDay(idx, d.day, e.target.value)}
+                        placeholder="Fecha"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" className="btn btn-primary" onClick={() => setShowEditHeaderModal(false)}>
+                  Aceptar y Guardar Encabezados
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Flexible Schedule Report Configuration (PDF & Excel) */}
+        {showReportConfigModal && (
+          <div className="modal-overlay" onClick={() => setShowReportConfigModal(false)}>
+            <div className="modal animate-slide-up" style={{ maxWidth: 580 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title flex items-center gap-2">
+                  <Sliders size={18} color="#e11d48" />
+                  Configurar y Exportar Reporte de Horarios ({reportFormat})
+                </h3>
+                <button className="modal-close" onClick={() => setShowReportConfigModal(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4 my-2">
+                <div className="p-3 rounded-xl" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+                  <div className="flex items-center gap-2" style={{ color: '#047857', fontWeight: 800, fontSize: '0.82rem' }}>
+                    <CheckCircle2 size={16} />
+                    <span>Reporte Exclusivo de Horarios (Pure Roster)</span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: '#065f46', marginTop: 2 }}>
+                    Este reporte tomará única y exclusivamente la información programada en la matriz de turnos activa.
+                  </p>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Título Principal del Reporte</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={reportConfig.title}
+                    onChange={e => setReportConfig({ ...reportConfig, title: e.target.value })}
+                  />
+                </div>
+
+                <div className="grid-2 gap-3">
+                  <div className="form-group">
+                    <label className="form-label">Elaboró / Responsables</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={reportConfig.prepBy}
+                      onChange={e => setReportConfig({ ...reportConfig, prepBy: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Autorizó / Firma</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={reportConfig.approvedBy}
+                      onChange={e => setReportConfig({ ...reportConfig, approvedBy: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {reportFormat === 'PDF' && (
+                  <div className="form-group">
+                    <label className="form-label">Orientación de Página (PDF)</label>
+                    <div className="grid-2 gap-2">
+                      <button
+                        type="button"
+                        className={`btn ${reportConfig.orientation === 'landscape' ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setReportConfig({ ...reportConfig, orientation: 'landscape' })}
+                        style={{ fontSize: '0.8rem', fontWeight: 700 }}
+                      >
+                        Horizontal (Landscape)
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn ${reportConfig.orientation === 'portrait' ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setReportConfig({ ...reportConfig, orientation: 'portrait' })}
+                        style={{ fontSize: '0.8rem', fontWeight: 700 }}
+                      >
+                        Vertical (Portrait)
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={reportConfig.includeSummary}
+                      onChange={e => setReportConfig({ ...reportConfig, includeSummary: e.target.checked })}
+                    />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
+                      Incluir Hoja/Sección de Resumen por Empleado y Horas Programadas
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={reportConfig.includeLegend}
+                      onChange={e => setReportConfig({ ...reportConfig, includeLegend: e.target.checked })}
+                    />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
+                      Incluir Leyenda de Colores (Descanso, Doble Turno, Cambio Turno, Cambio Área)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Notas u Observaciones del Pie</label>
+                  <textarea
+                    className="form-input"
+                    rows={2}
+                    value={reportConfig.notes}
+                    onChange={e => setReportConfig({ ...reportConfig, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowReportConfigModal(false)}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary flex items-center gap-2"
+                  style={{ background: reportFormat === 'PDF' ? 'linear-gradient(135deg, #e11d48, #be123c)' : 'linear-gradient(135deg, #059669, #047857)', color: '#ffffff' }}
+                  onClick={() => {
+                    setShowReportConfigModal(false);
+                    if (reportFormat === 'PDF') {
+                      exportRosterToPDFWithConfig();
+                    } else {
+                      exportRosterToExcelWithConfig();
+                    }
+                  }}
+                >
+                  <Download size={16} />
+                  <span>Generar Reporte {reportFormat}</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
