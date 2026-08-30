@@ -646,6 +646,25 @@ export default function SchedulesPage() {
     replicateDays: [false, false, false, false, false, false, false],
   });
 
+  const [subFormMode, setSubFormMode] = useState<'PRESET' | 'CUSTOM'>('PRESET');
+  const [subFormError, setSubFormError] = useState<string | null>(null);
+
+  const calcShiftDuration = (startStr: string, endStr: string) => {
+    if (!startStr || !endStr) return { hours: 0, isOvernight: false };
+    const [sH, sM] = startStr.split(':').map(Number);
+    const [eH, eM] = endStr.split(':').map(Number);
+    if (isNaN(sH) || isNaN(eH)) return { hours: 0, isOvernight: false };
+    const startMins = sH * 60 + (sM || 0);
+    let endMins = eH * 60 + (eM || 0);
+    let isOvernight = false;
+    if (endMins <= startMins) {
+      endMins += 24 * 60;
+      isOvernight = true;
+    }
+    const hours = Number(((endMins - startMins) / 60).toFixed(1));
+    return { hours, isOvernight };
+  };
+
   function formatTime12h(time24?: string): string {
     if (!time24) return '';
     const [hStr, mStr] = time24.split(':');
@@ -1104,6 +1123,8 @@ export default function SchedulesPage() {
     setEditModal({ rowId, dayIndex, area, shiftTime, dayLabel });
     setCustomInput('');
     setExpandedSubFormIndex(null);
+    setSubFormError(null);
+    setSubFormMode('PRESET');
   };
 
   const handleToggleSubForm = (rowId: string, dayIndex: number, itemIndex: number, newType: RosterCell['type']) => {
@@ -1113,11 +1134,14 @@ export default function SchedulesPage() {
     if (newType === 'NORMAL' || newType === 'DESCANSO') {
       updateItemType(rowId, dayIndex, itemIndex, newType);
       setExpandedSubFormIndex(null);
+      setSubFormError(null);
       return;
     }
 
     updateItemType(rowId, dayIndex, itemIndex, newType);
     setExpandedSubFormIndex(itemIndex);
+    setSubFormError(null);
+    setSubFormMode('PRESET');
 
     const defaultTargetArea = rosterRows.find(r => r.id !== rowId)?.area || 'BARRA';
 
@@ -1145,6 +1169,17 @@ export default function SchedulesPage() {
     const currentItems = [...(targetRow.employees[dayIndex] || [])];
     const targetItem = currentItems[itemIndex];
     if (!targetItem) return;
+
+    if (targetItem.type === 'CAMBIO_TURNO' && (!subFormState.shiftStartTime || !subFormState.shiftEndTime)) {
+      setSubFormError('⚠️ Por favor ingresa la hora de inicio y fin del turno.');
+      return;
+    }
+    if (targetItem.type === 'DOBLE_TURNO' && (!subFormState.secondShiftStartTime || !subFormState.secondShiftEndTime)) {
+      setSubFormError('⚠️ Por favor ingresa los horarios del segundo turno.');
+      return;
+    }
+
+    setSubFormError(null);
 
     const finalReason = subFormState.customReason.trim()
       ? `${subFormState.reason}: ${subFormState.customReason.trim()}`
@@ -3138,67 +3173,145 @@ export default function SchedulesPage() {
                                     </div>
                                   )}
 
-                                  {/* Selectores de Horario para CAMBIO_TURNO con Presets de Máxima Libertad */}
-                                  {item.type === 'CAMBIO_TURNO' && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                      <div>
-                                        <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
-                                          Presets Rápido de Turnos Comunes
-                                        </label>
-                                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                          {[
-                                            { label: '☀️ Matutino (7AM - 3PM)', start: '07:00', end: '15:00' },
-                                            { label: '🌗 Vespertino (2PM - 10PM)', start: '14:00', end: '22:00' },
-                                            { label: '🌙 Nocturno (10PM - 6AM)', start: '22:00', end: '06:00' },
-                                            { label: '⏱️ Medio Turno (9AM - 1PM)', start: '09:00', end: '13:00' },
-                                          ].map(p => (
+                                  {/* Selectores de Horario para CAMBIO_TURNO con Presets + Opcion Personalizado */}
+                                  {item.type === 'CAMBIO_TURNO' && (() => {
+                                    const duration = calcShiftDuration(subFormState.shiftStartTime, subFormState.shiftEndTime);
+                                    const activePreset = subFormMode === 'PRESET'
+                                      ? (subFormState.shiftStartTime === '07:00' && subFormState.shiftEndTime === '15:00' ? 'MATUTINO'
+                                        : subFormState.shiftStartTime === '14:00' && subFormState.shiftEndTime === '22:00' ? 'VESPERTINO'
+                                        : subFormState.shiftStartTime === '22:00' && subFormState.shiftEndTime === '06:00' ? 'NOCTURNO'
+                                        : null)
+                                      : null;
+
+                                    return (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                        <div>
+                                          <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block' }}>
+                                            Selección de Horario
+                                          </label>
+                                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                            {[
+                                              { id: 'MATUTINO', label: '☀️ Matutino (7AM - 3PM)', start: '07:00', end: '15:00' },
+                                              { id: 'VESPERTINO', label: '🌗 Vespertino (2PM - 10PM)', start: '14:00', end: '22:00' },
+                                              { id: 'NOCTURNO', label: '🌙 Nocturno (10PM - 6AM)', start: '22:00', end: '06:00' },
+                                            ].map(p => {
+                                              const isSelected = subFormMode === 'PRESET' && activePreset === p.id;
+                                              return (
+                                                <button
+                                                  key={p.id}
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setSubFormMode('PRESET');
+                                                    setSubFormError(null);
+                                                    setSubFormState({ ...subFormState, shiftStartTime: p.start, shiftEndTime: p.end });
+                                                  }}
+                                                  style={{
+                                                    padding: '6px 10px',
+                                                    borderRadius: 10,
+                                                    fontSize: '0.74rem',
+                                                    fontWeight: 800,
+                                                    border: isSelected ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                                                    background: isSelected ? '#e0f2fe' : '#ffffff',
+                                                    color: isSelected ? '#0369a1' : '#475569',
+                                                    boxShadow: isSelected ? '0 2px 6px rgba(2, 132, 199, 0.15)' : 'none',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                  }}
+                                                >
+                                                  {p.label}
+                                                </button>
+                                              );
+                                            })}
+
+                                            {/* Botón de Selección "Personalizado" con Mismo Estilo Visual */}
                                             <button
-                                              key={p.label}
                                               type="button"
-                                              onClick={() => setSubFormState({ ...subFormState, shiftStartTime: p.start, shiftEndTime: p.end })}
+                                              onClick={() => {
+                                                setSubFormMode('CUSTOM');
+                                                setSubFormError(null);
+                                                if (!subFormState.shiftStartTime || !subFormState.shiftEndTime) {
+                                                  setSubFormState({ ...subFormState, shiftStartTime: '14:00', shiftEndTime: '22:00' });
+                                                }
+                                              }}
                                               style={{
-                                                padding: '4px 8px',
-                                                borderRadius: 8,
-                                                fontSize: '0.7rem',
+                                                padding: '6px 10px',
+                                                borderRadius: 10,
+                                                fontSize: '0.74rem',
                                                 fontWeight: 800,
-                                                border: subFormState.shiftStartTime === p.start && subFormState.shiftEndTime === p.end ? '1px solid #0284c7' : '1px solid #cbd5e1',
-                                                background: subFormState.shiftStartTime === p.start && subFormState.shiftEndTime === p.end ? '#e0f2fe' : '#ffffff',
-                                                color: subFormState.shiftStartTime === p.start && subFormState.shiftEndTime === p.end ? '#0369a1' : '#475569',
+                                                border: subFormMode === 'CUSTOM' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                                                background: subFormMode === 'CUSTOM' ? '#e0f2fe' : '#ffffff',
+                                                color: subFormMode === 'CUSTOM' ? '#0369a1' : '#475569',
+                                                boxShadow: subFormMode === 'CUSTOM' ? '0 2px 6px rgba(2, 132, 199, 0.15)' : 'none',
                                                 cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 5,
+                                                transition: 'all 0.15s ease',
                                               }}
                                             >
-                                              {p.label}
+                                              <Edit2 size={13} color={subFormMode === 'CUSTOM' ? '#0369a1' : '#64748b'} />
+                                              <span>✏️ Personalizado</span>
                                             </button>
-                                          ))}
+                                          </div>
                                         </div>
-                                      </div>
 
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                                        <div>
-                                          <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
-                                            Hora Inicio de Entrada (Pauta Super Admin)
-                                          </label>
-                                          <input
-                                            type="time"
-                                            value={subFormState.shiftStartTime}
-                                            onChange={e => setSubFormState({ ...subFormState, shiftStartTime: e.target.value })}
-                                            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}
-                                          />
-                                        </div>
-                                        <div>
-                                          <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
-                                            Hora Fin de Salida
-                                          </label>
-                                          <input
-                                            type="time"
-                                            value={subFormState.shiftEndTime}
-                                            onChange={e => setSubFormState({ ...subFormState, shiftEndTime: e.target.value })}
-                                            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}
-                                          />
-                                        </div>
+                                        {/* Despliegue de Selectores de Hora Nativos (Transición Suave 200ms) */}
+                                        {subFormMode === 'CUSTOM' && (
+                                          <div
+                                            style={{
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              gap: 10,
+                                              padding: 12,
+                                              borderRadius: 12,
+                                              background: '#ffffff',
+                                              border: '1px solid #bae6fd',
+                                              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                                            }}
+                                            className="animate-slide-down"
+                                          >
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                              <div>
+                                                <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
+                                                  Hora de Inicio
+                                                </label>
+                                                <input
+                                                  type="time"
+                                                  value={subFormState.shiftStartTime}
+                                                  onChange={e => {
+                                                    setSubFormError(null);
+                                                    setSubFormState({ ...subFormState, shiftStartTime: e.target.value });
+                                                  }}
+                                                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', fontWeight: 800, fontSize: '0.84rem', color: '#0f172a', boxSizing: 'border-box' }}
+                                                />
+                                              </div>
+                                              <div>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                                                  <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                                                    Hora de Fin
+                                                  </label>
+                                                  {duration.isOvernight && (
+                                                    <span style={{ fontSize: '0.64rem', fontWeight: 900, color: '#b45309', background: '#fffbeb', padding: '1px 6px', borderRadius: 6, border: '1px solid #fef08a' }}>
+                                                      🌙 +1 día
+                                                    </span>
+                                                  )}
+                                                </div>
+                                                <input
+                                                  type="time"
+                                                  value={subFormState.shiftEndTime}
+                                                  onChange={e => {
+                                                    setSubFormError(null);
+                                                    setSubFormState({ ...subFormState, shiftEndTime: e.target.value });
+                                                  }}
+                                                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', fontWeight: 800, fontSize: '0.84rem', color: '#0f172a', boxSizing: 'border-box' }}
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
-                                    </div>
-                                  )}
+                                    );
+                                  })()}
 
                                   {/* Selectores de Horario para DOBLE_TURNO */}
                                   {item.type === 'DOBLE_TURNO' && (
@@ -3339,6 +3452,29 @@ export default function SchedulesPage() {
                                       ))}
                                     </div>
                                   </div>
+
+                                  {/* Línea de Resumen de Confirmación & Mensaje de Error Inline */}
+                                  {item.type === 'CAMBIO_TURNO' && (() => {
+                                    const duration = calcShiftDuration(subFormState.shiftStartTime, subFormState.shiftEndTime);
+                                    return (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                        {subFormError && (
+                                          <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: '6px 10px', fontSize: '0.74rem', fontWeight: 800, color: '#e11d48', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <AlertTriangle size={14} color="#e11d48" />
+                                            <span>{subFormError}</span>
+                                          </div>
+                                        )}
+                                        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+                                          <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0369a1' }}>
+                                            Nuevo horario: {formatTime12h(subFormState.shiftStartTime) || '--'} - {formatTime12h(subFormState.shiftEndTime) || '--'}
+                                          </span>
+                                          <span style={{ fontSize: '0.72rem', fontWeight: 900, background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: 12 }}>
+                                            {duration.hours} hrs {duration.isOvernight ? '(+1 día)' : ''}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
 
                                   {/* Botones de Acción Inline */}
                                   <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
