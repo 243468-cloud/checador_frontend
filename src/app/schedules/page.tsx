@@ -67,7 +67,7 @@ export interface EmployeeBalance {
   totalScheduledHours: number;
   actualWorkedHours: number;
   overtimeHours: number;
-  statusBalance: 'EQUILIBRADO' | 'ELEVADO' | 'REDUCIDO';
+  statusBalance: 'EQUILIBRADO' | 'ELEVADO' | 'REDUCIDO' | 'SIN ASIGNACIÓN';
 }
 
 export interface DailyScheduleResolution {
@@ -936,11 +936,12 @@ export default function SchedulesPage() {
       };
 
       const workDays = data.workDaysSet.size;
-      const restDays = data.restDaysSet.size || (7 - workDays);
+      const hasAssignments = data.workDaysSet.size > 0 || data.restDaysSet.size > 0;
+      const restDays = hasAssignments ? (data.restDaysSet.size || Math.max(0, 7 - workDays)) : 0;
       const doubleShifts = data.doubleShifts;
       const shiftChanges = data.shiftChanges;
 
-      let primaryArea = 'Varios Turnos';
+      let primaryArea = hasAssignments ? 'Varios Turnos' : 'Sin Asignar';
       let maxCount = 0;
       data.areaCounts.forEach((cnt, area) => {
         if (cnt > maxCount) {
@@ -966,8 +967,10 @@ export default function SchedulesPage() {
 
       realWorkedHours = Math.max(totalScheduledHours, realWorkedHours);
 
-      let statusBalance: 'EQUILIBRADO' | 'ELEVADO' | 'REDUCIDO' = 'EQUILIBRADO';
-      if (totalScheduledHours > 48 || doubleShifts >= 2 || realOvertimeHours > 6.0) {
+      let statusBalance: 'EQUILIBRADO' | 'ELEVADO' | 'REDUCIDO' | 'SIN ASIGNACIÓN' = 'EQUILIBRADO';
+      if (!hasAssignments) {
+        statusBalance = 'SIN ASIGNACIÓN';
+      } else if (totalScheduledHours > 48 || doubleShifts >= 2 || realOvertimeHours > 6.0) {
         statusBalance = 'ELEVADO';
       } else if (totalScheduledHours < 35 && workDays > 0) {
         statusBalance = 'REDUCIDO';
@@ -1280,6 +1283,9 @@ export default function SchedulesPage() {
   // -------------------------------------------------------------
   // EXPORT TO PDF (100% PURE SCHEDULE DATA & CONFIGURABLE)
   // -------------------------------------------------------------
+  // -------------------------------------------------------------
+  // EXPORT TO PDF (100% PURE SCHEDULE DATA & CONFIGURABLE)
+  // -------------------------------------------------------------
   const exportRosterToPDFWithConfig = () => {
     const isLandscape = reportConfig.orientation === 'landscape';
     const doc = new jsPDF({
@@ -1302,36 +1308,86 @@ export default function SchedulesPage() {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(148, 163, 184);
-    const subText = `Sucursal: ${user?.branchName || reportConfig.subtitle || 'Central'} | Semana del ${daysHeader[0].date} al ${daysHeader[6].date} | Emitido: ${new Date().toLocaleDateString('es-MX')}`;
+    const subText = `Sucursal: ${user?.branchName || reportConfig.subtitle || 'Central'} | Semana del ${daysHeader[0].date} al ${daysHeader[6].date} (${weekStart}) | Emitido: ${new Date().toLocaleDateString('es-MX')}`;
     doc.text(subText, 14, 19);
 
     const tableHeaders = [
       ['ÁREA / TURNO', ...daysHeader.map(d => `${d.day}\n${d.date}`)]
     ];
 
-    const tableBody: any[] = [];
-    rosterRows.forEach(row => {
-      const areaLabel = `${row.area}\n${row.shiftTime}`;
-      const dayCells = daysHeader.map((_, dayIdx) => {
-        const items = row.employees[dayIdx] || [];
-        return items.map(i => {
-          if (i.type === 'DESCANSO' && !i.text.toUpperCase().includes('DESCANSO')) {
-            return `${i.text}\nDESCANSO`;
-          }
-          if (i.type === 'CAMBIO_TURNO' && !i.text.toUpperCase().includes('CAMBIO')) {
-            return `${i.text}\nCAMBIO TURNO`;
-          }
-          if (i.type === 'DOBLE_TURNO' && !i.text.toUpperCase().includes('DOBLE')) {
-            return `${i.text}\nDOBLE TURNO`;
-          }
-          if (i.type === 'CAMBIO_AREA' && !i.text.toUpperCase().includes('AREA')) {
-            return `${i.text}\nCAMBIO AREA`;
-          }
-          return i.text;
-        }).join('\n') || '';
-      });
-      tableBody.push([areaLabel, ...dayCells]);
+    // Grouping by Shift Time Blocks (Sub-encabezados de sección)
+    const morningRows: RosterRow[] = [];
+    const eveningRows: RosterRow[] = [];
+    const otherRows: RosterRow[] = [];
+
+    rosterRows.forEach(r => {
+      const shiftUpper = (r.shiftTime || '').toUpperCase();
+      if (shiftUpper.includes('7AM') || shiftUpper.includes('8AM') || shiftUpper.includes('9AM') || shiftUpper.includes('MAÑANA') || shiftUpper.includes('MATUTINO')) {
+        morningRows.push(r);
+      } else if (shiftUpper.includes('3PM') || shiftUpper.includes('2PM') || shiftUpper.includes('4PM') || shiftUpper.includes('TARDE') || shiftUpper.includes('VESPERTINO')) {
+        eveningRows.push(r);
+      } else {
+        otherRows.push(r);
+      }
     });
+
+    const tableBody: any[] = [];
+    const rowMapByTableIndex = new Map<number, { row: RosterRow; isHeader: boolean }>();
+    let tableRowIdx = 0;
+
+    const appendShiftGroup = (groupTitle: string, rows: RosterRow[]) => {
+      if (rows.length === 0) return;
+
+      tableBody.push([
+        {
+          content: groupTitle,
+          colSpan: 8,
+          styles: {
+            fillColor: [241, 245, 249],
+            textColor: [15, 23, 42],
+            fontStyle: 'bold',
+            fontSize: 8.5,
+            halign: 'left',
+            cellPadding: { top: 3, bottom: 3, left: 6, right: 6 },
+          },
+        },
+      ]);
+      rowMapByTableIndex.set(tableRowIdx, { row: null as any, isHeader: true });
+      tableRowIdx++;
+
+      rows.forEach(row => {
+        const areaLabel = `${row.area}\n${row.shiftTime || ''}`.trim();
+        const dayCells = daysHeader.map((_, dayIdx) => {
+          const items = row.employees[dayIdx] || [];
+          if (items.length === 0) return ''; // Sin asignar fielmente
+
+          return items.map(i => {
+            const cleanText = i.text.trim();
+            if (i.type === 'DESCANSO' && !cleanText.toUpperCase().includes('DESCANSO')) {
+              return `${cleanText}\n[DESCANSO]`;
+            }
+            if (i.type === 'CAMBIO_TURNO' && !cleanText.toUpperCase().includes('CAMBIO')) {
+              return `${cleanText}\n[CAMBIO TURNO]`;
+            }
+            if (i.type === 'DOBLE_TURNO' && !cleanText.toUpperCase().includes('DOBLE')) {
+              return `${cleanText}\n[DOBLE TURNO]`;
+            }
+            if (i.type === 'CAMBIO_AREA' && !cleanText.toUpperCase().includes('AREA')) {
+              return `${cleanText}\n[CAMBIO ÁREA]`;
+            }
+            return cleanText;
+          }).join('\n\n');
+        });
+
+        tableBody.push([areaLabel, ...dayCells]);
+        rowMapByTableIndex.set(tableRowIdx, { row, isHeader: false });
+        tableRowIdx++;
+      });
+    };
+
+    appendShiftGroup('TURNO MATUTINO (7:00 AM - 3:00 PM)', morningRows);
+    appendShiftGroup('TURNO VESPERTINO (3:00 PM - 11:00 PM)', eveningRows);
+    appendShiftGroup('OTROS TURNOS Y ÁREAS', otherRows);
 
     const colWidth = (pageWidth - 42) / 7;
 
@@ -1366,37 +1422,42 @@ export default function SchedulesPage() {
         7: { cellWidth: colWidth },
       },
       didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index > 0) {
-          const rowIndex = data.row.index;
-          const dayIndex = data.column.index - 1;
-          const rowData = rosterRows[rowIndex];
-          if (rowData) {
-            const items = rowData.employees[dayIndex] || [];
-            
-            // Solo colorear el recuadro completo si el 100% de la celda es del mismo estado especial (o etiqueta única)
-            const allDescanso = items.length > 0 && items.every(i => i.type === 'DESCANSO' || i.text.toUpperCase().includes('DESCANSO'));
-            const allCambioTurno = items.length > 0 && items.every(i => i.type === 'CAMBIO_TURNO' || i.text.toUpperCase().includes('CAMBIO TURNO'));
-            const allDobleTurno = items.length > 0 && items.every(i => i.type === 'DOBLE_TURNO' || i.text.toUpperCase().includes('DOBLE TURNO'));
-            const allCambioArea = items.length > 0 && items.every(i => i.type === 'CAMBIO_AREA' || i.text.toUpperCase().includes('CAMBIO AREA'));
+        if (data.section === 'body') {
+          const meta = rowMapByTableIndex.get(data.row.index);
+          if (meta && !meta.isHeader && data.column.index > 0) {
+            const dayIndex = data.column.index - 1;
+            const rowData = meta.row;
+            const items = rowData ? (rowData.employees[dayIndex] || []) : [];
+
+            if (items.length === 0) {
+              data.cell.styles.fillColor = [255, 255, 255];
+              data.cell.styles.textColor = [148, 163, 184];
+              data.cell.styles.fontStyle = 'normal';
+              return;
+            }
+
+            const allDescanso = items.every(i => i.type === 'DESCANSO' || i.text.toUpperCase().includes('DESCANSO'));
+            const allCambioTurno = items.every(i => i.type === 'CAMBIO_TURNO' || i.text.toUpperCase().includes('CAMBIO TURNO'));
+            const allDobleTurno = items.every(i => i.type === 'DOBLE_TURNO' || i.text.toUpperCase().includes('DOBLE TURNO'));
+            const allCambioArea = items.every(i => i.type === 'CAMBIO_AREA' || i.text.toUpperCase().includes('CAMBIO AREA'));
 
             if (allDescanso) {
-              data.cell.styles.fillColor = [236, 253, 245]; // Verde menta suave
+              data.cell.styles.fillColor = [236, 253, 245]; // Mint green
               data.cell.styles.textColor = [4, 120, 87];
               data.cell.styles.fontStyle = 'bold';
             } else if (allCambioTurno) {
-              data.cell.styles.fillColor = [240, 249, 255]; // Azul suave
+              data.cell.styles.fillColor = [240, 249, 255]; // Sky blue
               data.cell.styles.textColor = [3, 105, 161];
               data.cell.styles.fontStyle = 'bold';
             } else if (allDobleTurno) {
-              data.cell.styles.fillColor = [254, 243, 199]; // Amarillo suave
+              data.cell.styles.fillColor = [254, 243, 199]; // Amber
               data.cell.styles.textColor = [180, 83, 9];
               data.cell.styles.fontStyle = 'bold';
             } else if (allCambioArea) {
-              data.cell.styles.fillColor = [255, 237, 213]; // Naranja suave
+              data.cell.styles.fillColor = [255, 237, 213]; // Terracotta
               data.cell.styles.textColor = [194, 65, 12];
               data.cell.styles.fontStyle = 'bold';
             } else {
-              // Si hay varios empleados o turnos normales, mantener el recuadro limpio en blanco
               data.cell.styles.fillColor = [255, 255, 255];
               data.cell.styles.textColor = [15, 23, 42];
               data.cell.styles.fontStyle = 'normal';
@@ -1408,42 +1469,56 @@ export default function SchedulesPage() {
 
     let currentY = (doc as any).lastAutoTable.finalY || 160;
 
-    // Legend Boxes
+    // Color Legend Bar (Identical Badge Colors)
     if (reportConfig.includeLegend) {
-      doc.setFillColor(16, 185, 129); doc.rect(14, currentY + 6, 26, 6, 'F');
-      doc.setTextColor(255, 255, 255); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-      doc.text('DESCANSO', 17, currentY + 10.2);
+      const legendY = currentY + 5;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text('CONVENCIÓN DE COLORES:', 14, legendY + 4);
 
-      doc.setFillColor(2, 132, 199); doc.rect(44, currentY + 6, 30, 6, 'F');
-      doc.text('CAMBIO TURNO', 46, currentY + 10.2);
-
-      doc.setFillColor(234, 179, 8); doc.rect(78, currentY + 6, 28, 6, 'F');
-      doc.setTextColor(0, 0, 0);
-      doc.text('DOBLE TURNO', 80, currentY + 10.2);
-
-      doc.setFillColor(249, 115, 22); doc.rect(110, currentY + 6, 28, 6, 'F');
+      // DESCANSO - Mint Green #10B981
+      doc.setFillColor(16, 185, 129);
+      doc.rect(60, legendY, 28, 6, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.text('CAMBIO AREA', 112, currentY + 10.2);
+      doc.setFontSize(7.5);
+      doc.text('DESCANSO', 63, legendY + 4.2);
 
-      currentY += 16;
+      // CAMBIO TURNO - Sky Blue #0284C7
+      doc.setFillColor(2, 132, 199);
+      doc.rect(92, legendY, 32, 6, 'F');
+      doc.text('CAMBIO TURNO', 94, legendY + 4.2);
+
+      // DOBLE TURNO - Amber #D97706
+      doc.setFillColor(217, 119, 6);
+      doc.rect(128, legendY, 30, 6, 'F');
+      doc.text('DOBLE TURNO', 130, legendY + 4.2);
+
+      // CAMBIO ÁREA - Terracotta #EA580C
+      doc.setFillColor(234, 88, 12);
+      doc.rect(162, legendY, 30, 6, 'F');
+      doc.text('CAMBIO ÁREA', 164, legendY + 4.2);
+
+      currentY += 15;
     }
 
-    // Custom Signatures
+    // Custom Signatures Block
+    const sigY = Math.max(currentY + 15, isLandscape ? 175 : 240);
     doc.setDrawColor(203, 213, 225);
-    doc.line(14, currentY + 14, 80, currentY + 14);
-    doc.line(pageWidth - 80, currentY + 14, pageWidth - 14, currentY + 14);
+    doc.line(14, sigY, 85, sigY);
+    doc.line(pageWidth - 85, sigY, pageWidth - 14, sigY);
 
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Elaboró / ${reportConfig.prepBy}`, 14, currentY + 18);
-    doc.text(`Autorizó / ${reportConfig.approvedBy}`, pageWidth - 80, currentY + 18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Elaboró / ${reportConfig.prepBy}`, 14, sigY + 5);
+    doc.text(`Autorizó / ${reportConfig.approvedBy}`, pageWidth - 85, sigY + 5);
 
     if (reportConfig.notes) {
       doc.setFontSize(7);
       doc.setFont('helvetica', 'italic');
       doc.setTextColor(148, 163, 184);
-      doc.text(`Nota: ${reportConfig.notes}`, 14, currentY + 24);
+      doc.text(`Nota: ${reportConfig.notes}`, 14, sigY + 11);
     }
 
     // Page 2: Summary Page based EXCLUSIVELY on Roster Data
@@ -1489,15 +1564,21 @@ export default function SchedulesPage() {
       });
 
       const finalY2 = (doc as any).lastAutoTable.finalY || 160;
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 116, 139);
+      doc.text('* Criterios de Balance: Equilibrado (40-48h semanales) | Reducido (<40h) | Elevado (>48h o 2+ dobles) | Sin Asignación (semana sin turnos)', 14, finalY2 + 8);
+
       doc.setDrawColor(203, 213, 225);
-      doc.line(14, finalY2 + 20, 80, finalY2 + 20);
-      doc.line(pageWidth - 80, finalY2 + 20, pageWidth - 14, finalY2 + 20);
+      doc.line(14, finalY2 + 22, 85, finalY2 + 22);
+      doc.line(pageWidth - 85, finalY2 + 22, pageWidth - 14, finalY2 + 22);
 
       doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Firma / ${reportConfig.prepBy}`, 14, finalY2 + 24);
-      doc.text(`Firma y Sello / ${reportConfig.approvedBy}`, pageWidth - 80, finalY2 + 24);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Firma / ${reportConfig.prepBy}`, 14, finalY2 + 27);
+      doc.text(`Firma y Sello / ${reportConfig.approvedBy}`, pageWidth - 85, finalY2 + 27);
     }
 
     doc.save(`Reporte_Rol_Semanal_${user?.branchName || 'Empresa'}.pdf`);
