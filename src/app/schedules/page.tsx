@@ -1909,22 +1909,6 @@ export default function SchedulesPage() {
                       <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Personal Asignado
                       </span>
-                      {(() => {
-                        const targetRow = rosterRows.find(r => r.id === editModal.rowId);
-                        const currentItems = targetRow?.employees[editModal.dayIndex] || [];
-                        if (currentItems.length > 0) {
-                          return (
-                            <button
-                              className="btn flex items-center gap-1"
-                              style={{ fontSize: '0.7rem', color: '#e11d48', background: '#ffe4e6', border: '1px solid #fecdd3', padding: '2px 7px', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
-                              onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
-                            >
-                              <Trash2 size={11} /> Limpiar todo
-                            </button>
-                          );
-                        }
-                        return null;
-                      })()}
                     </div>
 
                     {(() => {
