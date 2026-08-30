@@ -117,7 +117,7 @@ export default function NotificationBell() {
       setSystemPerm(Notification.permission);
     }
     if (success) {
-      sendSystemNotification('Vía Gourmet 🔔', '¡Notificaciones Push del celular activadas correctamente!');
+      sendSystemNotification('Vía Gourmet', '¡Notificaciones Push del celular activadas correctamente!');
     }
   };
 
@@ -184,7 +184,7 @@ export default function NotificationBell() {
       const newNotif = event.data;
       playNotificationSound();
       triggerVibration();
-      sendSystemNotification(newNotif.title || 'Vía Gourmet 🔔', newNotif.body || 'Nueva notificación de asistencia');
+      sendSystemNotification(newNotif.title || 'Vía Gourmet', newNotif.body || 'Nueva notificación de asistencia');
 
       setUnread(prev => prev + 1);
       setNotifs(prev => [newNotif, ...prev]);
@@ -399,7 +399,7 @@ export default function NotificationBell() {
                 onClick={async () => {
                   const sent = await sendTestPushNotification();
                   if (sent) {
-                    sendSystemNotification('Vía Gourmet 🔔', '¡Prueba despachada a tu celular!');
+                    sendSystemNotification('Vía Gourmet', '¡Prueba despachada a tu celular!');
                   } else {
                     alert('No se pudo despachar la notificación de prueba. Asegúrate de haber iniciado sesión.');
                   }

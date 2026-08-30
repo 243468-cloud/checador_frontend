@@ -30,10 +30,10 @@ const TYPE_LABELS: Record<LeaveType, string> = {
 };
 
 const TYPE_ICONS: Record<LeaveType, string> = {
-  PERMISO:      '🙋',
-  INCAPACIDAD:  '🏥',
-  VACACIONES:   '🌴',
-  JUSTIFICANTE: '📄',
+  PERMISO:      '',
+  INCAPACIDAD:  '',
+  VACACIONES:   '',
+  JUSTIFICANTE: '',
 };
 
 const STATUS_STYLE: Record<LeaveStatus, { label: string; bg: string; color: string }> = {
@@ -202,7 +202,7 @@ export default function LeavesPage() {
 
         {error && (
           <div className="card mb-4" style={{ borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', padding: '14px 18px' }}>
-            <p style={{ color: '#ef4444', margin: 0, fontSize: '0.88rem' }}>⚠ {error}</p>
+            <p style={{ color: '#ef4444', margin: 0, fontSize: '0.88rem' }}>{error}</p>
           </div>
         )}
 
@@ -291,7 +291,7 @@ export default function LeavesPage() {
                   {req.evidenceUrl && (
                     <a href={req.evidenceUrl} target="_blank" rel="noopener noreferrer"
                        style={{ fontSize: '0.8rem', color: '#60a5fa', textDecoration: 'none' }}>
-                      📎 Ver evidencia
+                      Ver evidencia
                     </a>
                   )}
                   {req.adminNotes && (
@@ -448,7 +448,7 @@ export default function LeavesPage() {
             <div className="card" style={{ width: '100%', maxWidth: '460px', padding: '28px 30px' }}>
               <div className="flex items-center justify-between mb-4">
                 <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
-                  {reviewModal.action === 'approve' ? '✅ Aprobar solicitud' : '❌ Rechazar solicitud'}
+                  {reviewModal.action === 'approve' ? 'Aprobar solicitud' : 'Rechazar solicitud'}
                 </h2>
                 <button onClick={() => setReviewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
                   <X size={22}/>

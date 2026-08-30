@@ -43,6 +43,10 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Sun,
+  SunDim,
+  Moon,
+  ArrowRight,
 } from 'lucide-react';
 
 export interface RosterCell {
@@ -1171,11 +1175,11 @@ export default function SchedulesPage() {
     if (!targetItem) return;
 
     if (targetItem.type === 'CAMBIO_TURNO' && (!subFormState.shiftStartTime || !subFormState.shiftEndTime)) {
-      setSubFormError('⚠️ Por favor ingresa la hora de inicio y fin del turno.');
+      setSubFormError('Por favor ingresa la hora de inicio y fin del turno.');
       return;
     }
     if (targetItem.type === 'DOBLE_TURNO' && (!subFormState.secondShiftStartTime || !subFormState.secondShiftEndTime)) {
-      setSubFormError('⚠️ Por favor ingresa los horarios del segundo turno.');
+      setSubFormError('Por favor ingresa los horarios del segundo turno.');
       return;
     }
 
@@ -1198,7 +1202,7 @@ export default function SchedulesPage() {
       updatedText = `${empName} — Doble ${tStart}-${tEnd}`;
     } else if (targetItem.type === 'CAMBIO_AREA') {
       const targetArea = subFormState.targetArea || 'OTRA';
-      updatedText = `${empName} — CA ➔ ${targetArea}`;
+      updatedText = `${empName} — CA -> ${targetArea}`;
     }
 
     const updatedCell: RosterCell = {
@@ -2103,7 +2107,7 @@ export default function SchedulesPage() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, width: '100%' }}>
                       <span style={{ fontSize: '0.66rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isActive ? 0.95 : 0.7 }}>
-                        {w.status === 'ACTUAL' ? '● Actual' : w.status === 'PRÓXIMA' ? '📅 Próxima' : 'Archivo'}
+                        {w.status === 'ACTUAL' ? '● Actual' : w.status === 'PRÓXIMA' ? 'Próxima' : 'Archivo'}
                       </span>
                       {w.isCurrentActual && !isActive && (
                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
@@ -2446,13 +2450,13 @@ export default function SchedulesPage() {
                                 }
 
                                 const auditTooltip = [
-                                  `👤 ${it.text}`,
-                                  it.type === 'CAMBIO_TURNO' && it.shiftStartTime && it.shiftEndTime ? `🕒 Cambio de Turno: ${formatTime12h(it.shiftStartTime)} - ${formatTime12h(it.shiftEndTime)}` : null,
-                                  it.type === 'DOBLE_TURNO' && it.secondShiftStartTime && it.secondShiftEndTime ? `☀️ Doble Turno: ${formatTime12h(it.secondShiftStartTime)} - ${formatTime12h(it.secondShiftEndTime)}` : null,
-                                  it.type === 'CAMBIO_AREA' && it.targetArea ? `🏢 Cambio de área a: ${it.targetArea}` : null,
-                                  `🕒 Horario base: ${row.shiftTime || 'Jornada Regular'}`,
-                                  it.reason ? `📋 Motivo: ${it.reason}` : null,
-                                  it.createdBy ? `✍️ Registrado por: ${it.createdBy}` : null,
+                                  `Empleado: ${it.text}`,
+                                  it.type === 'CAMBIO_TURNO' && it.shiftStartTime && it.shiftEndTime ? `Cambio de Turno: ${formatTime12h(it.shiftStartTime)} - ${formatTime12h(it.shiftEndTime)}` : null,
+                                  it.type === 'DOBLE_TURNO' && it.secondShiftStartTime && it.secondShiftEndTime ? `Doble Turno: ${formatTime12h(it.secondShiftStartTime)} - ${formatTime12h(it.secondShiftEndTime)}` : null,
+                                  it.type === 'CAMBIO_AREA' && it.targetArea ? `Cambio de área a: ${it.targetArea}` : null,
+                                  `Horario base: ${row.shiftTime || 'Jornada Regular'}`,
+                                  it.reason ? `Motivo: ${it.reason}` : null,
+                                  it.createdBy ? `Registrado por: ${it.createdBy}` : null,
                                 ].filter(Boolean).join('\n');
 
                                 return (
@@ -3195,10 +3199,10 @@ export default function SchedulesPage() {
                                         {/* Presets Rápidos 2x2 Simplificados */}
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
                                           {[
-                                            { id: 'MATUTINO', icon: '☀️', label: 'Matutino', sub: '(7AM-3PM)', start: '07:00', end: '15:00' },
-                                            { id: 'VESPERTINO', icon: '🌗', label: 'Vespertino', sub: '(2PM-10PM)', start: '14:00', end: '22:00' },
-                                            { id: 'NOCTURNO', icon: '🌙', label: 'Nocturno', sub: '(10PM-6AM)', start: '22:00', end: '06:00' },
-                                            { id: 'MEDIO', icon: '⏱️', label: 'Medio', sub: '(9AM-1PM)', start: '09:00', end: '13:00' },
+                                            { id: 'MATUTINO', icon: <Sun size={12} color="#d97706" className="shrink-0" />, label: 'Matutino', sub: '(7AM-3PM)', start: '07:00', end: '15:00' },
+                                            { id: 'VESPERTINO', icon: <SunDim size={12} color="#0284c7" className="shrink-0" />, label: 'Vespertino', sub: '(2PM-10PM)', start: '14:00', end: '22:00' },
+                                            { id: 'NOCTURNO', icon: <Moon size={12} color="#6366f1" className="shrink-0" />, label: 'Nocturno', sub: '(10PM-6AM)', start: '22:00', end: '06:00' },
+                                            { id: 'MEDIO', icon: <Clock size={12} color="#64748b" className="shrink-0" />, label: 'Medio', sub: '(9AM-1PM)', start: '09:00', end: '13:00' },
                                           ].map(p => {
                                             const isSelected = activePreset === p.id;
                                             return (
@@ -3223,7 +3227,7 @@ export default function SchedulesPage() {
                                                   justifyContent: 'space-between',
                                                 }}
                                               >
-                                                <span>{p.icon} {p.label}</span>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{p.icon} {p.label}</span>
                                                 <span style={{ fontSize: '0.62rem', color: isSelected ? '#0284c7' : '#94a3b8', fontWeight: 500 }}>{p.sub}</span>
                                               </button>
                                             );
@@ -3247,7 +3251,7 @@ export default function SchedulesPage() {
                                           <div>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
                                               <label style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b' }}>SALIDA</label>
-                                              {duration.isOvernight && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#b45309', background: '#fffbeb', padding: '0 4px', borderRadius: 4 }}>🌙 +1d</span>}
+                                              {duration.isOvernight && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#b45309', background: '#fffbeb', padding: '0 4px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 2 }}><Moon size={9} /> +1d</span>}
                                             </div>
                                             <input
                                               type="time"
@@ -3453,7 +3457,7 @@ export default function SchedulesPage() {
                                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0369a1', whiteSpace: 'nowrap' }}>
                                           {item.type === 'CAMBIO_TURNO' ? `${formatTime12h(subFormState.shiftStartTime)} - ${formatTime12h(subFormState.shiftEndTime)} (${duration.hours}h${duration.isOvernight ? ' +1d' : ''})`
                                             : item.type === 'DOBLE_TURNO' ? `Turno Doble (+${formatTime12h(subFormState.secondShiftStartTime)})`
-                                            : `Traslado ➔ ${subFormState.targetArea || 'BARRA'}`}
+                                            : `Traslado -> ${subFormState.targetArea || 'BARRA'}`}
                                         </span>
                                         <div style={{ display: 'flex', gap: 4 }}>
                                           <button
@@ -3505,7 +3509,7 @@ export default function SchedulesPage() {
                                         ? `C.Turno: ${formatTime12h(item.shiftStartTime || '14:00')}-${formatTime12h(item.shiftEndTime || '22:00')} (${calcShiftDuration(item.shiftStartTime || '14:00', item.shiftEndTime || '22:00').hours}h)`
                                         : item.type === 'DOBLE_TURNO'
                                         ? `Doble: +${formatTime12h(item.secondShiftStartTime || '18:00')}-${formatTime12h(item.secondShiftEndTime || '02:00')}`
-                                        : `C.Área: ➔ ${item.targetArea || 'BARRA'}`}
+                                        : `C.Área: -> ${item.targetArea || 'BARRA'}`}
                                     </span>
                                     {item.reason && (
                                       <span style={{ fontSize: '0.7rem', fontWeight: 500, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis' }}>

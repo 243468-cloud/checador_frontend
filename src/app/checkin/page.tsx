@@ -51,16 +51,16 @@ const SHIFT_ICONS: Record<string, React.ReactNode> = {
 };
 
 const SARCASTIC_LATE_COMMENTS = [
-  "¿Se te pegaron las sábanas o el tráfico solo te odia a ti hoy? 🛌⏰",
-  "¡Casi llegas a tiempo para el turno de mañana! 🐢☀️",
-  "El despertador se inventó en 1787... por si tenías la duda. ⏰😅",
-  "Llegaste tan tarde que el café ya hasta se enfrió. ☕🚶‍♂️",
-  "¿Trajiste justificación o nomás ganas de romper récords de impuntualidad? 🏎️💨",
-  "Un minuto más tarde y te cobramos renta en la entrada. 🚪⌚",
-  "Tranquilo, la puntualidad está sobrevalorada de todos modos... (dijo nadie nunca). 😜🔥",
-  "Leyendas cuentan que algún día llegarás antes de la hora de entrada. 🦄✨",
-  "¡Vaya sorpresa! Llegaste justo a tiempo para ver cómo trabajaban los demás. 🏁🏼",
-  "¿Hubo alfombra roja en la entrada o por qué la entrada triunfal a esta hora? 🎭✨",
+  "¿Se te pegaron las sábanas o el tráfico solo te odia a ti hoy?",
+  "¡Casi llegas a tiempo para el turno de mañana!",
+  "El despertador se inventó en 1787... por si tenías la duda.",
+  "Llegaste tan tarde que el café ya hasta se enfrió.",
+  "¿Trajiste justificación o nomás ganas de romper récords de impuntualidad?",
+  "Un minuto más tarde y te cobramos renta en la entrada.",
+  "Tranquilo, la puntualidad está sobrevalorada de todos modos... (dijo nadie nunca).",
+  "Leyendas cuentan que algún día llegarás antes de la hora de entrada.",
+  "¡Vaya sorpresa! Llegaste justo a tiempo para ver cómo trabajaban los demás.",
+  "¿Hubo alfombra roja en la entrada o por qué la entrada triunfal a esta hora?",
 ];
 
 export default function CheckInPage() {
@@ -179,7 +179,7 @@ export default function CheckInPage() {
       } else {
         setMessage({
           type: 'success',
-          text: `Entrada registrada a las ${rec.checkIn.split('T')[1]?.slice(0,5)} · ¡Llegaste puntual! 🎉`,
+          text: `Entrada registrada a las ${rec.checkIn.split('T')[1]?.slice(0,5)} · ¡Llegaste puntual!`,
         });
       }
 
@@ -399,7 +399,7 @@ export default function CheckInPage() {
                     border: `1px solid ${record.notes.includes('Horas extra') ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
                   }}
                 >
-                  <span>📝 {record.notes}</span>
+                  <span>{record.notes}</span>
                 </div>
               )}
 

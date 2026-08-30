@@ -100,14 +100,14 @@ export default function InstallPwaCard() {
                 className={`install-tab ${activeTab === 'android' ? 'active' : ''}`}
                 onClick={() => setActiveTab('android')}
               >
-                🤖 Android (Chrome)
+                Android (Chrome)
               </button>
               <button
                 type="button"
                 className={`install-tab ${activeTab === 'ios' ? 'active' : ''}`}
                 onClick={() => setActiveTab('ios')}
               >
-                🍎 iPhone (Safari)
+                iPhone (Safari)
               </button>
             </div>
 

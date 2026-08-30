@@ -231,7 +231,7 @@ export default function ScreenGuard({ userName, userId, isLocationValid, childre
             ) : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fca5a5' }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', display: 'inline-block', boxShadow: '0 0 6px #ef4444' }} />
-                SERVIDOR: SIN CONEXIÓN ❌
+                SERVIDOR: SIN CONEXIÓN
               </span>
             )}
           </div>

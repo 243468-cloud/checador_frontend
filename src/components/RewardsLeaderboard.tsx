@@ -238,7 +238,7 @@ export default function RewardsLeaderboard() {
                   </span>
                   {i === 0 && (
                     <span style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.5px' }}>
-                      1° LUGAR 🏆
+                      1° LUGAR
                     </span>
                   )}
                 </div>
@@ -351,7 +351,7 @@ export default function RewardsLeaderboard() {
                   </span>
                   {i === 0 && (
                     <span style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.5px' }}>
-                      PUNTUAL 🏆
+                      PUNTUAL
                     </span>
                   )}
                 </div>
