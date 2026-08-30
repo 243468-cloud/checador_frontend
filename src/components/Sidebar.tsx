@@ -112,59 +112,156 @@ export default function Sidebar() {
 
       {/* Sidebar Drawer */}
       <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
-        {/* Logo */}
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-icon" style={{ background: '#ffffff', padding: '3px', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)', flexShrink: 0 }}>
+        {/* Logo Header */}
+        <div className="sidebar-logo" style={{ padding: '20px 18px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #f1f5f9' }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              background: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              boxShadow: '0 4px 14px rgba(225, 29, 72, 0.18)',
+              border: '1px solid #f1f5f9',
+              flexShrink: 0,
+            }}
+          >
             <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <div className="sidebar-logo-text" style={{ flex: 1, minWidth: 0 }}>
-            <span className="sidebar-logo-title" style={{ fontSize: '1.02rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Vía Gourmet</span>
-            <span className="sidebar-logo-sub" style={{ fontSize: '0.66rem', color: '#e11d48', fontWeight: 700, letterSpacing: '0.5px' }}>SABORES • AROMAS • TEXTURAS</span>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: '1.08rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              Vía Gourmet
+            </span>
+            <span style={{ fontSize: '0.56rem', color: '#e11d48', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              SABORES • AROMAS • TEXTURAS
+            </span>
           </div>
 
           <button
             className="mobile-drawer-close"
             onClick={() => setMobileOpen(false)}
+            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="sidebar-nav">
-          <span className="sidebar-section-label">Menú Principal</span>
-          {visibleItems.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              id={`nav-${item.href.slice(1)}`}
-              onClick={handleNavClick}
-              className={`nav-item${pathname.startsWith(item.href) ? ' active' : ''}`}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
+        <nav className="sidebar-nav" style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.8px', padding: '0 8px 6px 8px', display: 'block' }}>
+            Navegación
+          </span>
+          {visibleItems.map(item => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                id={`nav-${item.href.slice(1)}`}
+                onClick={handleNavClick}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  fontSize: '0.85rem',
+                  fontWeight: isActive ? 800 : 700,
+                  color: isActive ? '#ffffff' : '#475569',
+                  background: isActive ? 'linear-gradient(135deg, #e11d48, #be123c)' : 'transparent',
+                  boxShadow: isActive ? '0 6px 18px rgba(225, 29, 72, 0.28)' : 'none',
+                  textDecoration: 'none',
+                  transition: 'all 0.15s ease',
+                  position: 'relative',
+                }}
+              >
+                {isActive && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 8,
+                      bottom: 8,
+                      width: 4,
+                      borderRadius: '0 4px 4px 0',
+                      background: '#ffffff',
+                    }}
+                  />
+                )}
+                <span style={{ color: isActive ? '#ffffff' : '#64748b', display: 'flex', alignItems: 'center' }}>
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* User Card + Logout */}
-        <div className="sidebar-footer">
-          <div className="user-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-              <div className="user-avatar">{initials}</div>
-              <div className="user-info">
-                <div className="user-name">{user.fullName}</div>
-                <div className="user-role">{ROLE_LABELS[user.role] || user.role}</div>
+        {/* User Footer Card */}
+        <div style={{ padding: 14, borderTop: '1px solid #f1f5f9' }}>
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: 14,
+              padding: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
+                }}
+              >
+                {initials}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#0f172a', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {user.fullName}
+                </div>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>
+                  {ROLE_LABELS[user.role] || user.role}
+                </div>
               </div>
             </div>
             <button
               id="btn-logout"
               onClick={logout}
               title="Cerrar sesión"
-              className="sidebar-logout-btn"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#e11d48',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'all 0.15s ease',
+              }}
             >
-              <LogOut size={16} />
-              <span className="logout-text-mobile">Salir</span>
+              <LogOut size={15} />
             </button>
           </div>
         </div>

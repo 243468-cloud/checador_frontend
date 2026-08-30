@@ -25,6 +25,7 @@ import {
   Zap,
   Layers,
   Calendar,
+  CalendarPlus,
   RefreshCw,
   CornerDownLeft,
   Scale,
@@ -342,6 +343,17 @@ export default function SchedulesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
 
+  // State for Crear Próxima Semana Modal
+  const [showNewWeekModal, setShowNewWeekModal] = useState(false);
+  const [newWeekDate, setNewWeekDate] = useState<string>(() => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1) + 7;
+    const nextMonday = new Date(now.setDate(diff));
+    return nextMonday.toISOString().split('T')[0];
+  });
+  const [newWeekMode, setNewWeekMode] = useState<'COPY' | 'EMPTY'>('COPY');
+
   // Dynamic Week Header Calculator
   const calculateDaysHeader = useCallback((startStr: string) => {
     try {
@@ -364,6 +376,36 @@ export default function SchedulesPage() {
       return DEFAULT_DAYS_HEADER;
     }
   }, []);
+
+  const handleCreateNewWeek = () => {
+    if (!newWeekDate) return;
+    const parts = newWeekDate.split('-');
+    if (parts.length !== 3) return;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const selDate = new Date(y, m, d);
+    const day = selDate.getDay();
+    const diff = selDate.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(selDate.setDate(diff));
+    const mondayStr = monday.toISOString().split('T')[0];
+
+    let newRows: RosterRow[] = [];
+    if (newWeekMode === 'COPY') {
+      newRows = JSON.parse(JSON.stringify(rosterRows));
+    } else {
+      newRows = rosterRows.map(r => ({
+        ...r,
+        employees: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+      }));
+    }
+
+    setWeekStart(mondayStr);
+    const updatedHeaders = calculateDaysHeader(mondayStr);
+    setDaysHeader(updatedHeaders);
+    saveRoster(newRows);
+    setShowNewWeekModal(false);
+  };
 
   // Single Cell Edit Modal State
   const [editModal, setEditModal] = useState<{
@@ -1327,153 +1369,183 @@ export default function SchedulesPage() {
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        {/* Header */}
-        <div className="page-header mb-6 flex-wrap gap-4">
+        {/* Header Container */}
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-6" style={{ background: '#ffffff', borderRadius: 16, padding: '16px 20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
           <div>
-            <h1 className="page-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               Rol Semanal y Control de Horarios
             </h1>
-            <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: 2 }}>
-              Edición 100% interactiva de la matriz de turnos y generación de reportes puros de horario.
+            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', marginTop: 4 }}>
+              Gestión y programación de turnos del personal por área y sucursal.
             </p>
           </div>
 
-          {/* Date Picker Selector */}
-          <div className="flex items-center gap-2" style={{ background: '#f8fafc', padding: '6px 12px', borderRadius: 12, border: '1px solid #cbd5e1' }}>
-            <Calendar size={16} color="#ea580c" />
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>Semana del Lunes:</span>
-            <input
-              type="date"
-              className="form-input"
-              value={weekStart}
-              onChange={e => setWeekStart(e.target.value)}
-              style={{ padding: '3px 8px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 8, background: '#ffffff' }}
-            />
-          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Date Picker Selector */}
+            <div className="flex items-center gap-2" style={{ background: '#f8fafc', padding: '0 12px', borderRadius: 10, border: '1px solid #cbd5e1', height: 42 }}>
+              <Calendar size={16} color="#ea580c" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>Semana del Lunes:</span>
+              <input
+                type="date"
+                value={weekStart}
+                onChange={e => {
+                  setWeekStart(e.target.value);
+                  const updated = calculateDaysHeader(e.target.value);
+                  setDaysHeader(updated);
+                }}
+                style={{ padding: '4px 8px', fontSize: '0.82rem', fontWeight: 800, borderRadius: 8, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', outline: 'none', cursor: 'pointer' }}
+              />
+            </div>
 
-          <div className="page-actions flex-wrap gap-2">
+            {/* Crear Próxima Semana Button (Requirement 10) */}
             {!isReadOnly && (
-              <>
-                <button
-                  className="btn btn-ghost flex items-center gap-1.5"
-                  onClick={() => setShowEditHeaderModal(true)}
-                  title="Personalizar etiquetas y números de los días del encabezado"
-                  style={{ fontSize: '0.8rem', padding: '8px 12px', background: '#f1f5f9', color: '#0f172a', fontWeight: 700 }}
-                >
-                  <Edit2 size={14} color="#ea580c" />
-                  <span>Editar Fechas</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const curr = new Date(weekStart + 'T00:00:00');
+                  curr.setDate(curr.getDate() + 7);
+                  setNewWeekDate(curr.toISOString().split('T')[0]);
+                  setShowNewWeekModal(true);
+                }}
+                style={{
+                  height: 42,
+                  padding: '0 16px',
+                  borderRadius: 10,
+                  background: '#ffffff',
+                  border: '1.5px solid #ea580c',
+                  color: '#ea580c',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(234, 88, 12, 0.08)',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Crear matriz para una semana futura"
+              >
+                <CalendarPlus size={16} />
+                <span>Crear Próxima Semana</span>
+              </button>
+            )}
 
-                <button
-                  id="btn-open-global-modal"
-                  className="btn btn-warning flex items-center gap-2"
-                  onClick={() => {
-                    setGlobalScope('ROW');
-                    if (rosterRows.length > 0) setSelectedRowId(rosterRows[0].id);
-                    setShowGlobalModal(true);
-                  }}
-                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
-                >
-                  <Zap size={15} />
-                  <span>Cambio Masivo</span>
-                </button>
-
-                <button
-                  id="btn-add-area-row"
-                  className="btn btn-ghost flex items-center gap-2"
-                  onClick={() => setShowAddRowModal(true)}
-                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
-                >
-                  <Plus size={15} color="#e11d48" />
-                  <span>Nueva Área / Turno</span>
-                </button>
-
-                <button
-                  id="btn-export-excel-roster"
-                  className="btn btn-ghost flex items-center gap-2"
-                  onClick={() => {
-                    setReportFormat('EXCEL');
-                    setShowReportConfigModal(true);
-                  }}
-                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
-                >
-                  <FileSpreadsheet size={15} color="#059669" />
-                  <span>Exportar Excel</span>
-                </button>
-              </>
+            {/* Action Buttons: ONLY "Editar Fechas" + "Configurar y Exportar PDF" (Requirement 9) */}
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => setShowEditHeaderModal(true)}
+                style={{
+                  height: 42,
+                  padding: '0 16px',
+                  borderRadius: 10,
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  color: '#334155',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Personalizar días y fechas del encabezado"
+              >
+                <Edit2 size={15} color="#ea580c" />
+                <span>Editar Fechas</span>
+              </button>
             )}
 
             <button
+              type="button"
               id="btn-export-pdf-roster"
-              className="btn btn-primary flex items-center gap-2"
               onClick={() => {
                 setReportFormat('PDF');
                 setShowReportConfigModal(true);
               }}
               style={{
+                height: 42,
+                padding: '0 18px',
+                borderRadius: 10,
                 background: 'linear-gradient(135deg, #e11d48, #be123c)',
                 color: '#ffffff',
                 fontWeight: 800,
                 fontSize: '0.82rem',
-                padding: '8px 14px',
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)',
+                border: 'none',
+                boxShadow: '0 4px 14px rgba(225, 29, 72, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
-              <FileText size={15} />
+              <FileText size={16} />
               <span>Configurar y Exportar PDF</span>
             </button>
           </div>
-
-          {/* Sync status indicator */}
-          {syncStatus !== 'idle' && (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              padding: '6px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600,
-              background: syncStatus === 'saved'  ? 'rgba(16,185,129,0.15)'
-                        : syncStatus === 'saving' ? 'rgba(225,29,72,0.15)'
-                        : 'rgba(239,68,68,0.15)',
-              color: syncStatus === 'saved'  ? '#059669'
-                   : syncStatus === 'saving' ? '#e11d48'
-                   : '#dc2626',
-              border: `1px solid ${syncStatus === 'saved' ? 'rgba(16,185,129,0.3)' : syncStatus === 'saving' ? 'rgba(225,29,72,0.3)' : 'rgba(239,68,68,0.3)'}`,
-            }}>
-              {syncStatus === 'saving' && <span>Guardando en servidor...</span>}
-              {syncStatus === 'saved'  && <span>Guardado en servidor</span>}
-            </div>
-          )}
         </div>
 
         {/* Official Roster Matrix Card */}
-        <div className="card mb-6 overflow-hidden">
-          <div className="flex items-center justify-between p-4 flex-wrap gap-3" style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--color-border)' }}>
+        <div style={{ background: '#ffffff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)', overflow: 'hidden', marginBottom: 24 }}>
+          <div className="flex items-center justify-between p-4 flex-wrap gap-3" style={{ background: '#fafaf9', borderBottom: '1px solid #e2e8f0' }}>
             <div className="flex items-center gap-3">
-              <Grid size={18} color="#ea580c" />
-              <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>Matriz Semanal de Turnos</h3>
-              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                Semana del {daysHeader[0].date} al {daysHeader[6].date}
-              </span>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(234, 88, 12, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Grid size={18} color="#ea580c" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.01em' }}>Matriz Semanal de Turnos</h3>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>
+                  Semana del {daysHeader[0].date} al {daysHeader[6].date}
+                </span>
+              </div>
             </div>
 
-            {/* Quick Sort & Order Controls */}
-            <div className="flex items-center gap-2">
+            {/* Quick Sort Segmented Control Group */}
+            <div style={{ display: 'inline-flex', padding: 3, background: '#f1f5f9', borderRadius: 10, border: '1px solid #e2e8f0' }}>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm flex items-center gap-1.5"
                 onClick={sortByShiftTime}
-                title="Ordenar filas cronológicamente por hora de inicio de turno (Mañana ➔ Tarde)"
-                style={{ fontSize: '0.78rem', fontWeight: 800, color: '#ffffff', background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', padding: '6px 12px', borderRadius: 8 }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#ffffff',
+                  color: '#ea580c',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                }}
+                title="Ordenar filas cronológicamente por hora de inicio de turno"
               >
-                <Clock size={14} />
+                <Clock size={14} color="#ea580c" />
                 <span>Ordenar x Horario</span>
               </button>
 
               <button
                 type="button"
-                className="btn btn-ghost btn-sm flex items-center gap-1.5"
                 onClick={sortByAreaName}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#64748b',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                }}
                 title="Ordenar filas alfabéticamente por área"
-                style={{ fontSize: '0.78rem', fontWeight: 800, color: '#ffffff', background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none', padding: '6px 12px', borderRadius: 8 }}
               >
                 <Filter size={14} />
                 <span>Ordenar x Área</span>
@@ -1481,12 +1553,28 @@ export default function SchedulesPage() {
             </div>
           </div>
 
-          {/* Roster Table */}
-          <div className="table-wrapper" style={{ borderRadius: 0, border: 'none' }}>
-            <table style={{ minWidth: 800 }}>
+          {/* Roster Table with Sticky First Column */}
+          <div className="table-wrapper" style={{ borderRadius: 0, border: 'none', overflowX: 'auto' }}>
+            <table style={{ minWidth: 900, width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
               <thead>
-                <tr style={{ background: '#ea580c', color: '#ffffff' }}>
-                  <th style={{ padding: '10px 14px', width: '18%', color: '#fff', fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                <tr style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', color: '#ffffff' }}>
+                  <th
+                    style={{
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 20,
+                      background: '#c2410c',
+                      padding: '12px 14px',
+                      width: '20%',
+                      color: '#ffffff',
+                      fontSize: '0.82rem',
+                      fontWeight: 900,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      boxShadow: '4px 0 10px rgba(0,0,0,0.1)',
+                      textAlign: 'left',
+                    }}
+                  >
                     ÁREA / TURNO
                   </th>
                   {daysHeader.map((d, i) => (
@@ -1494,25 +1582,44 @@ export default function SchedulesPage() {
                       key={i}
                       onClick={() => openGlobalModalForDay(i)}
                       title={`Haz clic para edición masiva del día ${d.day} ${d.date}`}
-                      style={{ padding: '8px 10px', textTransform: 'uppercase', textAlign: 'center', width: '11.5%', color: '#fff', cursor: 'pointer' }}
-                      className="hover:bg-orange-700 transition-colors"
+                      style={{
+                        padding: '10px 8px',
+                        textAlign: 'center',
+                        width: '11.4%',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        borderRight: '1px solid rgba(255,255,255,0.15)',
+                        transition: 'background 0.15s ease',
+                      }}
+                      className="hover:bg-orange-700/80 transition-colors"
                     >
-                      <div className="flex items-center justify-center gap-1">
-                        <div style={{ fontSize: '0.9rem', fontWeight: 900, lineHeight: 1 }}>{d.day}</div>
+                      <div className="flex items-center justify-center gap-1.5" style={{ marginBottom: 2 }}>
+                        <span style={{ fontSize: '0.94rem', fontWeight: 900, letterSpacing: '0.5px' }}>{d.day}</span>
                         <Zap size={11} color="#fde047" />
                       </div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, opacity: 0.9 }}>{d.date}</div>
+                      <div style={{ fontSize: '0.76rem', fontWeight: 700, opacity: 0.9 }}>{d.date}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {rosterRows.map((row, rowIdx) => (
-                  <tr key={row.id} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
-                    <td style={{ background: 'rgba(234, 88, 12, 0.08)', borderRight: '1px solid var(--color-border)', padding: '10px 14px' }}>
-                      <div className="flex items-center justify-between gap-2">
+                  <tr key={row.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    {/* Sticky Area / Shift Column */}
+                    <td
+                      style={{
+                        position: 'sticky',
+                        left: 0,
+                        zIndex: 10,
+                        background: '#fff7ed',
+                        borderRight: '2px solid #ffedd5',
+                        padding: '12px 14px',
+                        boxShadow: '4px 0 10px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      <div className="flex flex-col gap-2">
                         <div>
-                          <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#f97316', letterSpacing: '0.5px' }}>
+                          <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#c2410c', letterSpacing: '-0.01em' }}>
                             {row.area}
                           </div>
                           {row.shiftTime && (
@@ -1521,12 +1628,12 @@ export default function SchedulesPage() {
                                 display: 'inline-block',
                                 fontSize: '0.7rem',
                                 fontWeight: 800,
-                                padding: '2px 6px',
-                                borderRadius: 4,
-                                marginTop: 3,
-                                background: row.shiftTime.includes('3PM') ? 'rgba(234, 179, 8, 0.18)' : row.shiftTime.includes('8AM') ? 'rgba(16, 185, 129, 0.18)' : 'rgba(2, 132, 199, 0.18)',
-                                color: row.shiftTime.includes('3PM') ? '#d97706' : row.shiftTime.includes('8AM') ? '#059669' : '#0284c7',
-                                border: `1px solid ${row.shiftTime.includes('3PM') ? 'rgba(234, 179, 8, 0.3)' : row.shiftTime.includes('8AM') ? 'rgba(16, 185, 129, 0.3)' : 'rgba(2, 132, 199, 0.3)'}`,
+                                padding: '2px 8px',
+                                borderRadius: 20,
+                                marginTop: 4,
+                                background: '#ffedd5',
+                                color: '#c2410c',
+                                border: '1px solid #fed7aa',
                               }}
                             >
                               {row.shiftTime}
@@ -1535,68 +1642,67 @@ export default function SchedulesPage() {
                         </div>
 
                         {!isReadOnly && (
-                          <div className="flex items-center gap-1">
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              background: '#ffffff',
+                              border: '1px solid #fed7aa',
+                              borderRadius: 8,
+                              padding: 2,
+                              width: 'fit-content',
+                            }}
+                          >
                             <button
                               type="button"
-                              className="btn btn-ghost btn-sm p-1"
                               onClick={() => setEditRowModal({ id: row.id, area: row.area, shiftTime: row.shiftTime })}
-                              title={`Editar nombre de área y horario para ${row.area}`}
-                              style={{ color: '#ea580c', borderRadius: 4 }}
+                              title={`Editar ${row.area}`}
+                              style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: '#ea580c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              <Edit2 size={13} />
+                              <Edit2 size={12} />
                             </button>
 
                             <button
                               type="button"
-                              className="btn btn-ghost btn-sm p-1"
                               onClick={() => handleDuplicateRow(row.id)}
-                              title={`Duplicar fila ${row.area}`}
-                              style={{ color: '#0284c7', borderRadius: 4 }}
+                              title={`Duplicar ${row.area}`}
+                              style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: '#0284c7', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              <Copy size={13} />
+                              <Copy size={12} />
                             </button>
 
-                            <div className="flex flex-col gap-0.5">
-                              <button
-                                type="button"
-                                className="btn btn-ghost p-0.5"
-                                style={{ height: 16, width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', opacity: rowIdx === 0 ? 0.3 : 1 }}
-                                onClick={() => moveRowUp(rowIdx)}
-                                disabled={rowIdx === 0}
-                                title="Mover fila arriba"
-                              >
-                                ▲
-                              </button>
-                              <button
-                                type="button"
-                                className="btn btn-ghost p-0.5"
-                                style={{ height: 16, width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', opacity: rowIdx === rosterRows.length - 1 ? 0.3 : 1 }}
-                                onClick={() => moveRowDown(rowIdx)}
-                                disabled={rowIdx === rosterRows.length - 1}
-                                title="Mover fila abajo"
-                              >
-                                ▼
-                              </button>
-                            </div>
+                            <div style={{ width: 1, height: 14, background: '#cbd5e1', margin: '0 2px' }} />
 
                             <button
                               type="button"
-                              className="btn btn-ghost btn-sm p-1"
-                              onClick={() => openGlobalModalForRow(row.id)}
-                              title={`Edición masiva para la fila ${row.area}`}
-                              style={{ color: '#fbbf24', borderRadius: 4 }}
+                              onClick={() => moveRowUp(rowIdx)}
+                              disabled={rowIdx === 0}
+                              title="Mover arriba"
+                              style={{ width: 20, height: 24, borderRadius: 4, border: 'none', background: 'transparent', color: '#64748b', opacity: rowIdx === 0 ? 0.3 : 1, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800 }}
                             >
-                              <Zap size={13} />
+                              ▲
                             </button>
 
                             <button
                               type="button"
-                              className="btn btn-ghost btn-sm p-1"
+                              onClick={() => moveRowDown(rowIdx)}
+                              disabled={rowIdx === rosterRows.length - 1}
+                              title="Mover abajo"
+                              style={{ width: 20, height: 24, borderRadius: 4, border: 'none', background: 'transparent', color: '#64748b', opacity: rowIdx === rosterRows.length - 1 ? 0.3 : 1, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800 }}
+                            >
+                              ▼
+                            </button>
+
+                            <div style={{ width: 1, height: 14, background: '#cbd5e1', margin: '0 2px' }} />
+
+                            <button
+                              type="button"
                               onClick={() => handleDeleteRow(row.id)}
-                              title={`Eliminar fila ${row.area}`}
-                              style={{ color: '#ef4444', borderRadius: 4 }}
+                              title={`Eliminar ${row.area}`}
+                              style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={12} />
                             </button>
                           </div>
                         )}
@@ -1610,39 +1716,59 @@ export default function SchedulesPage() {
                           key={dayIdx}
                           onClick={() => openCellModal(row.id, dayIdx, row.area, row.shiftTime, `${d.day} ${d.date}`)}
                           style={{
-                            padding: 6,
+                            padding: 8,
                             textAlign: 'center',
                             verticalAlign: 'top',
-                            borderRight: '1px solid var(--color-border-light)',
+                            borderRight: '1px solid #f1f5f9',
                             cursor: 'pointer',
                             transition: 'background 0.15s ease',
-                            background: items.length === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
                           }}
-                          className="hover:bg-blue-500/10"
+                          className="hover:bg-orange-50/50"
                         >
-                          <div className="flex flex-col gap-1.5 items-center justify-center min-h-[48px]">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch', minHeight: 52 }}>
                             {items.length === 0 ? (
-                              <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>+</span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 8, border: '1px dashed #cbd5e1', background: '#ffffff' }}>
+                                <span style={{ fontSize: '0.78rem', color: '#cbd5e1', fontWeight: 800 }}>+ Asignar</span>
+                              </div>
                             ) : (
                               items.map((it, itemIdx) => {
-                                const st = getBadgeStyle(it.type);
+                                const isStandalone = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(it.text.toUpperCase());
+                                const isKnownEmp = uniqueAvailableNames.some(n => n.trim().toUpperCase() === it.text.trim().toUpperCase() || n.trim().toUpperCase() === it.text.trim().toUpperCase().split(' ')[0]);
+                                const isCustomNote = !isStandalone && !isKnownEmp;
+
+                                let badgeBg = '#f8fafc';
+                                let badgeBorder = '#cbd5e1';
+                                let badgeColor = '#0f172a';
+
+                                if (it.type === 'DESCANSO') {
+                                  badgeBg = '#ecfdf5'; badgeBorder = '#a7f3d0'; badgeColor = '#047857';
+                                } else if (it.type === 'CAMBIO_TURNO') {
+                                  badgeBg = '#f0f9ff'; badgeBorder = '#bae6fd'; badgeColor = '#0369a1';
+                                } else if (it.type === 'DOBLE_TURNO') {
+                                  badgeBg = '#fffbeb'; badgeBorder = '#fef08a'; badgeColor = '#b45309';
+                                } else if (it.type === 'CAMBIO_AREA') {
+                                  badgeBg = '#fff7ed'; badgeBorder = '#ffedd5'; badgeColor = '#c2410c';
+                                } else if (isCustomNote) {
+                                  badgeBg = '#fafaf9'; badgeBorder = '#e7e5e4'; badgeColor = '#57534e';
+                                }
+
                                 return (
                                   <div
                                     key={itemIdx}
                                     style={{
-                                      background: st.bg,
-                                      color: st.color,
-                                      padding: '3px 8px',
-                                      borderRadius: 4,
-                                      fontSize: '0.72rem',
+                                      background: badgeBg,
+                                      border: `1px solid ${badgeBorder}`,
+                                      color: badgeColor,
+                                      padding: '5px 8px',
+                                      borderRadius: 8,
+                                      fontSize: '0.76rem',
                                       fontWeight: 800,
-                                      letterSpacing: '0.3px',
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                                      width: '100%',
                                       textAlign: 'center',
+                                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                                      transition: 'transform 0.15s ease',
                                     }}
                                   >
-                                    {it.text}
+                                    {isCustomNote ? `Nota: ${it.text}` : it.text}
                                   </div>
                                 );
                               })
@@ -1656,6 +1782,7 @@ export default function SchedulesPage() {
               </tbody>
             </table>
           </div>
+        </div>
 
           {/* Color Legend Bar */}
           <div
@@ -1689,7 +1816,6 @@ export default function SchedulesPage() {
               TURNO NORMAL
             </div>
           </div>
-        </div>
 
         {/* ----------------------------------------------------------------- */}
         {/* HORARIOS INDIVIDUALES POR EMPLEADO (Filtrado por rol de usuario) */}
@@ -2371,6 +2497,159 @@ export default function SchedulesPage() {
                   onClick={() => setEditModal(null)}
                 >
                   Guardar y Cerrar
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* MODAL CREAR PRÓXIMA SEMANA */}
+        {/* ----------------------------------------------------------------- */}
+        {mounted && showNewWeekModal && createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 99999,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+            }}
+            onClick={() => setShowNewWeekModal(false)}
+          >
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: 20,
+                maxWidth: 480,
+                width: '100%',
+                padding: 24,
+                boxShadow: '0 25px 60px -15px rgba(0,0,0,0.35)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 20,
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(234, 88, 12, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CalendarPlus size={22} color="#ea580c" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a' }}>Crear Próxima Semana</h3>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Programación de turnos futuros</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNewWeekModal(false)}
+                  style={{ width: 30, height: 30, borderRadius: '50%', background: '#f1f5f9', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 900, color: '#334155', display: 'block', marginBottom: 6 }}>
+                    Fecha de Inicio de la Semana (Lunes)
+                  </label>
+                  <input
+                    type="date"
+                    value={newWeekDate}
+                    onChange={e => setNewWeekDate(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      border: '1px solid #cbd5e1',
+                      background: '#f8fafc',
+                      color: '#0f172a',
+                      fontWeight: 800,
+                      fontSize: '0.88rem',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 900, color: '#334155', display: 'block', marginBottom: 8 }}>
+                    Modo de Creación
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: 14,
+                        borderRadius: 12,
+                        border: newWeekMode === 'COPY' ? '2px solid #ea580c' : '1px solid #e2e8f0',
+                        background: newWeekMode === 'COPY' ? '#fff7ed' : '#ffffff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="creationMode"
+                        checked={newWeekMode === 'COPY'}
+                        onChange={() => setNewWeekMode('COPY')}
+                        style={{ accentColor: '#ea580c' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#0f172a' }}>Copiar semana actual como plantilla base</div>
+                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b' }}>Duplica todas las asignaciones existentes para no iniciar desde cero.</div>
+                      </div>
+                    </label>
+
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: 14,
+                        borderRadius: 12,
+                        border: newWeekMode === 'EMPTY' ? '2px solid #ea580c' : '1px solid #e2e8f0',
+                        background: newWeekMode === 'EMPTY' ? '#fff7ed' : '#ffffff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="creationMode"
+                        checked={newWeekMode === 'EMPTY'}
+                        onChange={() => setNewWeekMode('EMPTY')}
+                        style={{ accentColor: '#ea580c' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#0f172a' }}>Crear matriz vacía</div>
+                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b' }}>Conserva las áreas y turnos pero limpia el personal asignado.</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowNewWeekModal(false)}
+                  style={{ flex: 1, padding: '12px 14px', borderRadius: 12, background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateNewWeek}
+                  style={{ flex: 1.5, padding: '12px 14px', borderRadius: 12, background: 'linear-gradient(135deg, #ea580c, #c2410c)', border: 'none', color: '#ffffff', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 14px rgba(234, 88, 12, 0.3)' }}
+                >
+                  Crear y Abrir Semana
                 </button>
               </div>
             </div>
