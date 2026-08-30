@@ -561,7 +561,7 @@ export default function SchedulesPage() {
     setWeekStart(mondayStr);
     const updatedHeaders = calculateDaysHeader(mondayStr);
     setDaysHeader(updatedHeaders);
-    saveRoster(newRows);
+    saveRoster(newRows, mondayStr);
     setShowNewWeekModal(false);
   };
 
@@ -632,33 +632,42 @@ export default function SchedulesPage() {
     });
   };
 
-  // ─── Carga el roster desde la API (o localStorage como fallback) ─────────────
+  // ─── Carga el roster desde la API (o localStorage por semana) ─────────────
   useEffect(() => {
+    if (!weekStart) return;
+    const weekStorageKey = `official_roster_rows_${weekStart}`;
     const branchId = user?.branchId;
-    if (branchId && weekStart) {
+
+    if (branchId) {
       scheduleApi.getRoster(branchId, weekStart)
         .then(cells => {
           if (cells.length > 0) {
             setRosterRows(sortRowsChronologically(apiCellsToRosterRows(cells)));
           } else {
-            // Sin datos en API → intentar localStorage como fallback
-            const saved = localStorage.getItem('official_roster_rows');
+            // Sin datos en la API → revisar localStorage específico de esta semana
+            const saved = localStorage.getItem(weekStorageKey);
             if (saved) {
-              try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch {}
+              try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch { setRosterRows(INITIAL_ROSTER); }
+            } else {
+              setRosterRows(INITIAL_ROSTER);
             }
           }
         })
         .catch(() => {
-          // Sin backend → usar localStorage
-          const saved = localStorage.getItem('official_roster_rows');
+          // Sin backend → usar localStorage por semana
+          const saved = localStorage.getItem(weekStorageKey);
           if (saved) {
-            try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch {}
+            try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch { setRosterRows(INITIAL_ROSTER); }
+          } else {
+            setRosterRows(INITIAL_ROSTER);
           }
         });
     } else {
-      const saved = localStorage.getItem('official_roster_rows');
+      const saved = localStorage.getItem(weekStorageKey);
       if (saved) {
-        try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch {}
+        try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch { setRosterRows(INITIAL_ROSTER); }
+      } else {
+        setRosterRows(INITIAL_ROSTER);
       }
     }
 
@@ -695,7 +704,7 @@ export default function SchedulesPage() {
   };
 
   // ─── Convierte el formato interno al formato que espera la API ────────────────
-  const rosterRowsToApiCells = (rows: RosterRow[]): Omit<ApiRosterCell, 'id' | 'branchId'>[] => {
+  const rosterRowsToApiCells = (rows: RosterRow[], targetWeek: string = weekStart): Omit<ApiRosterCell, 'id' | 'branchId'>[] => {
     const cells: Omit<ApiRosterCell, 'id' | 'branchId'>[] = [];
     rows.forEach(row => {
       for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
@@ -708,7 +717,7 @@ export default function SchedulesPage() {
             dayIndex: dayIdx,
             employeeName: cell.text,
             statusType: cell.type,
-            weekStart,
+            weekStart: targetWeek,
           });
         });
       }
@@ -716,16 +725,17 @@ export default function SchedulesPage() {
     return cells;
   };
 
-  // ─── Guarda en API + localStorage ────────────────────────────────────────────
-  const saveRoster = (updated: RosterRow[]) => {
+  // ─── Guarda en API + localStorage en clave aislada por semana ─────────────────
+  const saveRoster = (updated: RosterRow[], targetWeekStart: string = weekStart) => {
     setRosterRows(updated);
-    localStorage.setItem('official_roster_rows', JSON.stringify(updated));
+    const weekStorageKey = `official_roster_rows_${targetWeekStart}`;
+    localStorage.setItem(weekStorageKey, JSON.stringify(updated));
 
     const branchId = user?.branchId;
-    if (branchId && weekStart) {
+    if (branchId && targetWeekStart) {
       setSyncStatus('saving');
-      const cells = rosterRowsToApiCells(updated);
-      scheduleApi.saveRoster(branchId, weekStart, cells)
+      const cells = rosterRowsToApiCells(updated, targetWeekStart);
+      scheduleApi.saveRoster(branchId, targetWeekStart, cells)
         .then(() => {
           setSyncStatus('saved');
           setTimeout(() => setSyncStatus('idle'), 3000);
