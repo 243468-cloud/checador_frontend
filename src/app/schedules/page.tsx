@@ -82,6 +82,7 @@ export interface EmployeeBalance {
   actualWorkedHours: number;
   overtimeHours: number;
   statusBalance: 'EQUILIBRADO' | 'ELEVADO' | 'REDUCIDO' | 'SIN ASIGNACIÓN';
+  hasAssignments: boolean;
 }
 
 export interface DailyScheduleResolution {
@@ -138,8 +139,14 @@ export function getEmployeeScheduleForDay(
     );
   });
 
-  if (!primaryRow && rosterRows.length > 0) {
-    primaryRow = rosterRows[0];
+  if (!primaryRow) {
+    return {
+      area: 'Sin Asignar',
+      shiftTime: 'Descanso',
+      type: 'DESCANSO',
+      source: 'EXPLICIT_REST',
+      displayText: 'SIN ASIGNACIÓN',
+    };
   }
 
   if (primaryRow) {
@@ -1097,6 +1104,7 @@ export default function SchedulesPage() {
         actualWorkedHours: Number(realWorkedHours.toFixed(1)),
         overtimeHours: Number(realOvertimeHours.toFixed(1)),
         statusBalance,
+        hasAssignments,
       };
     }).sort((a, b) => b.overtimeHours - a.overtimeHours || b.totalScheduledHours - a.totalScheduledHours);
   }, [rosterRows, availableNames, attendanceRecords]);
@@ -2546,87 +2554,101 @@ export default function SchedulesPage() {
           </div>
 
           <div className="grid-2 gap-4">
-            {(user?.role === 'EMPLOYEE'
-              ? employeeBalances.filter(b =>
-                  b.name.toLowerCase().trim() === (user?.fullName || '').toLowerCase().trim() ||
-                  (user?.fullName || '').toLowerCase().includes(b.name.toLowerCase()) ||
-                  b.name.toLowerCase().includes((user?.fullName || '').toLowerCase())
-                )
-              : employeeBalances
-            ).map(b => (
-              <div
-                key={b.name}
-                className="p-4 rounded-xl"
-                style={{
-                  background: '#ffffff',
-                  border: user?.fullName === b.name ? '2px solid #e11d48' : '1px solid var(--color-border)',
-                  boxShadow: user?.fullName === b.name ? '0 0 15px rgba(225, 29, 72, 0.2)' : '0 4px 14px rgba(0,0,0,0.03)',
-                }}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      style={{
-                        width: 38, height: 38, borderRadius: 10,
-                        background: 'linear-gradient(135deg, #e11d48, #be123c)',
-                        color: '#fff', fontWeight: 800, fontSize: '0.88rem',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 3px 10px rgba(225, 29, 72, 0.25)',
-                      }}
-                    >
-                      {b.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem' }}>{b.name}</span>
-                        {user?.fullName === b.name && (
-                          <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>TÚ</span>
-                        )}
+            {(() => {
+              const activeIndividualBalances = (user?.role === 'EMPLOYEE'
+                ? employeeBalances.filter(b =>
+                    b.hasAssignments && (
+                      b.name.toLowerCase().trim() === (user?.fullName || '').toLowerCase().trim() ||
+                      (user?.fullName || '').toLowerCase().includes(b.name.toLowerCase()) ||
+                      b.name.toLowerCase().includes((user?.fullName || '').toLowerCase())
+                    )
+                  )
+                : employeeBalances.filter(b => b.hasAssignments)
+              );
+
+              if (activeIndividualBalances.length === 0) {
+                return (
+                  <div style={{ gridColumn: '1 / -1', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.84rem', fontWeight: 600 }}>
+                    No hay personal asignado en la matriz semanal activa.
+                  </div>
+                );
+              }
+
+              return activeIndividualBalances.map(b => (
+                <div
+                  key={b.name}
+                  className="p-4 rounded-xl"
+                  style={{
+                    background: '#ffffff',
+                    border: user?.fullName === b.name ? '2px solid #e11d48' : '1px solid var(--color-border)',
+                    boxShadow: user?.fullName === b.name ? '0 0 15px rgba(225, 29, 72, 0.2)' : '0 4px 14px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        style={{
+                          width: 38, height: 38, borderRadius: 10,
+                          background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                          color: '#fff', fontWeight: 800, fontSize: '0.88rem',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 3px 10px rgba(225, 29, 72, 0.25)',
+                        }}
+                      >
+                        {b.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                       </div>
-                      <div style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>Área: {b.primaryArea}</div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem' }}>{b.name}</span>
+                          {user?.fullName === b.name && (
+                            <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>TÚ</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>Área: {b.primaryArea}</div>
+                      </div>
                     </div>
+
+                    <button
+                      className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                      onClick={() => exportIndividualPDF(b.name)}
+                      style={{ fontSize: '0.75rem', color: '#e11d48', borderColor: 'rgba(225,29,72,0.3)', background: 'rgba(225,29,72,0.08)', fontWeight: 700 }}
+                    >
+                      <FileText size={13} />
+                      <span>PDF Horario</span>
+                    </button>
                   </div>
 
-                  <button
-                    className="btn btn-ghost btn-sm flex items-center gap-1.5"
-                    onClick={() => exportIndividualPDF(b.name)}
-                    style={{ fontSize: '0.75rem', color: '#e11d48', borderColor: 'rgba(225,29,72,0.3)', background: 'rgba(225,29,72,0.08)', fontWeight: 700 }}
-                  >
-                    <FileText size={13} />
-                    <span>PDF Horario</span>
-                  </button>
-                </div>
+                  <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8fafc', padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    {daysHeader.map((d, i) => {
+                      const res = getEmployeeScheduleForDay(b.name, i, rosterRows);
+                      const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso';
 
-                <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8fafc', padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                  {daysHeader.map((d, i) => {
-                    const res = getEmployeeScheduleForDay(b.name, i, rosterRows);
-                    const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso';
-
-                    return (
-                      <div key={i} className="flex flex-col items-center">
-                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{d.day}</span>
-                        <span
-                          style={{
-                            fontSize: '0.65rem',
-                            fontWeight: 800,
-                            marginTop: '2px',
-                            padding: '3px 4px',
-                            borderRadius: '6px',
-                            width: '100%',
-                            background: isRest ? '#ecfdf5' : res.source === 'INDIVIDUAL' ? '#fff7ed' : '#f0f9ff',
-                            color: isRest ? '#047857' : res.source === 'INDIVIDUAL' ? '#c2410c' : '#0369a1',
-                            border: `1px solid ${isRest ? '#a7f3d0' : res.source === 'INDIVIDUAL' ? '#ffedd5' : '#bae6fd'}`,
-                          }}
-                          title={`${d.day} ${d.date}: ${res.displayText}`}
-                        >
-                          {isRest ? 'Desc' : res.shiftTime || res.area}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div key={i} className="flex flex-col items-center">
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{d.day}</span>
+                          <span
+                            style={{
+                              fontSize: '0.65rem',
+                              fontWeight: 800,
+                              marginTop: '2px',
+                              padding: '3px 4px',
+                              borderRadius: '6px',
+                              width: '100%',
+                              background: isRest ? '#ecfdf5' : res.source === 'INDIVIDUAL' ? '#fff7ed' : '#f0f9ff',
+                              color: isRest ? '#047857' : res.source === 'INDIVIDUAL' ? '#c2410c' : '#0369a1',
+                              border: `1px solid ${isRest ? '#a7f3d0' : res.source === 'INDIVIDUAL' ? '#ffedd5' : '#bae6fd'}`,
+                            }}
+                            title={`${d.day} ${d.date}: ${res.displayText}`}
+                          >
+                            {isRest ? 'Desc' : res.shiftTime || res.area}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
         </div>
 
@@ -2715,7 +2737,7 @@ export default function SchedulesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {employeeBalances.map(b => (
+                  {employeeBalances.filter(b => b.hasAssignments).map(b => (
                     <tr key={b.name} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ fontWeight: 800, color: '#0f172a', padding: '14px 18px' }}>{b.name}</td>
                       <td style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600, padding: '14px 18px' }}>{b.primaryArea}</td>
