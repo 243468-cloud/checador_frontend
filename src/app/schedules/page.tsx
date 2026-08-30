@@ -3138,30 +3138,64 @@ export default function SchedulesPage() {
                                     </div>
                                   )}
 
-                                  {/* Selectores de Horario para CAMBIO_TURNO */}
+                                  {/* Selectores de Horario para CAMBIO_TURNO con Presets de Máxima Libertad */}
                                   {item.type === 'CAMBIO_TURNO' && (
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                       <div>
                                         <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
-                                          Hora Inicio
+                                          Presets Rápido de Turnos Comunes
                                         </label>
-                                        <input
-                                          type="time"
-                                          value={subFormState.shiftStartTime}
-                                          onChange={e => setSubFormState({ ...subFormState, shiftStartTime: e.target.value })}
-                                          style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}
-                                        />
+                                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                          {[
+                                            { label: '☀️ Matutino (7AM - 3PM)', start: '07:00', end: '15:00' },
+                                            { label: '🌗 Vespertino (2PM - 10PM)', start: '14:00', end: '22:00' },
+                                            { label: '🌙 Nocturno (10PM - 6AM)', start: '22:00', end: '06:00' },
+                                            { label: '⏱️ Medio Turno (9AM - 1PM)', start: '09:00', end: '13:00' },
+                                          ].map(p => (
+                                            <button
+                                              key={p.label}
+                                              type="button"
+                                              onClick={() => setSubFormState({ ...subFormState, shiftStartTime: p.start, shiftEndTime: p.end })}
+                                              style={{
+                                                padding: '4px 8px',
+                                                borderRadius: 8,
+                                                fontSize: '0.7rem',
+                                                fontWeight: 800,
+                                                border: subFormState.shiftStartTime === p.start && subFormState.shiftEndTime === p.end ? '1px solid #0284c7' : '1px solid #cbd5e1',
+                                                background: subFormState.shiftStartTime === p.start && subFormState.shiftEndTime === p.end ? '#e0f2fe' : '#ffffff',
+                                                color: subFormState.shiftStartTime === p.start && subFormState.shiftEndTime === p.end ? '#0369a1' : '#475569',
+                                                cursor: 'pointer',
+                                              }}
+                                            >
+                                              {p.label}
+                                            </button>
+                                          ))}
+                                        </div>
                                       </div>
-                                      <div>
-                                        <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
-                                          Hora Fin
-                                        </label>
-                                        <input
-                                          type="time"
-                                          value={subFormState.shiftEndTime}
-                                          onChange={e => setSubFormState({ ...subFormState, shiftEndTime: e.target.value })}
-                                          style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}
-                                        />
+
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                        <div>
+                                          <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
+                                            Hora Inicio de Entrada (Pauta Super Admin)
+                                          </label>
+                                          <input
+                                            type="time"
+                                            value={subFormState.shiftStartTime}
+                                            onChange={e => setSubFormState({ ...subFormState, shiftStartTime: e.target.value })}
+                                            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}
+                                          />
+                                        </div>
+                                        <div>
+                                          <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
+                                            Hora Fin de Salida
+                                          </label>
+                                          <input
+                                            type="time"
+                                            value={subFormState.shiftEndTime}
+                                            onChange={e => setSubFormState({ ...subFormState, shiftEndTime: e.target.value })}
+                                            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}
+                                          />
+                                        </div>
                                       </div>
                                     </div>
                                   )}
@@ -3212,29 +3246,49 @@ export default function SchedulesPage() {
                                     </div>
                                   )}
 
-                                  {/* Selección Rápida de Motivos */}
+                                  {/* Regla de Exención de Retardos y Motivos */}
                                   <div>
+                                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>
+                                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.76rem', fontWeight: 800, color: '#15803d' }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={subFormState.reason.includes('[EXENTO_RETARDO]')}
+                                          onChange={e => {
+                                            if (e.target.checked) {
+                                              if (!subFormState.reason.includes('[EXENTO_RETARDO]')) {
+                                                setSubFormState({ ...subFormState, reason: `${subFormState.reason} [EXENTO_RETARDO]` });
+                                              }
+                                            } else {
+                                              setSubFormState({ ...subFormState, reason: subFormState.reason.replace(' [EXENTO_RETARDO]', '').replace('[EXENTO_RETARDO]', '') });
+                                            }
+                                          }}
+                                          style={{ width: 15, height: 15, accentColor: '#16a34a' }}
+                                        />
+                                        <span>⚡ Exentar de retardos en checador (Marcar automáticamente como A TIEMPO)</span>
+                                      </label>
+                                    </div>
+
                                     <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>
                                       Motivo del Cambio
                                     </label>
                                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-                                      {['Solicitud de empleado', 'Cubrir ausencia', 'Necesidad operativa', 'Otro'].map(rOpt => (
+                                      {['Solicitud de empleado', 'Cubrir ausencia', 'Necesidad operativa', 'Horario especial autoriz.'].map(rOpt => (
                                         <button
                                           key={rOpt}
                                           type="button"
-                                          onClick={() => setSubFormState({ ...subFormState, reason: rOpt })}
+                                          onClick={() => setSubFormState({ ...subFormState, reason: subFormState.reason.includes('[EXENTO_RETARDO]') ? `${rOpt} [EXENTO_RETARDO]` : rOpt })}
                                           style={{
                                             padding: '4px 10px',
                                             borderRadius: 20,
                                             fontSize: '0.72rem',
                                             fontWeight: 800,
-                                            border: subFormState.reason === rOpt ? '1px solid #0284c7' : '1px solid #cbd5e1',
-                                            background: subFormState.reason === rOpt ? '#e0f2fe' : '#ffffff',
-                                            color: subFormState.reason === rOpt ? '#0369a1' : '#475569',
+                                            border: subFormState.reason.startsWith(rOpt) ? '1px solid #0284c7' : '1px solid #cbd5e1',
+                                            background: subFormState.reason.startsWith(rOpt) ? '#e0f2fe' : '#ffffff',
+                                            color: subFormState.reason.startsWith(rOpt) ? '#0369a1' : '#475569',
                                             cursor: 'pointer',
                                           }}
                                         >
-                                          {subFormState.reason === rOpt ? `★ ${rOpt}` : rOpt}
+                                          {subFormState.reason.startsWith(rOpt) ? `★ ${rOpt}` : rOpt}
                                         </button>
                                       ))}
                                     </div>
