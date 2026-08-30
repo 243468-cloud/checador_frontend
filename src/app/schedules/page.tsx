@@ -994,27 +994,34 @@ export default function SchedulesPage() {
           const rowData = rosterRows[rowIndex];
           if (rowData) {
             const items = rowData.employees[dayIndex] || [];
-            const hasDescanso = items.some(i => i.type === 'DESCANSO' || i.text.toUpperCase().includes('DESCANSO'));
-            const hasCambioTurno = items.some(i => i.type === 'CAMBIO_TURNO' || i.text.toUpperCase().includes('CAMBIO TURNO'));
-            const hasDobleTurno = items.some(i => i.type === 'DOBLE_TURNO' || i.text.toUpperCase().includes('DOBLE TURNO'));
-            const hasCambioArea = items.some(i => i.type === 'CAMBIO_AREA' || i.text.toUpperCase().includes('CAMBIO AREA'));
+            
+            // Solo colorear el recuadro completo si el 100% de la celda es del mismo estado especial (o etiqueta única)
+            const allDescanso = items.length > 0 && items.every(i => i.type === 'DESCANSO' || i.text.toUpperCase().includes('DESCANSO'));
+            const allCambioTurno = items.length > 0 && items.every(i => i.type === 'CAMBIO_TURNO' || i.text.toUpperCase().includes('CAMBIO TURNO'));
+            const allDobleTurno = items.length > 0 && items.every(i => i.type === 'DOBLE_TURNO' || i.text.toUpperCase().includes('DOBLE TURNO'));
+            const allCambioArea = items.length > 0 && items.every(i => i.type === 'CAMBIO_AREA' || i.text.toUpperCase().includes('CAMBIO AREA'));
 
-            if (hasDescanso) {
-              data.cell.styles.fillColor = [16, 185, 129];
-              data.cell.styles.textColor = [255, 255, 255];
+            if (allDescanso) {
+              data.cell.styles.fillColor = [236, 253, 245]; // Verde menta suave
+              data.cell.styles.textColor = [4, 120, 87];
               data.cell.styles.fontStyle = 'bold';
-            } else if (hasCambioTurno) {
-              data.cell.styles.fillColor = [2, 132, 199];
-              data.cell.styles.textColor = [255, 255, 255];
+            } else if (allCambioTurno) {
+              data.cell.styles.fillColor = [240, 249, 255]; // Azul suave
+              data.cell.styles.textColor = [3, 105, 161];
               data.cell.styles.fontStyle = 'bold';
-            } else if (hasDobleTurno) {
-              data.cell.styles.fillColor = [234, 179, 8];
-              data.cell.styles.textColor = [0, 0, 0];
+            } else if (allDobleTurno) {
+              data.cell.styles.fillColor = [254, 243, 199]; // Amarillo suave
+              data.cell.styles.textColor = [180, 83, 9];
               data.cell.styles.fontStyle = 'bold';
-            } else if (hasCambioArea) {
-              data.cell.styles.fillColor = [249, 115, 22];
-              data.cell.styles.textColor = [255, 255, 255];
+            } else if (allCambioArea) {
+              data.cell.styles.fillColor = [255, 237, 213]; // Naranja suave
+              data.cell.styles.textColor = [194, 65, 12];
               data.cell.styles.fontStyle = 'bold';
+            } else {
+              // Si hay varios empleados o turnos normales, mantener el recuadro limpio en blanco
+              data.cell.styles.fillColor = [255, 255, 255];
+              data.cell.styles.textColor = [15, 23, 42];
+              data.cell.styles.fontStyle = 'normal';
             }
           }
         }
