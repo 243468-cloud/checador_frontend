@@ -646,14 +646,26 @@ export default function SchedulesPage() {
   const quickAddCell = (text: string, type: RosterCell['type']) => {
     if (!editModal) return;
     const { rowId, dayIndex } = editModal;
+    const formattedText = text.trim().toUpperCase();
+
     const updated = rosterRows.map(r => {
       if (r.id === rowId) {
         const existing = r.employees[dayIndex] || [];
+        const existingIdx = existing.findIndex(item => item.text.trim().toUpperCase() === formattedText);
+        let newEmployees = [...existing];
+
+        if (existingIdx >= 0) {
+          // Si ya está asignado, al hacer clic nuevamente se quita (toggle off) evitando duplicados
+          newEmployees.splice(existingIdx, 1);
+        } else {
+          newEmployees.push({ text: formattedText, type });
+        }
+
         return {
           ...r,
           employees: {
             ...r.employees,
-            [dayIndex]: [...existing, { text: text.trim().toUpperCase(), type }],
+            [dayIndex]: newEmployees,
           },
         };
       }
