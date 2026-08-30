@@ -1919,7 +1919,7 @@ export default function SchedulesPage() {
                               style={{ fontSize: '0.7rem', color: '#e11d48', background: '#ffe4e6', border: '1px solid #fecdd3', padding: '2px 7px', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
                               onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
                             >
-                              <Trash2 size={11} /> Limpiar
+                              <Trash2 size={11} /> Limpiar todo
                             </button>
                           );
                         }
@@ -1982,97 +1982,105 @@ export default function SchedulesPage() {
                             return (
                               <div
                                 key={idx}
-                                className="p-2 rounded-xl flex items-center justify-between gap-2"
+                                className="p-2.5 rounded-xl flex items-center justify-between gap-2 transition-all"
                                 style={{
                                   background: '#ffffff',
                                   border: '1px solid #cbd5e1',
                                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                                 }}
                               >
+                                {/* Izquierda: Avatar Circular e Inicial + Nombre */}
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                   <div
                                     style={{
-                                      width: 28,
-                                      height: 28,
+                                      width: 30,
+                                      height: 30,
                                       borderRadius: '50%',
                                       background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                                       color: '#ffffff',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      fontSize: '0.75rem',
+                                      fontSize: '0.78rem',
                                       fontWeight: 800,
                                       flexShrink: 0,
                                     }}
                                   >
                                     {initials}
                                   </div>
-                                  <span className="truncate" style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>
+                                  <span className="truncate" style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
                                     {item.text}
                                   </span>
                                 </div>
 
-                                {/* Track de botones de estado integrados */}
-                                <div className="flex items-center gap-0.5 p-0.5 rounded-lg" style={{ background: '#f1f5f9' }}>
+                                {/* Centro: Botones de Estado con sus Colores Característicos */}
+                                <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                                   <button
                                     type="button"
                                     style={{
-                                      background: item.type === 'NORMAL' ? '#0f172a' : 'transparent',
-                                      color: item.type === 'NORMAL' ? '#ffffff' : '#64748b',
-                                      border: 'none',
-                                      borderRadius: 5,
-                                      fontSize: '0.68rem',
+                                      background: item.type === 'NORMAL' ? '#ecfdf5' : 'transparent',
+                                      color: item.type === 'NORMAL' ? '#047857' : '#64748b',
+                                      border: item.type === 'NORMAL' ? '1px solid #a7f3d0' : '1px solid transparent',
+                                      borderRadius: 6,
+                                      fontSize: '0.7rem',
                                       fontWeight: 800,
-                                      padding: '3px 6px',
+                                      padding: '3px 7px',
                                       cursor: 'pointer',
+                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
                                   >
                                     Normal
                                   </button>
+
                                   <button
                                     type="button"
                                     style={{
-                                      background: item.type === 'DESCANSO' ? '#059669' : 'transparent',
-                                      color: item.type === 'DESCANSO' ? '#ffffff' : '#64748b',
-                                      border: 'none',
-                                      borderRadius: 5,
-                                      fontSize: '0.68rem',
+                                      background: item.type === 'DESCANSO' ? '#f0f9ff' : 'transparent',
+                                      color: item.type === 'DESCANSO' ? '#0369a1' : '#64748b',
+                                      border: item.type === 'DESCANSO' ? '1px solid #bae6fd' : '1px solid transparent',
+                                      borderRadius: 6,
+                                      fontSize: '0.7rem',
                                       fontWeight: 800,
-                                      padding: '3px 6px',
+                                      padding: '3px 7px',
                                       cursor: 'pointer',
+                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
                                   >
                                     Descanso
                                   </button>
+
                                   <button
                                     type="button"
                                     style={{
-                                      background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
-                                      color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#64748b',
-                                      border: 'none',
-                                      borderRadius: 5,
-                                      fontSize: '0.68rem',
+                                      background: item.type === 'CAMBIO_TURNO' ? '#eff6ff' : 'transparent',
+                                      color: item.type === 'CAMBIO_TURNO' ? '#1d4ed8' : '#64748b',
+                                      border: item.type === 'CAMBIO_TURNO' ? '1px solid #bfdbfe' : '1px solid transparent',
+                                      borderRadius: 6,
+                                      fontSize: '0.7rem',
                                       fontWeight: 800,
-                                      padding: '3px 6px',
+                                      padding: '3px 7px',
                                       cursor: 'pointer',
+                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
                                   >
                                     C.Turno
                                   </button>
+
                                   <button
                                     type="button"
                                     style={{
-                                      background: item.type === 'DOBLE_TURNO' ? '#d97706' : 'transparent',
-                                      color: item.type === 'DOBLE_TURNO' ? '#ffffff' : '#64748b',
-                                      border: 'none',
-                                      borderRadius: 5,
-                                      fontSize: '0.68rem',
+                                      background: item.type === 'DOBLE_TURNO' ? '#fffbeb' : 'transparent',
+                                      color: item.type === 'DOBLE_TURNO' ? '#b45309' : '#64748b',
+                                      border: item.type === 'DOBLE_TURNO' ? '1px solid #fef08a' : '1px solid transparent',
+                                      borderRadius: 6,
+                                      fontSize: '0.7rem',
                                       fontWeight: 800,
-                                      padding: '3px 6px',
+                                      padding: '3px 7px',
                                       cursor: 'pointer',
+                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
                                   >
@@ -2080,24 +2088,27 @@ export default function SchedulesPage() {
                                   </button>
                                 </div>
 
+                                {/* Derecha: Botón Eliminar Acomodado en el Extremo */}
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
                                   style={{
                                     background: '#ffe4e6',
                                     border: '1px solid #fecdd3',
-                                    borderRadius: '50%',
-                                    width: 24,
-                                    height: 24,
+                                    borderRadius: 8,
+                                    width: 28,
+                                    height: 28,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     color: '#e11d48',
                                     cursor: 'pointer',
                                     flexShrink: 0,
+                                    transition: 'all 0.15s ease',
                                   }}
+                                  title="Eliminar de la celda"
                                 >
-                                  <X size={12} />
+                                  <Trash2 size={13} />
                                 </button>
                               </div>
                             );
@@ -2108,48 +2119,13 @@ export default function SchedulesPage() {
                   </div>
                 </div>
 
-                {/* BLOQUE UNIFICADO: ETIQUETAS Y NOTAS ADICIONALES */}
+                {/* CAMPO DE NOTA U HORARIO ESPECIAL */}
                 <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '12px' }}>
-                  <div className="grid grid-cols-4 gap-1.5 mb-2">
-                    <button
-                      type="button"
-                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
-                      style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
-                      onClick={() => handleApplySpecialStatus('DESCANSO', 'DESCANSO')}
-                    >
-                      Descanso
-                    </button>
-                    <button
-                      type="button"
-                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
-                      style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
-                      onClick={() => handleApplySpecialStatus('CAMBIO_TURNO', 'CAMBIO TURNO')}
-                    >
-                      C. Turno
-                    </button>
-                    <button
-                      type="button"
-                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
-                      style={{ background: '#fffbeb', border: '1px solid #fef08a', color: '#b45309', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
-                      onClick={() => handleApplySpecialStatus('DOBLE_TURNO', 'DOBLE TURNO')}
-                    >
-                      Doble
-                    </button>
-                    <button
-                      type="button"
-                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
-                      style={{ background: '#fff7ed', border: '1px solid #ffedd5', color: '#c2410c', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
-                      onClick={() => handleApplySpecialStatus('CAMBIO_AREA', 'CAMBIO ÁREA')}
-                    >
-                      C. Área
-                    </button>
-                  </div>
-
                   <div className="flex items-center gap-1.5" style={{ width: '100%' }}>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="Nota u horario opcional"
+                      placeholder="Nota u horario especial (opcional)"
                       value={customInput}
                       onChange={e => setCustomInput(e.target.value)}
                       style={{
@@ -2158,8 +2134,8 @@ export default function SchedulesPage() {
                         color: '#0f172a',
                         fontWeight: 700,
                         borderRadius: 8,
-                        padding: '7px 10px',
-                        fontSize: '0.8rem',
+                        padding: '8px 12px',
+                        fontSize: '0.82rem',
                         flex: 1,
                         minWidth: 0,
                       }}
@@ -2172,14 +2148,14 @@ export default function SchedulesPage() {
                     />
                     <button
                       type="button"
-                      className="btn flex items-center justify-center px-3"
+                      className="btn flex items-center justify-center px-3.5"
                       style={{
                         background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                         color: '#ffffff',
                         fontWeight: 800,
                         fontSize: '0.78rem',
                         borderRadius: 8,
-                        height: 34,
+                        height: 36,
                         flexShrink: 0,
                         border: 'none',
                         cursor: 'pointer',
@@ -2196,7 +2172,7 @@ export default function SchedulesPage() {
                   </div>
                 </div>
 
-                {/* BOTÓN PRINCIPAL ACCIÓN UNIFICADA */}
+                {/* BOTÓN PRINCIPAL DE GUARDAR Y CERRAR */}
                 <div>
                   <button
                     type="button"
