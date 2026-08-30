@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/lib/auth-context';
+import { settingsApi, ShiftConfigDTO } from '@/lib/api';
 import {
   Clock,
   Sun,
@@ -19,6 +20,8 @@ import {
   Save,
   X,
   Award,
+  Moon,
+  Timer,
 } from 'lucide-react';
 import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 
@@ -28,6 +31,45 @@ export default function SettingsPage() {
   const [passForm, setPassForm] = useState({ currentPass: '', newPass: '', confirmPass: '' });
   const [passSuccess, setPassSuccess] = useState(false);
   const [passError, setPassError] = useState('');
+
+  // ─── Shift Configurations State ───────────────────────────────────────────
+  const [shifts, setShifts] = useState<ShiftConfigDTO[]>([
+    { shiftName: 'MORNING', label: 'Turno Matutino', startTime: '07:00', endTime: '15:00', daysDescription: 'Lunes a Sábado' },
+    { shiftName: 'EVENING', label: 'Turno Vespertino', startTime: '14:00', endTime: '22:00', daysDescription: 'Lunes a Sábado' },
+    { shiftName: 'SUNDAY', label: 'Turno Dominical', startTime: '08:00', endTime: '18:00', daysDescription: 'Solo Domingo (Entrada 8:00 AM para todos)' },
+    { shiftName: 'NOCTURNO', label: 'Turno Nocturno', startTime: '22:00', endTime: '06:00', daysDescription: 'Lunes a Sábado' },
+    { shiftName: 'MEDIO', label: 'Medio Turno', startTime: '09:00', endTime: '13:00', daysDescription: 'Horario Especial' },
+  ]);
+  const [isEditingShifts, setIsEditingShifts] = useState(false);
+  const [savingShifts, setSavingShifts] = useState(false);
+  const [shiftSuccessMsg, setShiftSuccessMsg] = useState(false);
+
+  useEffect(() => {
+    settingsApi.getShifts()
+      .then(res => {
+        if (Array.isArray(res) && res.length > 0) {
+          setShifts(res);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveShifts = async () => {
+    setSavingShifts(true);
+    try {
+      const updated = await settingsApi.updateShifts(shifts);
+      if (Array.isArray(updated) && updated.length > 0) {
+        setShifts(updated);
+      }
+      setIsEditingShifts(false);
+      setShiftSuccessMsg(true);
+      setTimeout(() => setShiftSuccessMsg(false), 3500);
+    } catch (e) {
+      alert('Error al guardar la configuración de horarios.');
+    } finally {
+      setSavingShifts(false);
+    }
+  };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,39 +209,125 @@ export default function SettingsPage() {
         {/* 2. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
         {user?.role !== 'EMPLOYEE' && (
           <div className="grid-2-columns" style={{ gap: '24px' }}>
-            {/* Turnos Oficiales */}
+            {/* Turnos Oficiales (Configuración Dinámica de Horarios) */}
             <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '28px' }}>
-              <h3 className="flex items-center gap-2.5" style={{ marginBottom: 24, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
-                <Clock size={20} color="#e11d48" />
-                <span>Horarios de Turnos Oficiales</span>
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                {[
-                  { name: 'Turno Matutino', time: '7:00 – 15:00', days: 'Lunes a Sábado', color: '#e11d48', icon: <Sun size={20} /> },
-                  { name: 'Turno Vespertino', time: '15:00 – 23:00', days: 'Lunes a Sábado', color: '#d97706', icon: <Sunset size={20} /> },
-                  { name: 'Turno Dominical', time: '8:00 – 18:00', days: 'Solo Domingo', color: '#059669', icon: <Calendar size={20} /> },
-                ].map(shift => (
-                  <div key={shift.name} style={{
-                    background: '#fdfbf7',
-                    border: '1px solid #f1ece1',
-                    borderRadius: '16px',
-                    padding: '16px 20px',
-                    display: 'flex', alignItems: 'center', gap: 18,
-                  }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${shift.color}15`, color: shift.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {shift.icon}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', marginBottom: 4 }}>{shift.name}</div>
-                      <div style={{ fontSize: '0.86rem', color: shift.color, fontWeight: 800, marginBottom: 2 }}>{shift.time}</div>
-                      <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>{shift.days}</div>
-                    </div>
+              <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
+                <h3 className="flex items-center gap-2.5" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+                  <Clock size={20} color="#e11d48" />
+                  <span>Horarios de Turnos Oficiales</span>
+                </h3>
+                {!isEditingShifts ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingShifts(true)}
+                    className="btn btn-secondary flex items-center gap-2"
+                    style={{ padding: '6px 14px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: 700, color: '#0284c7', background: '#e0f2fe', border: '1px solid #bae6fd' }}
+                  >
+                    <Edit size={14} />
+                    <span>Editar Horarios</span>
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingShifts(false)}
+                      className="btn btn-ghost"
+                      style={{ padding: '6px 12px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: 600 }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveShifts}
+                      disabled={savingShifts}
+                      className="btn btn-primary flex items-center gap-2"
+                      style={{ padding: '6px 16px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: 800, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', border: 'none' }}
+                    >
+                      <Save size={14} />
+                      <span>{savingShifts ? 'Guardando...' : 'Guardar Horarios'}</span>
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
-              <div className="alert alert-info flex items-start gap-3" style={{ marginTop: 24, fontSize: '0.8rem', padding: '14px 18px', borderRadius: '12px' }}>
-                <HelpCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span style={{ lineHeight: 1.4 }}>Los horarios se aplican globalmente. Para ajustar tolerancias GPS o retardo por sucursal, consulta al administrador.</span>
+
+              {shiftSuccessMsg && (
+                <div className="alert alert-success flex items-center gap-2 mb-4" style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 700 }}>
+                  <CheckCircle2 size={16} />
+                  <span>¡Horarios guardados correctamente! En domingos todo el personal checará a las 8:00 AM sin retardo.</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {shifts.map((shift, sIdx) => {
+                  const shiftIcons: Record<string, { color: string; icon: React.ReactNode }> = {
+                    MORNING: { color: '#e11d48', icon: <Sun size={18} /> },
+                    EVENING: { color: '#d97706', icon: <Sunset size={18} /> },
+                    SUNDAY:  { color: '#059669', icon: <Calendar size={18} /> },
+                    NOCTURNO:{ color: '#6366f1', icon: <Moon size={18} /> },
+                    MEDIO:   { color: '#0284c7', icon: <Timer size={18} /> },
+                  };
+                  const meta = shiftIcons[shift.shiftName] || { color: '#64748b', icon: <Clock size={18} /> };
+
+                  return (
+                    <div key={shift.shiftName} style={{
+                      background: '#fdfbf7',
+                      border: '1px solid #f1ece1',
+                      borderRadius: '14px',
+                      padding: '14px 18px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
+                    }}>
+                      <div className="flex items-center gap-3">
+                        <div style={{ width: 38, height: 38, borderRadius: 10, background: `${meta.color}15`, color: meta.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {meta.icon}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>{shift.label}</div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                            {shift.daysDescription || (shift.shiftName === 'SUNDAY' ? 'Solo Domingo (Entrada 8:00 AM para todos)' : 'Lunes a Sábado')}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Selector o Vista de Horario */}
+                      {!isEditingShifts ? (
+                        <div style={{ fontSize: '0.88rem', color: meta.color, fontWeight: 800, background: '#ffffff', padding: '6px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                          {shift.startTime} – {shift.endTime}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={shift.startTime}
+                            onChange={e => {
+                              const updated = [...shifts];
+                              updated[sIdx] = { ...updated[sIdx], startTime: e.target.value };
+                              setShifts(updated);
+                            }}
+                            style={{ padding: '5px 8px', borderRadius: '8px', border: '1px solid #0284c7', background: '#ffffff', fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}
+                          />
+                          <span style={{ fontWeight: 800, color: '#64748b' }}>–</span>
+                          <input
+                            type="time"
+                            value={shift.endTime}
+                            onChange={e => {
+                              const updated = [...shifts];
+                              updated[sIdx] = { ...updated[sIdx], endTime: e.target.value };
+                              setShifts(updated);
+                            }}
+                            style={{ padding: '5px 8px', borderRadius: '8px', border: '1px solid #0284c7', background: '#ffffff', fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="alert alert-info flex items-start gap-3" style={{ marginTop: 20, fontSize: '0.78rem', padding: '12px 16px', borderRadius: '12px' }}>
+                <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span style={{ lineHeight: 1.4 }}>
+                  <strong>Regla de Domingos:</strong> En días domingo, la entrada oficial se establece automáticamente a las <strong>{shifts.find(s => s.shiftName === 'SUNDAY')?.startTime || '08:00'} AM</strong> para todo el personal asignado, evitando marcas injustificadas de retardo en el checador.
+                </span>
               </div>
             </div>
 

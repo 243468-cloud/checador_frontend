@@ -499,3 +499,23 @@ export const STATUS_COLORS: Record<string, string> = {
   IN_SHIFT: '#6366f1',
   EXCUSED:  '#8b5cf6',
 };
+
+// ─── Settings & Shift Config ──────────────────────────────────────────────────
+
+export interface ShiftConfigDTO {
+  id?: number;
+  shiftName: string;
+  label: string;
+  startTime: string;
+  endTime: string;
+  daysDescription?: string;
+}
+
+export const settingsApi = {
+  getShifts: () => apiFetch<ShiftConfigDTO[]>('/api/settings/shifts'),
+  updateShifts: (shifts: ShiftConfigDTO[]) =>
+    apiFetch<ShiftConfigDTO[]>('/api/settings/shifts', {
+      method: 'PUT',
+      body: JSON.stringify(shifts),
+    }),
+};
