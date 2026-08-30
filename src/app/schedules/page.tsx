@@ -658,9 +658,10 @@ export default function SchedulesPage() {
           const rawText = cell.text.trim().toUpperCase();
           const mainName = rawText.split(' ')[0];
 
-          if (mainName && mainName !== 'DESCANSO' && mainName !== '8AM-6PM' && mainName !== 'C-11-5' && mainName !== 'C-7-2') {
-            allNames.add(mainName);
+          // Solo procesar balance si la primera palabra corresponde a un empleado conocido real de la sucursal
+          const isKnownEmp = availableNames.some(n => n.trim().toUpperCase() === mainName);
 
+          if (mainName && isKnownEmp) {
             if (!balanceMap.has(mainName)) {
               balanceMap.set(mainName, {
                 workDaysSet: new Set(),
@@ -2072,7 +2073,12 @@ export default function SchedulesPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {currentItems.map((item, idx) => {
                         const isStandaloneTag = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(item.text.toUpperCase());
-                        const isKnownEmployee = uniqueAvailableNames.some(n => n.trim().toUpperCase() === item.text.trim().toUpperCase());
+                        const firstWord = item.text.trim().toUpperCase().split(' ')[0];
+                        const isKnownEmployee = uniqueAvailableNames.some(n => {
+                          const normN = n.trim().toUpperCase();
+                          const normText = item.text.trim().toUpperCase();
+                          return normN === normText || normN === firstWord;
+                        });
 
                         if (isStandaloneTag || !isKnownEmployee) {
                           let badgeBg = '#f5f5f4';
