@@ -186,6 +186,29 @@ export const attendanceApi = {
   },
 };
 
+// ─── Schedule Summary API (100% Backend Calculated) ───────────────────────────
+
+export interface ScheduleSummaryDTO {
+  totalEmployees: number;
+  avgHours: number;
+  totalRestDays: number;
+  totalDoubleShifts: number;
+  totalOvertimeHours: number;
+  employeeBalances: {
+    name: string;
+    primaryArea: string;
+    workDays: number;
+    restDays: number;
+    doubleShifts: number;
+    shiftChanges: number;
+    totalScheduledHours: number;
+    actualWorkedHours: number;
+    overtimeHours: number;
+    statusBalance: string;
+  }[];
+  overlapWarnings: string[];
+}
+
 // ─── Ranking & Rewards ────────────────────────────────────────────────────────
 
 export interface EmployeeRankItem {
@@ -347,6 +370,10 @@ export const scheduleApi = {
   /** Elimina toda la semana de una sucursal. */
   deleteRoster: (branchId: number, weekStart: string) =>
     apiFetch(`/api/schedules?branchId=${branchId}&weekStart=${weekStart}`, { method: 'DELETE' }),
+
+  /** Carga resumen de negocio, KPIs y balances calculados 100% en el backend. */
+  getSummary: (weekStart: string, branchId?: number) =>
+    apiFetch<ScheduleSummaryDTO>(`/api/schedules/summary?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`),
 };
 
 // ─── Leave Requests ───────────────────────────────────────────────────────────
