@@ -662,6 +662,41 @@ export default function SchedulesPage() {
     saveRoster(updated);
   };
 
+  const handleApplySpecialStatus = (statusType: RosterCell['type'], defaultLabel: string) => {
+    if (!editModal) return;
+    const { rowId, dayIndex } = editModal;
+    const targetRow = rosterRows.find(r => r.id === rowId);
+    const currentItems = targetRow?.employees[dayIndex] || [];
+
+    const isStandalone = (t: string) => ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(t.toUpperCase());
+    const employeeItems = currentItems.filter(i => !isStandalone(i.text));
+
+    if (employeeItems.length > 0) {
+      const updated = rosterRows.map(r => {
+        if (r.id === rowId) {
+          const existing = [...(r.employees[dayIndex] || [])];
+          const newItems = existing.map(it => {
+            if (!isStandalone(it.text)) {
+              return { ...it, type: statusType };
+            }
+            return it;
+          });
+          return {
+            ...r,
+            employees: {
+              ...r.employees,
+              [dayIndex]: newItems,
+            },
+          };
+        }
+        return r;
+      });
+      saveRoster(updated);
+    } else {
+      quickAddCell(defaultLabel, statusType);
+    }
+  };
+
   const updateItemType = (rowId: string, dayIndex: number, itemIndex: number, newType: RosterCell['type']) => {
     const updated = rosterRows.map(r => {
       if (r.id === rowId) {
@@ -1836,6 +1871,58 @@ export default function SchedulesPage() {
                     return (
                       <div className="flex flex-col gap-3">
                         {currentItems.map((item, idx) => {
+                          const isStandaloneTag = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(item.text.toUpperCase());
+
+                          if (isStandaloneTag) {
+                            let badgeBg = '#ecfdf5';
+                            let badgeBorder = '#a7f3d0';
+                            let badgeColor = '#047857';
+                            let dotColor = '#10b981';
+
+                            if (item.type === 'CAMBIO_TURNO' || item.text.toUpperCase().includes('TURNO')) {
+                              badgeBg = '#f0f9ff'; badgeBorder = '#bae6fd'; badgeColor = '#0369a1'; dotColor = '#0284c7';
+                            } else if (item.type === 'DOBLE_TURNO' || item.text.toUpperCase().includes('DOBLE')) {
+                              badgeBg = '#fffbeb'; badgeBorder = '#fef08a'; badgeColor = '#b45309'; dotColor = '#d97706';
+                            } else if (item.type === 'CAMBIO_AREA' || item.text.toUpperCase().includes('AREA')) {
+                              badgeBg = '#fff7ed'; badgeBorder = '#ffedd5'; badgeColor = '#c2410c'; dotColor = '#ea580c';
+                            }
+
+                            return (
+                              <div
+                                key={idx}
+                                className="p-3 rounded-2xl flex items-center justify-between"
+                                style={{
+                                  background: badgeBg,
+                                  border: `1px solid ${badgeBorder}`,
+                                }}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+                                  <span style={{ fontWeight: 800, fontSize: '0.85rem', color: badgeColor }}>
+                                    Etiqueta Especial: {item.text}
+                                  </span>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                  style={{
+                                    background: '#ffffff',
+                                    border: '1px solid #cbd5e1',
+                                    borderRadius: 8,
+                                    padding: '4px 10px',
+                                    color: '#e11d48',
+                                    fontSize: '0.74rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Quitar
+                                </button>
+                              </div>
+                            );
+                          }
+
                           const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
                           let statusLabel = 'Normal';
                           if (item.type === 'DESCANSO') statusLabel = 'Descanso';
@@ -2081,7 +2168,7 @@ export default function SchedulesPage() {
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                       }}
-                      onClick={() => quickAddCell('DESCANSO', 'DESCANSO')}
+                      onClick={() => handleApplySpecialStatus('DESCANSO', 'DESCANSO')}
                     >
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
                       + DESCANSO
@@ -2101,7 +2188,7 @@ export default function SchedulesPage() {
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                       }}
-                      onClick={() => quickAddCell('CAMBIO TURNO', 'CAMBIO_TURNO')}
+                      onClick={() => handleApplySpecialStatus('CAMBIO_TURNO', 'CAMBIO TURNO')}
                     >
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0284c7', flexShrink: 0 }} />
                       + CAMBIO TURNO
@@ -2121,7 +2208,7 @@ export default function SchedulesPage() {
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                       }}
-                      onClick={() => quickAddCell('DOBLE TURNO', 'DOBLE_TURNO')}
+                      onClick={() => handleApplySpecialStatus('DOBLE_TURNO', 'DOBLE TURNO')}
                     >
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', flexShrink: 0 }} />
                       + DOBLE TURNO
@@ -2141,7 +2228,7 @@ export default function SchedulesPage() {
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                       }}
-                      onClick={() => quickAddCell('CAMBIO AREA', 'CAMBIO_AREA')}
+                      onClick={() => handleApplySpecialStatus('CAMBIO_AREA', 'CAMBIO ÁREA')}
                     >
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ea580c', flexShrink: 0 }} />
                       + CAMBIO ÁREA
