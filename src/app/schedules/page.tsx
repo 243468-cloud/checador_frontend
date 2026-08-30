@@ -129,53 +129,14 @@ export function getEmployeeScheduleForDay(
     }
   }
 
-  // (2) Si no hay asignación individual explícita para este día, heredar el horario global del área principal
-  let primaryRow = rosterRows.find(row => {
-    return Object.values(row.employees).some(dayCells =>
-      dayCells.some(c => {
-        const txt = c.text.trim().toUpperCase();
-        return txt === normEmpName || txt.split(' ')[0] === normEmpName;
-      })
-    );
-  });
-
-  if (!primaryRow) {
-    return {
-      area: 'Sin Asignar',
-      shiftTime: 'Descanso',
-      type: 'DESCANSO',
-      source: 'EXPLICIT_REST',
-      displayText: 'SIN ASIGNACIÓN',
-    };
-  }
-
-  if (primaryRow) {
-    if (primaryRow.shiftTime.toUpperCase().includes('DESCANSO')) {
-      return {
-        area: primaryRow.area,
-        shiftTime: 'Descanso',
-        type: 'DESCANSO',
-        source: 'EXPLICIT_REST',
-        displayText: 'DESCANSO GLOBAL',
-      };
-    }
-
-    return {
-      area: primaryRow.area,
-      shiftTime: primaryRow.shiftTime || '7AM-3PM',
-      type: 'NORMAL',
-      source: 'GLOBAL_ROW',
-      displayText: `${primaryRow.area} (${primaryRow.shiftTime || 'Horario Global Base'})`,
-    };
-  }
-
-  // (3) Fallback ante ausencia total
+  // (2) Si la persona NO está anotada en ninguna casilla para este día (dayIdx),
+  // significa que este día NO TRABAJA (DESCANSO / DÍA LIBRE)
   return {
-    area: 'General',
-    shiftTime: '7AM-3PM',
-    type: 'NORMAL',
-    source: 'GLOBAL_ROW',
-    displayText: 'Horario Global Base',
+    area: 'Descanso',
+    shiftTime: 'Descanso',
+    type: 'DESCANSO',
+    source: 'EXPLICIT_REST',
+    displayText: 'DESCANSO',
   };
 }
 
