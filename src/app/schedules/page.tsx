@@ -411,6 +411,28 @@ function SwipeToDeleteItem({
   );
 }
 
+// ─── Pure Local Date Helpers (Zero UTC Offset Shift) ─────────────────────────
+const parseLocalDate = (dateStr: string): Date => {
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return new Date();
+  return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 12, 0, 0);
+};
+
+const formatLocalDate = (dt: Date): string => {
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const d = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const getMondayOfDate = (dateStr: string): string => {
+  const dt = parseLocalDate(dateStr);
+  const day = dt.getDay();
+  const diff = dt.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(dt.getFullYear(), dt.getMonth(), diff, 12, 0, 0);
+  return formatLocalDate(monday);
+};
+
 export default function SchedulesPage() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -420,12 +442,11 @@ export default function SchedulesPage() {
   const [rosterRows, setRosterRows] = useState<RosterRow[]>(INITIAL_ROSTER);
   const [daysHeader, setDaysHeader] = useState(DEFAULT_DAYS_HEADER);
   const [weekStart, setWeekStart] = useState<string>(() => {
-    // Obtiene el lunes de la semana actual como YYYY-MM-DD
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now.setDate(diff));
-    return monday.toISOString().split('T')[0];
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff, 12, 0, 0);
+    return formatLocalDate(monday);
   });
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -437,8 +458,8 @@ export default function SchedulesPage() {
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1) + 7;
-    const nextMonday = new Date(now.setDate(diff));
-    return nextMonday.toISOString().split('T')[0];
+    const nextMonday = new Date(now.getFullYear(), now.getMonth(), diff, 12, 0, 0);
+    return formatLocalDate(nextMonday);
   });
   const [newWeekMode, setNewWeekMode] = useState<'COPY' | 'EMPTY'>('COPY');
 
@@ -447,8 +468,8 @@ export default function SchedulesPage() {
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now.setDate(diff));
-    return monday.toISOString().split('T')[0];
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff, 12, 0, 0);
+    return formatLocalDate(monday);
   }, []);
 
   // Carousel Weeks Generator for Week History
@@ -461,12 +482,8 @@ export default function SchedulesPage() {
     }[] = [];
 
     const getWeekLabel = (monStr: string) => {
-      const parts = monStr.split('-');
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10) - 1;
-      const d = parseInt(parts[2], 10);
-      const monDate = new Date(y, m, d);
-      const sunDate = new Date(y, m, d + 6);
+      const monDate = parseLocalDate(monStr);
+      const sunDate = new Date(monDate.getFullYear(), monDate.getMonth(), monDate.getDate() + 6, 12, 0, 0);
 
       const monDay = monDate.getDate();
       const monMonth = monDate.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
@@ -476,12 +493,11 @@ export default function SchedulesPage() {
       return `${monDay} ${monMonth} - ${sunDay} ${sunMonth}`;
     };
 
-    const baseDate = new Date(currentActualMondayStr + 'T00:00:00');
+    const baseDate = parseLocalDate(currentActualMondayStr);
 
-    for (let offset = -4; offset <= 3; offset++) {
-      const wDate = new Date(baseDate);
-      wDate.setDate(baseDate.getDate() + offset * 7);
-      const monStr = wDate.toISOString().split('T')[0];
+    for (let offset = -4; offset <= 4; offset++) {
+      const wDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + offset * 7, 12, 0, 0);
+      const monStr = formatLocalDate(wDate);
 
       let status: 'ACTUAL' | 'PRÓXIMA' | 'PASADA' = 'PASADA';
       if (monStr === currentActualMondayStr) status = 'ACTUAL';
@@ -515,16 +531,10 @@ export default function SchedulesPage() {
   // Dynamic Week Header Calculator
   const calculateDaysHeader = useCallback((startStr: string) => {
     try {
-      const parts = startStr.split('-');
-      if (parts.length !== 3) return DEFAULT_DAYS_HEADER;
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10) - 1;
-      const d = parseInt(parts[2], 10);
-      const startDate = new Date(y, m, d);
+      const startDate = parseLocalDate(startStr);
       const dayLetters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
       return Array.from({ length: 7 }, (_, i) => {
-        const dt = new Date(startDate);
-        dt.setDate(startDate.getDate() + i);
+        const dt = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i, 12, 0, 0);
         return {
           day: dayLetters[i],
           date: String(dt.getDate()).padStart(2, '0'),
@@ -537,16 +547,7 @@ export default function SchedulesPage() {
 
   const handleCreateNewWeek = () => {
     if (!newWeekDate) return;
-    const parts = newWeekDate.split('-');
-    if (parts.length !== 3) return;
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    const selDate = new Date(y, m, d);
-    const day = selDate.getDay();
-    const diff = selDate.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(selDate.setDate(diff));
-    const mondayStr = monday.toISOString().split('T')[0];
+    const mondayStr = getMondayOfDate(newWeekDate);
 
     let newRows: RosterRow[] = [];
     if (newWeekMode === 'COPY') {
@@ -632,43 +633,64 @@ export default function SchedulesPage() {
     });
   };
 
-  // ─── Carga el roster desde la API (o localStorage por semana) ─────────────
+  // ─── Carga el roster desde la API (o localStorage por semana con migración) ─
   useEffect(() => {
     if (!weekStart) return;
     const weekStorageKey = `official_roster_rows_${weekStart}`;
     const branchId = user?.branchId;
 
+    const loadFromLocalStorage = () => {
+      const savedWeek = localStorage.getItem(weekStorageKey);
+      if (savedWeek) {
+        try {
+          const parsed = JSON.parse(savedWeek);
+          if (parsed && parsed.length > 0) {
+            setRosterRows(sortRowsChronologically(parsed));
+            return;
+          }
+        } catch {}
+      }
+
+      // Migración / Fallback de clave legacy
+      const legacySaved = localStorage.getItem('official_roster_rows');
+      if (legacySaved) {
+        try {
+          const parsed = JSON.parse(legacySaved);
+          if (parsed && parsed.length > 0) {
+            setRosterRows(sortRowsChronologically(parsed));
+            localStorage.setItem(weekStorageKey, legacySaved);
+            return;
+          }
+        } catch {}
+      }
+
+      // Si es la semana actual, usar INITIAL_ROSTER predeterminado
+      if (weekStart === currentActualMondayStr) {
+        setRosterRows(INITIAL_ROSTER);
+      } else {
+        setRosterRows(INITIAL_ROSTER.map(r => ({
+          ...r,
+          employees: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+        })));
+      }
+    };
+
     if (branchId) {
       scheduleApi.getRoster(branchId, weekStart)
         .then(cells => {
           if (cells.length > 0) {
-            setRosterRows(sortRowsChronologically(apiCellsToRosterRows(cells)));
+            const rows = sortRowsChronologically(apiCellsToRosterRows(cells));
+            setRosterRows(rows);
+            localStorage.setItem(weekStorageKey, JSON.stringify(rows));
           } else {
-            // Sin datos en la API → revisar localStorage específico de esta semana
-            const saved = localStorage.getItem(weekStorageKey);
-            if (saved) {
-              try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch { setRosterRows(INITIAL_ROSTER); }
-            } else {
-              setRosterRows(INITIAL_ROSTER);
-            }
+            loadFromLocalStorage();
           }
         })
         .catch(() => {
-          // Sin backend → usar localStorage por semana
-          const saved = localStorage.getItem(weekStorageKey);
-          if (saved) {
-            try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch { setRosterRows(INITIAL_ROSTER); }
-          } else {
-            setRosterRows(INITIAL_ROSTER);
-          }
+          loadFromLocalStorage();
         });
     } else {
-      const saved = localStorage.getItem(weekStorageKey);
-      if (saved) {
-        try { setRosterRows(sortRowsChronologically(JSON.parse(saved))); } catch { setRosterRows(INITIAL_ROSTER); }
-      } else {
-        setRosterRows(INITIAL_ROSTER);
-      }
+      loadFromLocalStorage();
     }
 
     employeeApi.getAll()
@@ -679,7 +701,7 @@ export default function SchedulesPage() {
     reportApi.getMonthly(now.getFullYear(), now.getMonth() + 1)
       .then(setAttendanceRecords)
       .catch(() => setAttendanceRecords([]));
-  }, [user?.branchId, weekStart]);
+  }, [user?.branchId, weekStart, currentActualMondayStr]);
 
   // ─── Convierte la respuesta de la API al formato interno ─────────────────────
   const apiCellsToRosterRows = (cells: ApiRosterCell[]): RosterRow[] => {
