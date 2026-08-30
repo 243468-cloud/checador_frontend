@@ -357,9 +357,9 @@ function SwipeToDeleteItem({
       ref={containerRef}
       style={{
         position: 'relative',
-        overflow: 'hidden',
+        overflow: isDragging ? 'hidden' : 'visible',
         borderRadius: 14,
-        maxHeight: isDeleting ? 0 : 300,
+        maxHeight: isDeleting ? 0 : 'none',
         opacity: isDeleting ? 0 : 1,
         transform: isDeleting ? 'scale(0.95)' : 'none',
         transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -3160,7 +3160,7 @@ export default function SchedulesPage() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                       <Zap size={15} color={item.type === 'CAMBIO_TURNO' ? '#0284c7' : item.type === 'DOBLE_TURNO' ? '#d97706' : '#ea580c'} />
                                       <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        {item.type === 'CAMBIO_TURNO' ? '⚡ Configuración de Cambio de Turno' : item.type === 'DOBLE_TURNO' ? '⚡ Configuración de Doble Turno' : '🏢 Configuración de Cambio de Área'}
+                                        {item.type === 'CAMBIO_TURNO' ? 'Configuración de Cambio de Turno' : item.type === 'DOBLE_TURNO' ? 'Configuración de Doble Turno' : 'Configuración de Cambio de Área'}
                                       </span>
                                     </div>
                                     <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', background: '#ffffff', padding: '2px 8px', borderRadius: 12, border: '1px solid #e2e8f0' }}>
