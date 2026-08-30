@@ -1538,22 +1538,6 @@ export default function SchedulesPage() {
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Date Picker Selector */}
-            <div className="flex items-center gap-2" style={{ background: '#f8fafc', padding: '0 14px', borderRadius: 10, border: '1px solid #cbd5e1', height: 42 }}>
-              <Calendar size={16} color="#ea580c" />
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>Semana del Lunes:</span>
-              <input
-                type="date"
-                value={weekStart}
-                onChange={e => {
-                  setWeekStart(e.target.value);
-                  const updated = calculateDaysHeader(e.target.value);
-                  setDaysHeader(updated);
-                }}
-                style={{ padding: '4px 8px', fontSize: '0.82rem', fontWeight: 800, borderRadius: 8, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', outline: 'none', cursor: 'pointer' }}
-              />
-            </div>
-
             {/* Crear Próxima Semana Button (Requirement 10) */}
             {!isReadOnly && (
               <button
