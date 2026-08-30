@@ -2557,7 +2557,7 @@ export default function SchedulesPage() {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', items: 'center', gap: 8 }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Calendar size={18} color="#ea580c" />
                   Personalizar Fechas y Encabezados del Rol
                 </h3>
