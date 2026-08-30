@@ -2108,6 +2108,7 @@ export default function SchedulesPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                  className="hidden md:flex items-center justify-center cursor-pointer shrink-0"
                                   style={{
                                     width: 26,
                                     height: 26,
@@ -2115,11 +2116,6 @@ export default function SchedulesPage() {
                                     background: '#ffffff',
                                     border: '1px solid #cbd5e1',
                                     color: '#e11d48',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0,
                                   }}
                                   title="Quitar"
                                 >
@@ -2146,7 +2142,7 @@ export default function SchedulesPage() {
                                 gap: 12,
                               }}
                             >
-                              {/* Fila Superior: Avatar + Nombre e Icono de Basura */}
+                              {/* Fila Superior: Avatar + Nombre e Icono de Basura para versión Web */}
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                   <div
@@ -2175,6 +2171,7 @@ export default function SchedulesPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                  className="hidden md:flex items-center justify-center cursor-pointer shrink-0"
                                   style={{
                                     width: 28,
                                     height: 28,
@@ -2182,13 +2179,8 @@ export default function SchedulesPage() {
                                     background: '#fff1f2',
                                     border: '1px solid #ffe4e6',
                                     color: '#e11d48',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0,
                                   }}
-                                  title="Quitar"
+                                  title="Quitar de la celda"
                                 >
                                   <X size={14} />
                                 </button>
