@@ -1784,7 +1784,7 @@ export default function SchedulesPage() {
         )}
 
         {/* ----------------------------------------------------------------- */}
-        {/* MODAL 1: EDICIÓN DE CELDA — DISEÑO MINIMALISTA Y LIMPIO SIN EMOJIS */}
+        {/* MODAL 1: EDICIÓN DE CELDA — COMPONENTES UNIFICADOS Y MEJOR INTEGRADATOS */}
         {/* ----------------------------------------------------------------- */}
         {editModal && (
           <div
@@ -1806,31 +1806,31 @@ export default function SchedulesPage() {
               className="animate-slide-up"
               style={{
                 width: '100%',
-                maxWidth: 480,
+                maxWidth: 460,
                 maxHeight: '92vh',
                 overflowY: 'auto',
                 background: '#ffffff',
                 border: '1px solid rgba(0, 0, 0, 0.08)',
-                borderRadius: 24,
-                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
-                padding: '24px',
+                borderRadius: 20,
+                boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.25)',
+                padding: '20px',
                 color: '#0f172a',
               }}
               onClick={e => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between pb-4 mb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
+              {/* Encabezado Unificado */}
+              <div className="flex items-center justify-between pb-3 mb-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
                     {editModal.area}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1">
                     {editModal.shiftTime && (
-                      <span style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5', fontWeight: 700, fontSize: '0.75rem', padding: '2px 10px', borderRadius: 16 }}>
+                      <span style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5', fontWeight: 700, fontSize: '0.72rem', padding: '2px 8px', borderRadius: 12 }}>
                         {editModal.shiftTime}
                       </span>
                     )}
-                    <span style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', fontWeight: 700, fontSize: '0.75rem', padding: '2px 10px', borderRadius: 16 }}>
+                    <span style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', fontWeight: 700, fontSize: '0.72rem', padding: '2px 8px', borderRadius: 12 }}>
                       {editModal.dayLabel}
                     </span>
                   </div>
@@ -1838,307 +1838,314 @@ export default function SchedulesPage() {
                 <button
                   type="button"
                   className="btn btn-ghost btn-icon"
-                  style={{ borderRadius: '50%', width: 34, height: 34, background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer' }}
+                  style={{ borderRadius: '50%', width: 32, height: 32, background: '#f8fafc', color: '#64748b', border: 'none', cursor: 'pointer' }}
                   onClick={() => setEditModal(null)}
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="flex flex-col gap-4">
-                {/* Empleados Disponibles Chips */}
-                <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, display: 'block' }}>
-                    Seleccionar Empleados
-                  </label>
-                  <div className="flex gap-2 flex-wrap p-2.5 rounded-2xl" style={{ background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-                    {uniqueAvailableNames.map((name, idx) => {
-                      const targetRow = rosterRows.find(r => r.id === editModal.rowId);
-                      const currentItems = targetRow?.employees[editModal.dayIndex] || [];
-                      const isSelected = currentItems.some(i => i.text.trim().toUpperCase() === name.trim().toUpperCase());
+              <div className="flex flex-col gap-3.5">
+                {/* BLOQUE UNIFICADO: SELECCIÓN Y PERSONAL ASIGNADO */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: '14px' }}>
+                  {/* Selector de Chips Integrado */}
+                  <div className="mb-3">
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>
+                      Seleccionar Personal
+                    </span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {uniqueAvailableNames.map((name, idx) => {
+                        const targetRow = rosterRows.find(r => r.id === editModal.rowId);
+                        const currentItems = targetRow?.employees[editModal.dayIndex] || [];
+                        const isSelected = currentItems.some(i => i.text.trim().toUpperCase() === name.trim().toUpperCase());
 
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          className="btn flex items-center gap-2 transition-all hover:scale-[1.03] active:scale-95"
-                          style={{
-                            background: isSelected ? '#0f172a' : '#ffffff',
-                            border: isSelected ? '1px solid #0f172a' : '1px solid #e2e8f0',
-                            color: isSelected ? '#ffffff' : '#0f172a',
-                            fontSize: '0.82rem',
-                            fontWeight: 700,
-                            padding: '5px 12px 5px 6px',
-                            borderRadius: 20,
-                            boxShadow: isSelected ? '0 2px 8px rgba(15, 23, 42, 0.25)' : '0 1px 3px rgba(0,0,0,0.04)',
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => quickAddCell(name, 'NORMAL')}
-                        >
-                          <div
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            className="btn flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95"
                             style={{
-                              width: 22,
-                              height: 22,
-                              borderRadius: '50%',
-                              background: isSelected ? '#ffffff' : 'linear-gradient(135deg, #ea580c, #c2410c)',
-                              color: isSelected ? '#0f172a' : '#ffffff',
-                              fontSize: '0.7rem',
-                              fontWeight: 800,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
+                              background: isSelected ? '#0f172a' : '#ffffff',
+                              border: isSelected ? '1px solid #0f172a' : '1px solid #cbd5e1',
+                              color: isSelected ? '#ffffff' : '#0f172a',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              padding: '4px 10px 4px 5px',
+                              borderRadius: 16,
+                              cursor: 'pointer',
                             }}
+                            onClick={() => quickAddCell(name, 'NORMAL')}
                           >
-                            {name[0]}
-                          </div>
-                          <span>{name}</span>
-                        </button>
-                      );
-                    })}
+                            <div
+                              style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: '50%',
+                                background: isSelected ? '#ffffff' : 'linear-gradient(135deg, #ea580c, #c2410c)',
+                                color: isSelected ? '#0f172a' : '#ffffff',
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {name[0]}
+                            </div>
+                            <span>{name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
 
-                {/* Personal Asignado en Celda */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Asignados
-                    </label>
+                  {/* Divisor Interno */}
+                  <div style={{ borderTop: '1px solid #e2e8f0', margin: '10px 0' }} />
+
+                  {/* Lista de Personal Asignado en la Celda */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Personal Asignado
+                      </span>
+                      {(() => {
+                        const targetRow = rosterRows.find(r => r.id === editModal.rowId);
+                        const currentItems = targetRow?.employees[editModal.dayIndex] || [];
+                        if (currentItems.length > 0) {
+                          return (
+                            <button
+                              className="btn flex items-center gap-1"
+                              style={{ fontSize: '0.7rem', color: '#e11d48', background: '#ffe4e6', border: '1px solid #fecdd3', padding: '2px 7px', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
+                              onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
+                            >
+                              <Trash2 size={11} /> Limpiar
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+
                     {(() => {
                       const targetRow = rosterRows.find(r => r.id === editModal.rowId);
                       const currentItems = targetRow?.employees[editModal.dayIndex] || [];
-                      if (currentItems.length > 0) {
+
+                      if (currentItems.length === 0) {
                         return (
-                          <button
-                            className="btn flex items-center gap-1"
-                            style={{ fontSize: '0.72rem', color: '#e11d48', background: '#ffe4e6', border: '1px solid #fecdd3', padding: '2px 8px', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
-                            onClick={() => handleClearDayCell(editModal.rowId, editModal.dayIndex)}
-                          >
-                            <Trash2 size={12} /> Limpiar
-                          </button>
+                          <div className="p-3 text-center rounded-xl" style={{ background: '#ffffff', border: '1px dashed #cbd5e1' }}>
+                            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600 }}>Sin asignación</span>
+                          </div>
                         );
                       }
-                      return null;
-                    })()}
-                  </div>
 
-                  {(() => {
-                    const targetRow = rosterRows.find(r => r.id === editModal.rowId);
-                    const currentItems = targetRow?.employees[editModal.dayIndex] || [];
-
-                    if (currentItems.length === 0) {
                       return (
-                        <div className="p-4 text-center rounded-2xl" style={{ background: '#faf8f5', border: '1px dashed #e2e8f0' }}>
-                          <span style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>Sin personal asignado</span>
-                        </div>
-                      );
-                    }
+                        <div className="flex flex-col gap-2">
+                          {currentItems.map((item, idx) => {
+                            const isStandaloneTag = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(item.text.toUpperCase());
 
-                    return (
-                      <div className="flex flex-col gap-2">
-                        {currentItems.map((item, idx) => {
-                          const isStandaloneTag = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(item.text.toUpperCase());
+                            if (isStandaloneTag) {
+                              let badgeBg = '#ecfdf5';
+                              let badgeBorder = '#a7f3d0';
+                              let badgeColor = '#047857';
 
-                          if (isStandaloneTag) {
-                            let badgeBg = '#ecfdf5';
-                            let badgeBorder = '#a7f3d0';
-                            let badgeColor = '#047857';
+                              if (item.type === 'CAMBIO_TURNO' || item.text.toUpperCase().includes('TURNO')) {
+                                badgeBg = '#f0f9ff'; badgeBorder = '#bae6fd'; badgeColor = '#0369a1';
+                              } else if (item.type === 'DOBLE_TURNO' || item.text.toUpperCase().includes('DOBLE')) {
+                                badgeBg = '#fffbeb'; badgeBorder = '#fef08a'; badgeColor = '#b45309';
+                              } else if (item.type === 'CAMBIO_AREA' || item.text.toUpperCase().includes('AREA')) {
+                                badgeBg = '#fff7ed'; badgeBorder = '#ffedd5'; badgeColor = '#c2410c';
+                              }
 
-                            if (item.type === 'CAMBIO_TURNO' || item.text.toUpperCase().includes('TURNO')) {
-                              badgeBg = '#f0f9ff'; badgeBorder = '#bae6fd'; badgeColor = '#0369a1';
-                            } else if (item.type === 'DOBLE_TURNO' || item.text.toUpperCase().includes('DOBLE')) {
-                              badgeBg = '#fffbeb'; badgeBorder = '#fef08a'; badgeColor = '#b45309';
-                            } else if (item.type === 'CAMBIO_AREA' || item.text.toUpperCase().includes('AREA')) {
-                              badgeBg = '#fff7ed'; badgeBorder = '#ffedd5'; badgeColor = '#c2410c';
+                              return (
+                                <div
+                                  key={idx}
+                                  className="p-2 rounded-xl flex items-center justify-between"
+                                  style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
+                                >
+                                  <span style={{ fontWeight: 800, fontSize: '0.8rem', color: badgeColor }}>
+                                    {item.text}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '2px 6px', color: '#e11d48', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                                  >
+                                    Quitar
+                                  </button>
+                                </div>
+                              );
                             }
+
+                            const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
 
                             return (
                               <div
                                 key={idx}
-                                className="p-2.5 rounded-xl flex items-center justify-between"
-                                style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
+                                className="p-2 rounded-xl flex items-center justify-between gap-2"
+                                style={{
+                                  background: '#ffffff',
+                                  border: '1px solid #cbd5e1',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                                }}
                               >
-                                <span style={{ fontWeight: 800, fontSize: '0.82rem', color: badgeColor }}>
-                                  {item.text}
-                                </span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <div
+                                    style={{
+                                      width: 28,
+                                      height: 28,
+                                      borderRadius: '50%',
+                                      background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                                      color: '#ffffff',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 800,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {initials}
+                                  </div>
+                                  <span className="truncate" style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>
+                                    {item.text}
+                                  </span>
+                                </div>
+
+                                {/* Track de botones de estado integrados */}
+                                <div className="flex items-center gap-0.5 p-0.5 rounded-lg" style={{ background: '#f1f5f9' }}>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: item.type === 'NORMAL' ? '#0f172a' : 'transparent',
+                                      color: item.type === 'NORMAL' ? '#ffffff' : '#64748b',
+                                      border: 'none',
+                                      borderRadius: 5,
+                                      fontSize: '0.68rem',
+                                      fontWeight: 800,
+                                      padding: '3px 6px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
+                                  >
+                                    Normal
+                                  </button>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: item.type === 'DESCANSO' ? '#059669' : 'transparent',
+                                      color: item.type === 'DESCANSO' ? '#ffffff' : '#64748b',
+                                      border: 'none',
+                                      borderRadius: 5,
+                                      fontSize: '0.68rem',
+                                      fontWeight: 800,
+                                      padding: '3px 6px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
+                                  >
+                                    Descanso
+                                  </button>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
+                                      color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#64748b',
+                                      border: 'none',
+                                      borderRadius: 5,
+                                      fontSize: '0.68rem',
+                                      fontWeight: 800,
+                                      padding: '3px 6px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
+                                  >
+                                    C.Turno
+                                  </button>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      background: item.type === 'DOBLE_TURNO' ? '#d97706' : 'transparent',
+                                      color: item.type === 'DOBLE_TURNO' ? '#ffffff' : '#64748b',
+                                      border: 'none',
+                                      borderRadius: 5,
+                                      fontSize: '0.68rem',
+                                      fontWeight: 800,
+                                      padding: '3px 6px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
+                                  >
+                                    Doble
+                                  </button>
+                                </div>
+
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                  style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '2px 6px', color: '#e11d48', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                                >
-                                  Quitar
-                                </button>
-                              </div>
-                            );
-                          }
-
-                          const initials = item.text.split(' ').map(w => w[0]).join('').slice(0, 2);
-
-                          return (
-                            <div
-                              key={idx}
-                              className="p-2.5 rounded-xl flex items-center justify-between gap-2"
-                              style={{
-                                background: '#ffffff',
-                                border: '1px solid #e2e8f0',
-                              }}
-                            >
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <div
                                   style={{
-                                    width: 32,
-                                    height: 32,
+                                    background: '#ffe4e6',
+                                    border: '1px solid #fecdd3',
                                     borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-                                    color: '#ffffff',
+                                    width: 24,
+                                    height: 24,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 800,
+                                    color: '#e11d48',
+                                    cursor: 'pointer',
                                     flexShrink: 0,
                                   }}
                                 >
-                                  {initials}
-                                </div>
-                                <span className="truncate" style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
-                                  {item.text}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                                <button
-                                  type="button"
-                                  style={{
-                                    background: item.type === 'NORMAL' ? '#0f172a' : 'transparent',
-                                    color: item.type === 'NORMAL' ? '#ffffff' : '#64748b',
-                                    border: 'none',
-                                    borderRadius: 5,
-                                    fontSize: '0.7rem',
-                                    fontWeight: 800,
-                                    padding: '4px 7px',
-                                    cursor: 'pointer',
-                                  }}
-                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
-                                >
-                                  Normal
-                                </button>
-                                <button
-                                  type="button"
-                                  style={{
-                                    background: item.type === 'DESCANSO' ? '#059669' : 'transparent',
-                                    color: item.type === 'DESCANSO' ? '#ffffff' : '#64748b',
-                                    border: 'none',
-                                    borderRadius: 5,
-                                    fontSize: '0.7rem',
-                                    fontWeight: 800,
-                                    padding: '4px 7px',
-                                    cursor: 'pointer',
-                                  }}
-                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
-                                >
-                                  Descanso
-                                </button>
-                                <button
-                                  type="button"
-                                  style={{
-                                    background: item.type === 'CAMBIO_TURNO' ? '#0284c7' : 'transparent',
-                                    color: item.type === 'CAMBIO_TURNO' ? '#ffffff' : '#64748b',
-                                    border: 'none',
-                                    borderRadius: 5,
-                                    fontSize: '0.7rem',
-                                    fontWeight: 800,
-                                    padding: '4px 7px',
-                                    cursor: 'pointer',
-                                  }}
-                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
-                                >
-                                  C.Turno
-                                </button>
-                                <button
-                                  type="button"
-                                  style={{
-                                    background: item.type === 'DOBLE_TURNO' ? '#d97706' : 'transparent',
-                                    color: item.type === 'DOBLE_TURNO' ? '#ffffff' : '#64748b',
-                                    border: 'none',
-                                    borderRadius: 5,
-                                    fontSize: '0.7rem',
-                                    fontWeight: 800,
-                                    padding: '4px 7px',
-                                    cursor: 'pointer',
-                                  }}
-                                  onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
-                                >
-                                  Doble
+                                  <X size={12} />
                                 </button>
                               </div>
-
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                style={{
-                                  background: '#ffe4e6',
-                                  border: '1px solid #fecdd3',
-                                  borderRadius: '50%',
-                                  width: 26,
-                                  height: 26,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: '#e11d48',
-                                  cursor: 'pointer',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                <X size={13} />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
 
-                {/* Etiquetas Rápidas y Nota */}
-                <div className="pt-3" style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <div className="grid grid-cols-4 gap-1.5 mb-2.5">
+                {/* BLOQUE UNIFICADO: ETIQUETAS Y NOTAS ADICIONALES */}
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '12px' }}>
+                  <div className="grid grid-cols-4 gap-1.5 mb-2">
                     <button
                       type="button"
-                      className="btn flex items-center justify-center hover:scale-[1.02] active:scale-95 transition-transform"
-                      style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontWeight: 800, fontSize: '0.72rem', padding: '7px 4px', borderRadius: 8, cursor: 'pointer' }}
+                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
+                      style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
                       onClick={() => handleApplySpecialStatus('DESCANSO', 'DESCANSO')}
                     >
                       Descanso
                     </button>
                     <button
                       type="button"
-                      className="btn flex items-center justify-center hover:scale-[1.02] active:scale-95 transition-transform"
-                      style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', fontWeight: 800, fontSize: '0.72rem', padding: '7px 4px', borderRadius: 8, cursor: 'pointer' }}
+                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
+                      style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
                       onClick={() => handleApplySpecialStatus('CAMBIO_TURNO', 'CAMBIO TURNO')}
                     >
                       C. Turno
                     </button>
                     <button
                       type="button"
-                      className="btn flex items-center justify-center hover:scale-[1.02] active:scale-95 transition-transform"
-                      style={{ background: '#fffbeb', border: '1px solid #fef08a', color: '#b45309', fontWeight: 800, fontSize: '0.72rem', padding: '7px 4px', borderRadius: 8, cursor: 'pointer' }}
+                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
+                      style={{ background: '#fffbeb', border: '1px solid #fef08a', color: '#b45309', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
                       onClick={() => handleApplySpecialStatus('DOBLE_TURNO', 'DOBLE TURNO')}
                     >
                       Doble
                     </button>
                     <button
                       type="button"
-                      className="btn flex items-center justify-center hover:scale-[1.02] active:scale-95 transition-transform"
-                      style={{ background: '#fff7ed', border: '1px solid #ffedd5', color: '#c2410c', fontWeight: 800, fontSize: '0.72rem', padding: '7px 4px', borderRadius: 8, cursor: 'pointer' }}
+                      className="btn flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95"
+                      style={{ background: '#fff7ed', border: '1px solid #ffedd5', color: '#c2410c', fontWeight: 800, fontSize: '0.7rem', padding: '6px 2px', borderRadius: 8, cursor: 'pointer' }}
                       onClick={() => handleApplySpecialStatus('CAMBIO_AREA', 'CAMBIO ÁREA')}
                     >
                       C. Área
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2" style={{ width: '100%' }}>
+                  <div className="flex items-center gap-1.5" style={{ width: '100%' }}>
                     <input
                       type="text"
                       className="form-input"
@@ -2146,13 +2153,13 @@ export default function SchedulesPage() {
                       value={customInput}
                       onChange={e => setCustomInput(e.target.value)}
                       style={{
-                        background: '#ffffff',
+                        background: '#f8fafc',
                         border: '1px solid #cbd5e1',
                         color: '#0f172a',
                         fontWeight: 700,
-                        borderRadius: 10,
-                        padding: '8px 12px',
-                        fontSize: '0.82rem',
+                        borderRadius: 8,
+                        padding: '7px 10px',
+                        fontSize: '0.8rem',
                         flex: 1,
                         minWidth: 0,
                       }}
@@ -2165,14 +2172,14 @@ export default function SchedulesPage() {
                     />
                     <button
                       type="button"
-                      className="btn flex items-center justify-center px-4"
+                      className="btn flex items-center justify-center px-3"
                       style={{
                         background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                         color: '#ffffff',
                         fontWeight: 800,
-                        fontSize: '0.8rem',
-                        borderRadius: 10,
-                        height: 36,
+                        fontSize: '0.78rem',
+                        borderRadius: 8,
+                        height: 34,
                         flexShrink: 0,
                         border: 'none',
                         cursor: 'pointer',
@@ -2189,15 +2196,15 @@ export default function SchedulesPage() {
                   </div>
                 </div>
 
-                {/* Footer */}
-                <div className="pt-3 mt-1" style={{ borderTop: '1px solid #f1f5f9' }}>
+                {/* BOTÓN PRINCIPAL ACCIÓN UNIFICADA */}
+                <div>
                   <button
                     type="button"
                     className="btn hover:scale-[1.01] active:scale-[0.99] transition-all"
                     style={{
                       width: '100%',
-                      height: 46,
-                      fontSize: '0.95rem',
+                      height: 44,
+                      fontSize: '0.92rem',
                       fontWeight: 800,
                       background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                       color: '#ffffff',
