@@ -3427,14 +3427,15 @@ export default function SchedulesPage() {
         )}
 
         {/* Modal: Flexible Schedule Report Configuration (PDF & Excel) */}
+        {/* Modal: Exportar Reporte PDF (SUPER MEGA MINIMALISTA) */}
         {showReportConfigModal && (
           <div
             className="modal-overlay"
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 9999,
-              background: 'rgba(15, 23, 42, 0.7)',
+              zIndex: 99999,
+              background: 'rgba(15, 23, 42, 0.75)',
               backdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
@@ -3447,166 +3448,156 @@ export default function SchedulesPage() {
               className="animate-slide-up"
               style={{
                 width: '100%',
-                maxWidth: 580,
+                maxWidth: 380,
                 background: '#ffffff',
-                border: '1px solid rgba(225, 29, 72, 0.3)',
+                border: '1px solid rgba(225, 29, 72, 0.2)',
                 borderRadius: 20,
-                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
-                padding: '24px',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+                padding: '20px 22px',
                 color: '#0f172a',
               }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Sliders size={18} color="#e11d48" />
-                  Configurar y Exportar Reporte de Horarios ({reportFormat})
-                </h3>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <div className="flex items-center gap-2">
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ffe4e6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FileText size={16} color="#e11d48" />
+                  </div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                    Exportar Reporte PDF
+                  </h3>
+                </div>
                 <button
                   type="button"
-                  className="btn btn-ghost btn-icon"
-                  style={{ borderRadius: '50%', width: 32, height: 32, background: '#f1f5f9', color: '#64748b' }}
+                  style={{ width: 28, height: 28, borderRadius: '50%', background: '#f1f5f9', border: 'none', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   onClick={() => setShowReportConfigModal(false)}
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="flex flex-col gap-4 my-2">
-                <div className="p-3.5 rounded-xl" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
-                  <div className="flex items-center gap-2" style={{ color: '#047857', fontWeight: 800, fontSize: '0.82rem' }}>
-                    <CheckCircle2 size={16} />
-                    <span>Reporte Exclusivo de Horarios (Pure Roster)</span>
-                  </div>
-                  <p style={{ fontSize: '0.78rem', color: '#065f46', marginTop: 2 }}>
-                    Este reporte tomará única y exclusivamente la información programada en la matriz de turnos activa.
-                  </p>
-                </div>
-
-                <div className="form-group">
-                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
-                    Título Principal del Reporte
+              {/* Minimal Controls */}
+              <div className="flex flex-col gap-4 mb-5">
+                {/* Orientation Segmented Toggle */}
+                <div>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'block' }}>
+                    Orientación de Página
                   </label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={reportConfig.title}
-                    onChange={e => setReportConfig({ ...reportConfig, title: e.target.value })}
-                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
-                  />
+                  <div style={{ display: 'flex', padding: 3, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                    <button
+                      type="button"
+                      onClick={() => setReportConfig({ ...reportConfig, orientation: 'landscape' })}
+                      style={{
+                        flex: 1,
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        background: reportConfig.orientation === 'landscape' ? '#ffffff' : 'transparent',
+                        color: reportConfig.orientation === 'landscape' ? '#e11d48' : '#64748b',
+                        boxShadow: reportConfig.orientation === 'landscape' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      Horizontal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReportConfig({ ...reportConfig, orientation: 'portrait' })}
+                      style={{
+                        flex: 1,
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        background: reportConfig.orientation === 'portrait' ? '#ffffff' : 'transparent',
+                        color: reportConfig.orientation === 'portrait' ? '#e11d48' : '#64748b',
+                        boxShadow: reportConfig.orientation === 'portrait' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      Vertical
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid-2 gap-3">
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
-                      Elaboró / Responsables
-                    </label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={reportConfig.prepBy}
-                      onChange={e => setReportConfig({ ...reportConfig, prepBy: e.target.value })}
-                      style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
-                      Autorizó / Firma
-                    </label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={reportConfig.approvedBy}
-                      onChange={e => setReportConfig({ ...reportConfig, approvedBy: e.target.value })}
-                      style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
-                    />
-                  </div>
-                </div>
-
-                {reportFormat === 'PDF' && (
-                  <div className="form-group">
-                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
-                      Orientación de Página (PDF)
-                    </label>
-                    <div className="grid-2 gap-2">
-                      <button
-                        type="button"
-                        className={`btn ${reportConfig.orientation === 'landscape' ? 'btn-primary' : 'btn-ghost'}`}
-                        onClick={() => setReportConfig({ ...reportConfig, orientation: 'landscape' })}
-                        style={{ fontSize: '0.8rem', fontWeight: 700 }}
-                      >
-                        Horizontal (Landscape)
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn ${reportConfig.orientation === 'portrait' ? 'btn-primary' : 'btn-ghost'}`}
-                        onClick={() => setReportConfig({ ...reportConfig, orientation: 'portrait' })}
-                        style={{ fontSize: '0.8rem', fontWeight: 700 }}
-                      >
-                        Vertical (Portrait)
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
+                {/* Checkbox Options */}
+                <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: 10, border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={reportConfig.includeSummary}
                       onChange={e => setReportConfig({ ...reportConfig, includeSummary: e.target.checked })}
+                      style={{ accentColor: '#e11d48', width: 15, height: 15 }}
                     />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
-                      Incluir Hoja/Sección de Resumen por Empleado y Horas Programadas
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155' }}>
+                      Incluir hoja de resumen por empleado
                     </span>
                   </label>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={reportConfig.includeLegend}
                       onChange={e => setReportConfig({ ...reportConfig, includeLegend: e.target.checked })}
+                      style={{ accentColor: '#e11d48', width: 15, height: 15 }}
                     />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
-                      Incluir Leyenda de Colores (Descanso, Doble Turno, Cambio Turno, Cambio Área)
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155' }}>
+                      Incluir convención de colores
                     </span>
                   </label>
                 </div>
-
-                <div className="form-group">
-                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: 6, display: 'block', letterSpacing: '0.5px' }}>
-                    Notas u Observaciones del Pie
-                  </label>
-                  <textarea
-                    className="form-input"
-                    rows={2}
-                    value={reportConfig.notes}
-                    onChange={e => setReportConfig({ ...reportConfig, notes: e.target.value })}
-                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, borderRadius: 10, padding: '10px 14px' }}
-                  />
-                </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-4 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowReportConfigModal(false)} style={{ fontWeight: 700, color: '#64748b' }}>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowReportConfigModal(false)}
+                  style={{
+                    flex: 1,
+                    height: 40,
+                    borderRadius: 10,
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#64748b',
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
                   Cancelar
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary flex items-center gap-2"
-                  style={{ background: reportFormat === 'PDF' ? 'linear-gradient(135deg, #e11d48, #be123c)' : 'linear-gradient(135deg, #059669, #047857)', color: '#ffffff', fontWeight: 800, borderRadius: 10, padding: '10px 20px', border: 'none' }}
                   onClick={() => {
+                    exportRosterToPDFWithConfig();
                     setShowReportConfigModal(false);
-                    if (reportFormat === 'PDF') {
-                      exportRosterToPDFWithConfig();
-                    } else {
-                      exportRosterToExcelWithConfig();
-                    }
                   }}
+                  style={{
+                    flex: 2,
+                    height: 40,
+                    borderRadius: 10,
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    boxShadow: '0 4px 14px rgba(225, 29, 72, 0.3)',
+                    cursor: 'pointer',
+                  }}
+                  className="hover:opacity-95 active:scale-98"
                 >
-                  <Download size={16} />
-                  <span>Generar Reporte {reportFormat}</span>
+                  <FileText size={15} />
+                  <span>Generar PDF</span>
                 </button>
               </div>
             </div>
