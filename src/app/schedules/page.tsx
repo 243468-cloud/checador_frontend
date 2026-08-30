@@ -1588,34 +1588,6 @@ export default function SchedulesPage() {
               </button>
             )}
 
-            {/* Action Buttons: ONLY "Editar Fechas" + "Configurar y Exportar PDF" (Requirement 9) */}
-            {!isReadOnly && (
-              <button
-                type="button"
-                onClick={() => setShowEditHeaderModal(true)}
-                style={{
-                  height: 42,
-                  padding: '0 16px',
-                  borderRadius: 10,
-                  background: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  color: '#334155',
-                  fontWeight: 800,
-                  fontSize: '0.82rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                className="hover:bg-slate-50 active:scale-98"
-                title="Personalizar días y fechas del encabezado"
-              >
-                <Edit2 size={15} color="#ea580c" />
-                <span>Editar Fechas</span>
-              </button>
-            )}
-
             <button
               type="button"
               id="btn-export-pdf-roster"
