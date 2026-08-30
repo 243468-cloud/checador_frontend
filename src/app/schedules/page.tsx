@@ -1527,7 +1527,7 @@ export default function SchedulesPage() {
       <Sidebar />
       <main className="main-content animate-fade-in">
         {/* Header Container */}
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-6" style={{ background: '#ffffff', borderRadius: 16, padding: '16px 20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-6" style={{ background: '#ffffff', borderRadius: 16, padding: '18px 22px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
           <div>
             <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               Rol Semanal y Control de Horarios
@@ -1537,9 +1537,9 @@ export default function SchedulesPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
             {/* Date Picker Selector */}
-            <div className="flex items-center gap-2" style={{ background: '#f8fafc', padding: '0 12px', borderRadius: 10, border: '1px solid #cbd5e1', height: 42 }}>
+            <div className="flex items-center gap-2" style={{ background: '#f8fafc', padding: '0 14px', borderRadius: 10, border: '1px solid #cbd5e1', height: 42 }}>
               <Calendar size={16} color="#ea580c" />
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>Semana del Lunes:</span>
               <input
@@ -1580,6 +1580,7 @@ export default function SchedulesPage() {
                   boxShadow: '0 2px 6px rgba(234, 88, 12, 0.08)',
                   transition: 'all 0.15s ease',
                 }}
+                className="hover:bg-orange-50 active:scale-98"
                 title="Crear matriz para una semana futura"
               >
                 <CalendarPlus size={16} />
@@ -1607,6 +1608,7 @@ export default function SchedulesPage() {
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
+                className="hover:bg-slate-50 active:scale-98"
                 title="Personalizar días y fechas del encabezado"
               >
                 <Edit2 size={15} color="#ea580c" />
@@ -1637,6 +1639,7 @@ export default function SchedulesPage() {
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
+              className="hover:opacity-95 active:scale-98"
             >
               <FileText size={16} />
               <span>Configurar y Exportar PDF</span>
@@ -1644,8 +1647,8 @@ export default function SchedulesPage() {
           </div>
         </div>
 
-        {/* PARTE 5 — CARRUSEL DE HISTORIAL DE SEMANAS */}
-        <div style={{ background: '#ffffff', borderRadius: 16, padding: '14px 18px', border: '1px solid #e2e8f0', boxShadow: '0 4px 14px rgba(0,0,0,0.03)', marginBottom: 24 }}>
+        {/* PARTE 5 — CARRUSEL DE HISTORIAL DE SEMANAS (PULIDO ESTÉTICO & RESPONSIVO) */}
+        <div style={{ background: '#ffffff', borderRadius: 16, padding: '16px 20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)', marginBottom: 24 }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Calendar size={16} color="#ea580c" />
@@ -1653,120 +1656,182 @@ export default function SchedulesPage() {
                 Historial y Programación de Semanas
               </span>
             </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  const carouselContainer = document.getElementById('week-carousel-strip');
-                  if (carouselContainer) carouselContainer.scrollBy({ left: -220, behavior: 'smooth' });
-                }}
-                style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}
-                title="Semanas anteriores"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const carouselContainer = document.getElementById('week-carousel-strip');
-                  if (carouselContainer) carouselContainer.scrollBy({ left: 220, behavior: 'smooth' });
-                }}
-                style={{ width: 28, height: 28, borderRadius: 8, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}
-                title="Semanas siguientes"
-              >
-                ›
-              </button>
-            </div>
+            <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }} className="hidden sm:inline">
+              Desliza para explorar semanas anteriores o futuras
+            </span>
           </div>
 
-          <div
-            id="week-carousel-strip"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              overflowX: 'auto',
-              scrollBehavior: 'smooth',
-              paddingBottom: 6,
-              msOverflowStyle: 'none',
-              scrollbarWidth: 'none',
-            }}
-          >
-            {carouselWeeks.map(w => {
-              const isActive = w.mondayStr === weekStart;
-              return (
+          {/* Carousel Strip Container with Side Floating Arrows */}
+          <div style={{ position: 'relative', width: '100%' }}>
+            {/* Left Floating Arrow Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const strip = document.getElementById('week-carousel-strip');
+                if (strip) strip.scrollBy({ left: -200, behavior: 'smooth' });
+              }}
+              style={{
+                position: 'absolute',
+                left: -10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 20,
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.14)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.1rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+              }}
+              className="hover:scale-105 active:scale-95"
+              title="Semana anterior"
+            >
+              ‹
+            </button>
+
+            {/* Right Floating Arrow Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const strip = document.getElementById('week-carousel-strip');
+                if (strip) strip.scrollBy({ left: 200, behavior: 'smooth' });
+              }}
+              style={{
+                position: 'absolute',
+                right: -10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 20,
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.14)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.1rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+              }}
+              className="hover:scale-105 active:scale-95"
+              title="Semana siguiente"
+            >
+              ›
+            </button>
+
+            {/* Carousel Strip with Scroll-Snap and Consistent Card Dimensions */}
+            <div
+              id="week-carousel-strip"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                scrollBehavior: 'smooth',
+                padding: '4px 6px 8px 6px',
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+              }}
+            >
+              {carouselWeeks.map(w => {
+                const isActive = w.mondayStr === weekStart;
+                return (
+                  <div
+                    key={w.mondayStr}
+                    onClick={() => {
+                      setWeekStart(w.mondayStr);
+                      const updated = calculateDaysHeader(w.mondayStr);
+                      setDaysHeader(updated);
+                    }}
+                    style={{
+                      height: 64,
+                      minWidth: 165,
+                      maxWidth: 165,
+                      flexShrink: 0,
+                      scrollSnapAlign: 'start',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      background: isActive ? 'linear-gradient(135deg, #ea580c, #c2410c)' : '#f8fafc',
+                      color: isActive ? '#ffffff' : '#334155',
+                      border: isActive ? 'none' : '1px solid #e2e8f0',
+                      boxShadow: isActive ? '0 6px 18px rgba(234, 88, 12, 0.3)' : '0 1px 3px rgba(0,0,0,0.03)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      gap: 3,
+                      transition: 'all 0.18s ease',
+                      opacity: w.status === 'PASADA' && !isActive ? 0.75 : 1,
+                      boxSizing: 'border-box',
+                    }}
+                    className="hover:translate-y-[-2px]"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, width: '100%' }}>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isActive ? 0.95 : 0.7 }}>
+                        {w.status === 'ACTUAL' ? '● Actual' : w.status === 'PRÓXIMA' ? '📅 Próxima' : 'Archivo'}
+                      </span>
+                      {w.isCurrentActual && !isActive && (
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: '0.84rem', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                      {w.label}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {/* Special CTA Card at the end of carousel: [+] Crear Semana */}
+              {!isReadOnly && (
                 <div
-                  key={w.mondayStr}
                   onClick={() => {
-                    setWeekStart(w.mondayStr);
-                    const updated = calculateDaysHeader(w.mondayStr);
-                    setDaysHeader(updated);
+                    const curr = new Date(weekStart + 'T00:00:00');
+                    curr.setDate(curr.getDate() + 7);
+                    setNewWeekDate(curr.toISOString().split('T')[0]);
+                    setShowNewWeekModal(true);
                   }}
                   style={{
+                    height: 64,
+                    minWidth: 165,
+                    maxWidth: 165,
                     flexShrink: 0,
+                    scrollSnapAlign: 'start',
                     padding: '10px 14px',
                     borderRadius: 12,
                     cursor: 'pointer',
-                    background: isActive ? 'linear-gradient(135deg, #ea580c, #c2410c)' : '#f8fafc',
-                    color: isActive ? '#ffffff' : '#334155',
-                    border: isActive ? 'none' : '1px solid #e2e8f0',
-                    boxShadow: isActive ? '0 6px 18px rgba(234, 88, 12, 0.3)' : 'none',
+                    background: '#ffffff',
+                    color: '#ea580c',
+                    border: '1.5px dashed #ea580c',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                    minWidth: 155,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
                     transition: 'all 0.18s ease',
-                    opacity: w.status === 'PASADA' && !isActive ? 0.75 : 1,
+                    boxSizing: 'border-box',
                   }}
+                  className="hover:bg-orange-50/50"
+                  title="Crear matriz para una semana futura"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                    <span style={{ fontSize: '0.66rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isActive ? 0.95 : 0.7 }}>
-                      {w.status === 'ACTUAL' ? '● Actual' : w.status === 'PRÓXIMA' ? '📅 Próxima' : 'Archivo'}
-                    </span>
-                    {w.isCurrentActual && !isActive && (
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-                    )}
-                  </div>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 900, whiteSpace: 'nowrap' }}>
-                    {w.label}
-                  </span>
+                  <CalendarPlus size={16} />
+                  <span>+ Crear Semana</span>
                 </div>
-              );
-            })}
-
-            {/* Special CTA Card at the end of carousel: [+] Crear Próxima Semana */}
-            {!isReadOnly && (
-              <div
-                onClick={() => {
-                  const curr = new Date(weekStart + 'T00:00:00');
-                  curr.setDate(curr.getDate() + 7);
-                  setNewWeekDate(curr.toISOString().split('T')[0]);
-                  setShowNewWeekModal(true);
-                }}
-                style={{
-                  flexShrink: 0,
-                  padding: '10px 14px',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  background: '#ffffff',
-                  color: '#ea580c',
-                  border: '1.5px dashed #ea580c',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  minWidth: 160,
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  transition: 'all 0.18s ease',
-                }}
-                title="Crear matriz para una semana futura"
-              >
-                <CalendarPlus size={16} />
-                <span>+ Crear Semana</span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
