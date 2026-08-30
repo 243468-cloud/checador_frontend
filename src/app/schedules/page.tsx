@@ -2072,27 +2072,28 @@ export default function SchedulesPage() {
                                   </button>
                                 </div>
 
-                                {/* Derecha: Botón Eliminar Acomodado en el Extremo */}
+                                {/* Derecha: Botón Eliminar Acomodado y Estilizado */}
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                  className="transition-all hover:scale-105 active:scale-95"
                                   style={{
-                                    background: '#ffe4e6',
-                                    border: '1px solid #fecdd3',
-                                    borderRadius: 8,
-                                    width: 28,
-                                    height: 28,
+                                    background: '#fff1f2',
+                                    border: '1px solid #ffe4e6',
+                                    borderRadius: '50%',
+                                    width: 30,
+                                    height: 30,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     color: '#e11d48',
                                     cursor: 'pointer',
                                     flexShrink: 0,
-                                    transition: 'all 0.15s ease',
+                                    boxShadow: '0 1px 3px rgba(225, 29, 72, 0.1)',
                                   }}
                                   title="Eliminar de la celda"
                                 >
-                                  <Trash2 size={13} />
+                                  <Trash2 size={14} />
                                 </button>
                               </div>
                             );
