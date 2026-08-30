@@ -3004,7 +3004,9 @@ export default function SchedulesPage() {
                                     {initials}
                                   </div>
                                   <span style={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a' }}>
-                                    {item.text}
+                                    {expandedSubFormIndex === idx
+                                      ? item.text.split(' — ')[0].split(' [')[0].trim()
+                                      : item.text}
                                   </span>
                                 </div>
 
@@ -3139,44 +3141,43 @@ export default function SchedulesPage() {
                                 </button>
                               </div>
 
-                              {/* SUB-FORMULARIO EXPANDIBLE INLINE (ANIMACIÓN SUAVE 200MS) */}
+                              {/* SUB-FORMULARIO EXPANDIBLE INLINE (4 GRUPOS LÓGICOS EN 1 SUPERFICIE NEUTRA) */}
                               {expandedSubFormIndex === idx && ['CAMBIO_TURNO', 'DOBLE_TURNO', 'CAMBIO_AREA'].includes(item.type) && (
                                 <div
                                   style={{
                                     marginTop: 8,
-                                    padding: 10,
+                                    padding: 12,
                                     borderRadius: 12,
-                                    background: item.type === 'CAMBIO_TURNO' ? '#f0f9ff' : item.type === 'DOBLE_TURNO' ? '#fffbeb' : '#fff7ed',
-                                    border: `1px solid ${item.type === 'CAMBIO_TURNO' ? '#bae6fd' : item.type === 'DOBLE_TURNO' ? '#fef08a' : '#ffedd5'}`,
+                                    background: '#f8fafc',
+                                    border: '1px solid #e2e8f0',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    gap: 8,
-                                    boxShadow: '0 3px 10px rgba(0,0,0,0.03)',
+                                    gap: 10,
                                   }}
                                   className="animate-slide-down"
                                 >
-                                  {/* Encabezado e Info del Horario Base */}
+                                  {/* Encabezado e Info del Horario Base (Sin duplicidad de íconos) */}
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                      <Zap size={14} color={item.type === 'CAMBIO_TURNO' ? '#0284c7' : item.type === 'DOBLE_TURNO' ? '#d97706' : '#ea580c'} />
-                                      <span style={{ fontSize: '0.74rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        {item.type === 'CAMBIO_TURNO' ? 'Configuración Cambio de Turno' : item.type === 'DOBLE_TURNO' ? 'Configuración Doble Turno' : 'Configuración Cambio de Área'}
+                                      <Zap size={14} color="#0284c7" />
+                                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        {item.type === 'CAMBIO_TURNO' ? 'CONFIGURACIÓN CAMBIO DE TURNO' : item.type === 'DOBLE_TURNO' ? 'CONFIGURACIÓN DOBLE TURNO' : 'CONFIGURACIÓN CAMBIO DE ÁREA'}
                                       </span>
                                     </div>
-                                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', background: '#ffffff', padding: '1px 6px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                                    <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#64748b' }}>
                                       Base: {targetRow?.shiftTime || '7AM - 3PM'}
                                     </span>
                                   </div>
 
                                   {/* Advertencia de Solapamiento si aplica */}
                                   {checkScheduleOverlap(item.text.split(' — ')[0].split(' [')[0].trim(), editModal.dayIndex) && (
-                                    <div style={{ background: '#fffbeb', border: '1px solid #fef08a', borderRadius: 6, padding: '4px 8px', fontSize: '0.7rem', fontWeight: 800, color: '#b45309', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                    <div style={{ background: '#fffbeb', border: '1px solid #fef08a', borderRadius: 6, padding: '4px 8px', fontSize: '0.7rem', fontWeight: 600, color: '#b45309', display: 'flex', alignItems: 'center', gap: 5 }}>
                                       <AlertTriangle size={13} color="#d97706" />
                                       <span>Advertencia: Empleado ya asignado en otra área este día.</span>
                                     </div>
                                   )}
 
-                                  {/* Selectores de Horario para CAMBIO_TURNO (Ultra Compacto 2x2 + Pickers Directos) */}
+                                  {/* GRUPO 1 — NUEVO HORARIO (Solo para CAMBIO_TURNO) */}
                                   {item.type === 'CAMBIO_TURNO' && (() => {
                                     const duration = calcShiftDuration(subFormState.shiftStartTime, subFormState.shiftEndTime);
                                     const activePreset = subFormState.shiftStartTime === '07:00' && subFormState.shiftEndTime === '15:00' ? 'MATUTINO'
@@ -3186,14 +3187,18 @@ export default function SchedulesPage() {
                                       : null;
 
                                     return (
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                        {/* Atajos Rápidos en Cuadrícula 2x2 */}
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                        <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                          NUEVO HORARIO
+                                        </span>
+
+                                        {/* Presets Rápidos 2x2 Simplificados */}
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
                                           {[
-                                            { id: 'MATUTINO', label: '☀️ Matutino (7AM-3PM)', start: '07:00', end: '15:00' },
-                                            { id: 'VESPERTINO', label: '🌗 Vespertino (2PM-10PM)', start: '14:00', end: '22:00' },
-                                            { id: 'NOCTURNO', label: '🌙 Nocturno (10PM-6AM)', start: '22:00', end: '06:00' },
-                                            { id: 'MEDIO', label: '⏱️ Medio (9AM-1PM)', start: '09:00', end: '13:00' },
+                                            { id: 'MATUTINO', icon: '☀️', label: 'Matutino', sub: '(7AM-3PM)', start: '07:00', end: '15:00' },
+                                            { id: 'VESPERTINO', icon: '🌗', label: 'Vespertino', sub: '(2PM-10PM)', start: '14:00', end: '22:00' },
+                                            { id: 'NOCTURNO', icon: '🌙', label: 'Nocturno', sub: '(10PM-6AM)', start: '22:00', end: '06:00' },
+                                            { id: 'MEDIO', icon: '⏱️', label: 'Medio', sub: '(9AM-1PM)', start: '09:00', end: '13:00' },
                                           ].map(p => {
                                             const isSelected = activePreset === p.id;
                                             return (
@@ -3205,28 +3210,30 @@ export default function SchedulesPage() {
                                                   setSubFormState({ ...subFormState, shiftStartTime: p.start, shiftEndTime: p.end });
                                                 }}
                                                 style={{
-                                                  padding: '4px 6px',
+                                                  padding: '5px 8px',
                                                   borderRadius: 6,
-                                                  fontSize: '0.68rem',
-                                                  fontWeight: 800,
+                                                  fontSize: '0.7rem',
+                                                  fontWeight: isSelected ? 700 : 500,
                                                   border: isSelected ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
                                                   background: isSelected ? '#e0f2fe' : '#ffffff',
                                                   color: isSelected ? '#0369a1' : '#475569',
                                                   cursor: 'pointer',
-                                                  textAlign: 'center',
-                                                  whiteSpace: 'nowrap',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'space-between',
                                                 }}
                                               >
-                                                {p.label}
+                                                <span>{p.icon} {p.label}</span>
+                                                <span style={{ fontSize: '0.62rem', color: isSelected ? '#0284c7' : '#94a3b8', fontWeight: 500 }}>{p.sub}</span>
                                               </button>
                                             );
                                           })}
                                         </div>
 
-                                        {/* Selectores de Hora en 1 sola Fila Compacta */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: '#ffffff', padding: '6px 8px', borderRadius: 8, border: '1px solid #bae6fd' }}>
+                                        {/* Inputs de Entrada y Salida (Sin tarjeta anidada propia) */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
                                           <div>
-                                            <label style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: 2 }}>ENTRADA</label>
+                                            <label style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 2 }}>ENTRADA</label>
                                             <input
                                               type="time"
                                               value={subFormState.shiftStartTime}
@@ -3234,13 +3241,13 @@ export default function SchedulesPage() {
                                                 setSubFormError(null);
                                                 setSubFormState({ ...subFormState, shiftStartTime: e.target.value });
                                               }}
-                                              style={{ width: '100%', padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#f8fafc', fontWeight: 800, fontSize: '0.8rem', color: '#0f172a', boxSizing: 'border-box' }}
+                                              style={{ width: '100%', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 700, fontSize: '0.8rem', color: '#0f172a', boxSizing: 'border-box' }}
                                             />
                                           </div>
                                           <div>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                                              <label style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569' }}>SALIDA</label>
-                                              {duration.isOvernight && <span style={{ fontSize: '0.58rem', fontWeight: 900, color: '#b45309', background: '#fffbeb', padding: '0 4px', borderRadius: 4 }}>🌙 +1d</span>}
+                                              <label style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b' }}>SALIDA</label>
+                                              {duration.isOvernight && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#b45309', background: '#fffbeb', padding: '0 4px', borderRadius: 4 }}>🌙 +1d</span>}
                                             </div>
                                             <input
                                               type="time"
@@ -3249,7 +3256,7 @@ export default function SchedulesPage() {
                                                 setSubFormError(null);
                                                 setSubFormState({ ...subFormState, shiftEndTime: e.target.value });
                                               }}
-                                              style={{ width: '100%', padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#f8fafc', fontWeight: 800, fontSize: '0.8rem', color: '#0f172a', boxSizing: 'border-box' }}
+                                              style={{ width: '100%', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 700, fontSize: '0.8rem', color: '#0f172a', boxSizing: 'border-box' }}
                                             />
                                           </div>
                                         </div>
@@ -3257,38 +3264,41 @@ export default function SchedulesPage() {
                                     );
                                   })()}
 
-                                  {/* Selectores de Horario para DOBLE_TURNO */}
+                                  {/* GRUPO 1 — DOBLE TURNO */}
                                   {item.type === 'DOBLE_TURNO' && (
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: '#ffffff', padding: '6px 8px', borderRadius: 8, border: '1px solid #fef08a' }}>
-                                      <div>
-                                        <label style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: 2 }}>2DO TURNO INICIO</label>
-                                        <input
-                                          type="time"
-                                          value={subFormState.secondShiftStartTime}
-                                          onChange={e => setSubFormState({ ...subFormState, secondShiftStartTime: e.target.value })}
-                                          style={{ width: '100%', padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.8rem', color: '#0f172a' }}
-                                        />
-                                      </div>
-                                      <div>
-                                        <label style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: 2 }}>2DO TURNO FIN</label>
-                                        <input
-                                          type="time"
-                                          value={subFormState.secondShiftEndTime}
-                                          onChange={e => setSubFormState({ ...subFormState, secondShiftEndTime: e.target.value })}
-                                          style={{ width: '100%', padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.8rem', color: '#0f172a' }}
-                                        />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>HORARIO TURNO ADICIONAL</span>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <div>
+                                          <label style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 2 }}>2DO TURNO INICIO</label>
+                                          <input
+                                            type="time"
+                                            value={subFormState.secondShiftStartTime}
+                                            onChange={e => setSubFormState({ ...subFormState, secondShiftStartTime: e.target.value })}
+                                            style={{ width: '100%', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}
+                                          />
+                                        </div>
+                                        <div>
+                                          <label style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 2 }}>2DO TURNO FIN</label>
+                                          <input
+                                            type="time"
+                                            value={subFormState.secondShiftEndTime}
+                                            onChange={e => setSubFormState({ ...subFormState, secondShiftEndTime: e.target.value })}
+                                            style={{ width: '100%', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}
+                                          />
+                                        </div>
                                       </div>
                                     </div>
                                   )}
 
-                                  {/* Selector de Área Destino para CAMBIO_AREA */}
+                                  {/* GRUPO 1 — CAMBIO DE ÁREA */}
                                   {item.type === 'CAMBIO_AREA' && (
-                                    <div>
-                                      <label style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: 2 }}>ÁREA DESTINO TRASLADO</label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ÁREA DESTINO</span>
                                       <select
                                         value={subFormState.targetArea}
                                         onChange={e => setSubFormState({ ...subFormState, targetArea: e.target.value })}
-                                        style={{ width: '100%', padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.78rem', color: '#0f172a' }}
+                                        style={{ width: '100%', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 700, fontSize: '0.78rem', color: '#0f172a' }}
                                       >
                                         {Array.from(new Set(rosterRows.map(r => r.area))).map(aName => (
                                           <option key={aName} value={aName}>{aName}</option>
@@ -3297,29 +3307,10 @@ export default function SchedulesPage() {
                                     </div>
                                   )}
 
-                                  {/* Regla de Exención de Retardos (Banner en 1 sola línea) */}
-                                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '4px 8px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 800, color: '#15803d' }}>
-                                      <input
-                                        type="checkbox"
-                                        checked={subFormState.reason.includes('[EXENTO_RETARDO]')}
-                                        onChange={e => {
-                                          if (e.target.checked) {
-                                            if (!subFormState.reason.includes('[EXENTO_RETARDO]')) {
-                                              setSubFormState({ ...subFormState, reason: `${subFormState.reason} [EXENTO_RETARDO]` });
-                                            }
-                                          } else {
-                                            setSubFormState({ ...subFormState, reason: subFormState.reason.replace(' [EXENTO_RETARDO]', '').replace('[EXENTO_RETARDO]', '') });
-                                          }
-                                        }}
-                                        style={{ width: 14, height: 14, accentColor: '#16a34a' }}
-                                      />
-                                      <span>✓ Exentar retardos (marcar A TIEMPO)</span>
-                                    </label>
-                                  </div>
-
-                                  {/* Motivo del Cambio (Select Dropdown Compacto) */}
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  {/* GRUPO 2 — DETALLES (Motivo + Switch Exentar Retardos en 1 Fila Neutra) */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 2 }}>
+                                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>DETALLES</span>
+                                    
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                       <select
                                         value={subFormState.reason.replace(' [EXENTO_RETARDO]', '').replace('[EXENTO_RETARDO]', '')}
@@ -3327,7 +3318,7 @@ export default function SchedulesPage() {
                                           const isExempt = subFormState.reason.includes('[EXENTO_RETARDO]');
                                           setSubFormState({ ...subFormState, reason: isExempt ? `${e.target.value} [EXENTO_RETARDO]` : e.target.value });
                                         }}
-                                        style={{ flex: 1, padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 800, fontSize: '0.74rem', color: '#0f172a' }}
+                                        style={{ flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontWeight: 600, fontSize: '0.74rem', color: '#0f172a' }}
                                       >
                                         <option value="Solicitud de empleado">Solicitud de empleado</option>
                                         <option value="Cubrir ausencia">Cubrir ausencia</option>
@@ -3338,76 +3329,131 @@ export default function SchedulesPage() {
                                         <button
                                           type="button"
                                           onClick={() => setSubFormState({ ...subFormState, customReason: ' ' })}
-                                          style={{ fontSize: '0.68rem', fontWeight: 800, color: '#0284c7', background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                          style={{ fontSize: '0.68rem', fontWeight: 700, color: '#0284c7', background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                         >
                                           + Nota
                                         </button>
                                       )}
                                     </div>
+
                                     {subFormState.customReason !== '' && (
                                       <input
                                         type="text"
                                         placeholder="Escribe detalle adicional..."
                                         value={subFormState.customReason.trim()}
                                         onChange={e => setSubFormState({ ...subFormState, customReason: e.target.value })}
-                                        style={{ width: '100%', padding: '4px 6px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.72rem', color: '#0f172a' }}
+                                        style={{ width: '100%', padding: '4px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.72rem', color: '#0f172a' }}
                                       />
                                     )}
+
+                                    {/* Switch iOS Neutro / Verde para Exentar Retardos */}
+                                    {(() => {
+                                      const isChecked = subFormState.reason.includes('[EXENTO_RETARDO]');
+                                      return (
+                                        <div style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          padding: '4px 6px',
+                                          borderRadius: 6,
+                                          background: isChecked ? '#f0fdf4' : 'transparent',
+                                          border: isChecked ? '1px solid #bbf7d0' : '1px solid transparent',
+                                          transition: 'all 0.15s ease',
+                                        }}>
+                                          <span style={{ fontSize: '0.72rem', fontWeight: isChecked ? 700 : 500, color: isChecked ? '#15803d' : '#64748b' }}>
+                                            Exentar retardos en checador (marcar A TIEMPO)
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              if (isChecked) {
+                                                setSubFormState({ ...subFormState, reason: subFormState.reason.replace(' [EXENTO_RETARDO]', '').replace('[EXENTO_RETARDO]', '') });
+                                              } else {
+                                                setSubFormState({ ...subFormState, reason: `${subFormState.reason} [EXENTO_RETARDO]` });
+                                              }
+                                            }}
+                                            style={{
+                                              width: 34,
+                                              height: 18,
+                                              borderRadius: 10,
+                                              background: isChecked ? '#16a34a' : '#cbd5e1',
+                                              position: 'relative',
+                                              border: 'none',
+                                              cursor: 'pointer',
+                                              transition: 'background 0.2s ease',
+                                              flexShrink: 0,
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                width: 14,
+                                                height: 14,
+                                                borderRadius: '50%',
+                                                background: '#ffffff',
+                                                position: 'absolute',
+                                                top: 2,
+                                                left: isChecked ? 18 : 2,
+                                                transition: 'left 0.2s ease',
+                                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                              }}
+                                            />
+                                          </button>
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
 
-                                  {/* Replicar en otros días en 1 sola fila de 7 Días */}
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-                                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Replicar:</span>
+                                  {/* GRUPO 3 — REPLICAR */}
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, marginTop: 2 }}>
+                                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>REPLICAR</span>
                                     <div style={{ display: 'flex', gap: 3 }}>
                                       {daysHeader.map((d, dIdx) => (
-                                        <label
+                                        <button
                                           key={dIdx}
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = [...subFormState.replicateDays];
+                                            updated[dIdx] = !updated[dIdx];
+                                            setSubFormState({ ...subFormState, replicateDays: updated });
+                                          }}
                                           style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            width: 22,
-                                            height: 22,
+                                            width: 24,
+                                            height: 24,
                                             borderRadius: 5,
                                             background: subFormState.replicateDays[dIdx] ? '#0284c7' : '#ffffff',
                                             border: subFormState.replicateDays[dIdx] ? '1px solid #0284c7' : '1px solid #cbd5e1',
                                             fontSize: '0.64rem',
-                                            fontWeight: 800,
-                                            color: subFormState.replicateDays[dIdx] ? '#ffffff' : '#475569',
+                                            fontWeight: 700,
+                                            color: subFormState.replicateDays[dIdx] ? '#ffffff' : '#64748b',
                                             cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
                                           }}
                                         >
-                                          <input
-                                            type="checkbox"
-                                            checked={subFormState.replicateDays[dIdx]}
-                                            onChange={e => {
-                                              const updated = [...subFormState.replicateDays];
-                                              updated[dIdx] = e.target.checked;
-                                              setSubFormState({ ...subFormState, replicateDays: updated });
-                                            }}
-                                            style={{ display: 'none' }}
-                                          />
-                                          <span>{d.day[0]}</span>
-                                        </label>
+                                          {d.day[0]}
+                                        </button>
                                       ))}
                                     </div>
                                   </div>
 
                                   {/* Mensaje de Error Inline si aplica */}
                                   {subFormError && (
-                                    <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 6, padding: '4px 6px', fontSize: '0.7rem', fontWeight: 800, color: '#e11d48', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 6, padding: '4px 6px', fontSize: '0.7rem', fontWeight: 600, color: '#e11d48', display: 'flex', alignItems: 'center', gap: 4 }}>
                                       <AlertTriangle size={12} color="#e11d48" />
                                       <span>{subFormError}</span>
                                     </div>
                                   )}
 
-                                  {/* Barra de Resumen + Botones de Acción Integrada en 1 Sola Línea */}
+                                  {/* GRUPO 4 — RESUMEN Y CONFIRMACIÓN */}
                                   {(() => {
                                     const duration = calcShiftDuration(subFormState.shiftStartTime, subFormState.shiftEndTime);
                                     return (
-                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#e0f2fe', borderRadius: 8, padding: '4px 6px', border: '1px solid #bae6fd', gap: 6, marginTop: 2 }}>
-                                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', whiteSpace: 'nowrap' }}>
-                                          {formatTime12h(subFormState.shiftStartTime)} - {formatTime12h(subFormState.shiftEndTime)} ({duration.hours}h{duration.isOvernight ? ' +1d' : ''})
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#e0f2fe', borderRadius: 8, padding: '5px 8px', border: '1px solid #bae6fd', gap: 6, marginTop: 4 }}>
+                                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0369a1', whiteSpace: 'nowrap' }}>
+                                          {item.type === 'CAMBIO_TURNO' ? `${formatTime12h(subFormState.shiftStartTime)} - ${formatTime12h(subFormState.shiftEndTime)} (${duration.hours}h${duration.isOvernight ? ' +1d' : ''})`
+                                            : item.type === 'DOBLE_TURNO' ? `Turno Doble (+${formatTime12h(subFormState.secondShiftStartTime)})`
+                                            : `Traslado ➔ ${subFormState.targetArea || 'BARRA'}`}
                                         </span>
                                         <div style={{ display: 'flex', gap: 4 }}>
                                           <button
@@ -3416,14 +3462,14 @@ export default function SchedulesPage() {
                                               updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL');
                                               setExpandedSubFormIndex(null);
                                             }}
-                                            style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 800, fontSize: '0.7rem', cursor: 'pointer' }}
+                                            style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 600, fontSize: '0.7rem', cursor: 'pointer' }}
                                           >
                                             Cancelar
                                           </button>
                                           <button
                                             type="button"
                                             onClick={() => handleConfirmSubForm(idx)}
-                                            style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                                            style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#ffffff', fontWeight: 700, fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
                                           >
                                             <Check size={12} />
                                             <span>Confirmar</span>
@@ -3436,29 +3482,33 @@ export default function SchedulesPage() {
                               )}
 
                               {/* RESUMEN COLAPSADO EDITABLE TRAS CONFIRMAR (ESTADO COMPACTO DE 1 LÍNEA) */}
-                              {expandedSubFormIndex !== idx && item.type === 'CAMBIO_TURNO' && (
+                              {expandedSubFormIndex !== idx && ['CAMBIO_TURNO', 'DOBLE_TURNO', 'CAMBIO_AREA'].includes(item.type) && (
                                 <div
                                   style={{
                                     marginTop: 8,
                                     padding: '6px 10px',
                                     borderRadius: 10,
-                                    background: '#f0f9ff',
-                                    border: '1px solid #bae6fd',
+                                    background: item.type === 'CAMBIO_TURNO' ? '#f0f9ff' : item.type === 'DOBLE_TURNO' ? '#fffbeb' : '#fff7ed',
+                                    border: `1px solid ${item.type === 'CAMBIO_TURNO' ? '#bae6fd' : item.type === 'DOBLE_TURNO' ? '#fef08a' : '#ffedd5'}`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
                                     gap: 8,
-                                    boxShadow: '0 1px 4px rgba(2, 132, 199, 0.08)',
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                                   }}
                                   className="animate-slide-down"
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                                    <Zap size={14} color="#0284c7" className="shrink-0" />
-                                    <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0369a1', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                      C.Turno: {formatTime12h(item.shiftStartTime || '14:00')} - {formatTime12h(item.shiftEndTime || '22:00')} ({calcShiftDuration(item.shiftStartTime || '14:00', item.shiftEndTime || '22:00').hours}h)
+                                    <Zap size={14} color={item.type === 'CAMBIO_TURNO' ? '#0284c7' : item.type === 'DOBLE_TURNO' ? '#d97706' : '#ea580c'} className="shrink-0" />
+                                    <span style={{ fontSize: '0.76rem', fontWeight: 700, color: item.type === 'CAMBIO_TURNO' ? '#0369a1' : item.type === 'DOBLE_TURNO' ? '#b45309' : '#c2410c', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {item.type === 'CAMBIO_TURNO'
+                                        ? `C.Turno: ${formatTime12h(item.shiftStartTime || '14:00')}-${formatTime12h(item.shiftEndTime || '22:00')} (${calcShiftDuration(item.shiftStartTime || '14:00', item.shiftEndTime || '22:00').hours}h)`
+                                        : item.type === 'DOBLE_TURNO'
+                                        ? `Doble: +${formatTime12h(item.secondShiftStartTime || '18:00')}-${formatTime12h(item.secondShiftEndTime || '02:00')}`
+                                        : `C.Área: ➔ ${item.targetArea || 'BARRA'}`}
                                     </span>
                                     {item.reason && (
-                                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      <span style={{ fontSize: '0.7rem', fontWeight: 500, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         — {item.reason.replace('[EXENTO_RETARDO]', '').trim()}
                                       </span>
                                     )}
@@ -3483,10 +3533,10 @@ export default function SchedulesPage() {
                                       padding: '3px 8px',
                                       borderRadius: 6,
                                       background: '#ffffff',
-                                      border: '1px solid #0284c7',
-                                      color: '#0284c7',
+                                      border: `1px solid ${item.type === 'CAMBIO_TURNO' ? '#0284c7' : item.type === 'DOBLE_TURNO' ? '#d97706' : '#ea580c'}`,
+                                      color: item.type === 'CAMBIO_TURNO' ? '#0284c7' : item.type === 'DOBLE_TURNO' ? '#d97706' : '#ea580c',
                                       fontSize: '0.7rem',
-                                      fontWeight: 800,
+                                      fontWeight: 700,
                                       display: 'flex',
                                       alignItems: 'center',
                                       gap: 4,
