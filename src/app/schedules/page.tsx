@@ -1927,11 +1927,13 @@ export default function SchedulesPage() {
                         <div className="flex flex-col gap-2">
                           {currentItems.map((item, idx) => {
                             const isStandaloneTag = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'CAMBIO ÁREA'].includes(item.text.toUpperCase());
+                            const isKnownEmployee = uniqueAvailableNames.some(n => n.trim().toUpperCase() === item.text.trim().toUpperCase());
 
-                            if (isStandaloneTag) {
-                              let badgeBg = '#ecfdf5';
-                              let badgeBorder = '#a7f3d0';
-                              let badgeColor = '#047857';
+                            // Si es una etiqueta especial o una nota personalizada (como HOLA), renderizar como banner limpio
+                            if (isStandaloneTag || !isKnownEmployee) {
+                              let badgeBg = '#f5f5f4';
+                              let badgeBorder = '#e7e5e4';
+                              let badgeColor = '#44403c';
 
                               if (item.type === 'CAMBIO_TURNO' || item.text.toUpperCase().includes('TURNO')) {
                                 badgeBg = '#f0f9ff'; badgeBorder = '#bae6fd'; badgeColor = '#0369a1';
@@ -1939,23 +1941,39 @@ export default function SchedulesPage() {
                                 badgeBg = '#fffbeb'; badgeBorder = '#fef08a'; badgeColor = '#b45309';
                               } else if (item.type === 'CAMBIO_AREA' || item.text.toUpperCase().includes('AREA')) {
                                 badgeBg = '#fff7ed'; badgeBorder = '#ffedd5'; badgeColor = '#c2410c';
+                              } else if (item.type === 'DESCANSO') {
+                                badgeBg = '#ecfdf5'; badgeBorder = '#a7f3d0'; badgeColor = '#047857';
                               }
 
                               return (
                                 <div
                                   key={idx}
-                                  className="p-2 rounded-xl flex items-center justify-between"
+                                  className="p-2.5 rounded-xl flex items-center justify-between"
                                   style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
                                 >
-                                  <span style={{ fontWeight: 800, fontSize: '0.8rem', color: badgeColor }}>
-                                    {item.text}
+                                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: badgeColor }}>
+                                    {!isKnownEmployee && !isStandaloneTag ? `Nota: ${item.text}` : item.text}
                                   </span>
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '2px 6px', color: '#e11d48', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                                    className="transition-all hover:scale-105 active:scale-95"
+                                    style={{
+                                      background: '#ffffff',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '50%',
+                                      width: 26,
+                                      height: 26,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: '#e11d48',
+                                      cursor: 'pointer',
+                                      flexShrink: 0,
+                                    }}
+                                    title="Quitar"
                                   >
-                                    Quitar
+                                    <Trash2 size={12} />
                                   </button>
                                 </div>
                               );
@@ -1966,39 +1984,63 @@ export default function SchedulesPage() {
                             return (
                               <div
                                 key={idx}
-                                className="p-2.5 rounded-xl flex items-center justify-between gap-2 transition-all"
+                                className="p-3 rounded-xl flex flex-col gap-2.5"
                                 style={{
                                   background: '#ffffff',
                                   border: '1px solid #cbd5e1',
                                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                                 }}
                               >
-                                {/* Izquierda: Avatar Circular e Inicial + Nombre */}
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <div
+                                {/* Fila 1: Avatar + Nombre a la izquierda, Botón Borrar a la derecha */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2.5">
+                                    <div
+                                      style={{
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                                        color: '#ffffff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 800,
+                                        flexShrink: 0,
+                                      }}
+                                    >
+                                      {initials}
+                                    </div>
+                                    <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
+                                      {item.text}
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
+                                    className="transition-all hover:scale-105 active:scale-95"
                                     style={{
-                                      width: 30,
-                                      height: 30,
+                                      background: '#fff1f2',
+                                      border: '1px solid #ffe4e6',
                                       borderRadius: '50%',
-                                      background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-                                      color: '#ffffff',
+                                      width: 28,
+                                      height: 28,
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      fontSize: '0.78rem',
-                                      fontWeight: 800,
+                                      color: '#e11d48',
+                                      cursor: 'pointer',
                                       flexShrink: 0,
                                     }}
+                                    title="Eliminar empleado"
                                   >
-                                    {initials}
-                                  </div>
-                                  <span className="truncate" style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
-                                    {item.text}
-                                  </span>
+                                    <Trash2 size={13} />
+                                  </button>
                                 </div>
 
-                                {/* Centro: Botones de Estado con sus Colores Característicos */}
-                                <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                {/* Fila 2: Selector de Estado de Ancho Completo */}
+                                <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                                   <button
                                     type="button"
                                     style={{
@@ -2006,11 +2048,11 @@ export default function SchedulesPage() {
                                       color: item.type === 'NORMAL' ? '#047857' : '#64748b',
                                       border: item.type === 'NORMAL' ? '1px solid #a7f3d0' : '1px solid transparent',
                                       borderRadius: 6,
-                                      fontSize: '0.7rem',
+                                      fontSize: '0.72rem',
                                       fontWeight: 800,
-                                      padding: '3px 7px',
+                                      padding: '4px 2px',
+                                      textAlign: 'center',
                                       cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'NORMAL')}
                                   >
@@ -2024,11 +2066,11 @@ export default function SchedulesPage() {
                                       color: item.type === 'DESCANSO' ? '#0369a1' : '#64748b',
                                       border: item.type === 'DESCANSO' ? '1px solid #bae6fd' : '1px solid transparent',
                                       borderRadius: 6,
-                                      fontSize: '0.7rem',
+                                      fontSize: '0.72rem',
                                       fontWeight: 800,
-                                      padding: '3px 7px',
+                                      padding: '4px 2px',
+                                      textAlign: 'center',
                                       cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DESCANSO')}
                                   >
@@ -2042,11 +2084,11 @@ export default function SchedulesPage() {
                                       color: item.type === 'CAMBIO_TURNO' ? '#1d4ed8' : '#64748b',
                                       border: item.type === 'CAMBIO_TURNO' ? '1px solid #bfdbfe' : '1px solid transparent',
                                       borderRadius: 6,
-                                      fontSize: '0.7rem',
+                                      fontSize: '0.72rem',
                                       fontWeight: 800,
-                                      padding: '3px 7px',
+                                      padding: '4px 2px',
+                                      textAlign: 'center',
                                       cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'CAMBIO_TURNO')}
                                   >
@@ -2060,41 +2102,17 @@ export default function SchedulesPage() {
                                       color: item.type === 'DOBLE_TURNO' ? '#b45309' : '#64748b',
                                       border: item.type === 'DOBLE_TURNO' ? '1px solid #fef08a' : '1px solid transparent',
                                       borderRadius: 6,
-                                      fontSize: '0.7rem',
+                                      fontSize: '0.72rem',
                                       fontWeight: 800,
-                                      padding: '3px 7px',
+                                      padding: '4px 2px',
+                                      textAlign: 'center',
                                       cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
                                     }}
                                     onClick={() => updateItemType(editModal.rowId, editModal.dayIndex, idx, 'DOBLE_TURNO')}
                                   >
                                     Doble
                                   </button>
                                 </div>
-
-                                {/* Derecha: Botón Eliminar Acomodado y Estilizado */}
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveCell(editModal.rowId, editModal.dayIndex, idx)}
-                                  className="transition-all hover:scale-105 active:scale-95"
-                                  style={{
-                                    background: '#fff1f2',
-                                    border: '1px solid #ffe4e6',
-                                    borderRadius: '50%',
-                                    width: 30,
-                                    height: 30,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#e11d48',
-                                    cursor: 'pointer',
-                                    flexShrink: 0,
-                                    boxShadow: '0 1px 3px rgba(225, 29, 72, 0.1)',
-                                  }}
-                                  title="Eliminar de la celda"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
                               </div>
                             );
                           })}
