@@ -2603,27 +2603,35 @@ export default function SchedulesPage() {
                     </div>
 
                     <div className="grid-7 gap-1 mt-2 text-center" style={{ background: '#f8fafc', padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                      {b.days.map((d, i) => (
-                        <div key={i} className="flex flex-col items-center">
-                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{daysHeader[i]?.day || d.dayName.slice(0, 3)}</span>
-                          <span
-                            style={{
-                              fontSize: '0.65rem',
-                              fontWeight: 800,
-                              marginTop: '2px',
-                              padding: '3px 4px',
-                              borderRadius: '6px',
-                              width: '100%',
-                              background: d.isRest ? '#ecfdf5' : '#fff7ed',
-                              color: d.isRest ? '#047857' : '#c2410c',
-                              border: `1px solid ${d.isRest ? '#a7f3d0' : '#ffedd5'}`,
-                            }}
-                            title={`${d.dayName} ${d.date}: ${d.displayText}`}
-                          >
-                            {d.isRest ? 'Desc' : d.shiftTime}
-                          </span>
-                        </div>
-                      ))}
+                      {Array.from({ length: 7 }, (_, dayIdx) => {
+                        // Buscar si el backend tiene asignación para este dayIndex específico
+                        const assignedDay = b.days.find(d => d.dayIndex === dayIdx);
+                        const header = daysHeader[dayIdx];
+                        const isRest = !assignedDay;
+                        return (
+                          <div key={dayIdx} className="flex flex-col items-center">
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>
+                              {header?.day || ['L','M','M','J','V','S','D'][dayIdx]}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.65rem',
+                                fontWeight: 800,
+                                marginTop: '2px',
+                                padding: '3px 4px',
+                                borderRadius: '6px',
+                                width: '100%',
+                                background: isRest ? '#ecfdf5' : '#fff7ed',
+                                color: isRest ? '#047857' : '#c2410c',
+                                border: `1px solid ${isRest ? '#a7f3d0' : '#ffedd5'}`,
+                              }}
+                              title={assignedDay ? `${assignedDay.dayName} ${assignedDay.date}: ${assignedDay.displayText}` : `${header?.day || ''} ${header?.date || ''}: Descanso`}
+                            >
+                              {isRest ? 'Desc' : assignedDay!.shiftTime}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ));
