@@ -26,7 +26,11 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [daily, setDaily] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // P1: estado de error
+  const [retryCount, setRetryCount] = useState(0);
+  const [retrying, setRetrying] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const MAX_RETRIES = 4;
+  const RETRY_DELAY = 12; // segundos
 
   // P3: todayStr solo se calcula una vez al montar
   const todayStr = useMemo(
@@ -35,19 +39,49 @@ export default function DashboardPage() {
   );
 
   const loadData = useCallback(() => {
-    setError(null);
+    setRetrying(false);
     Promise.all([
-      attendanceApi.getStats(),   // P3: ya incluye totalEmployees
+      attendanceApi.getStats(),
       attendanceApi.getDaily(),
     ]).then(([s, d]) => {
       setStats(s);
       setDaily(d);
-    }).catch((err) => {
-      // P1: evitar skeleton infinito si el servidor responde 503 (Render despertando)
-      console.error('Dashboard load error:', err);
-      setError('No se pudo conectar con el servidor. Reintentando...');
+      setRetryCount(0); // éxito — resetear contador
+    }).catch(() => {
+      setRetryCount(prev => {
+        const next = prev + 1;
+        if (next < MAX_RETRIES) {
+          // Auto-reintentar con countdown (Render despertando)
+          setRetrying(true);
+          setCountdown(RETRY_DELAY);
+        }
+        return next;
+      });
     }).finally(() => setLoading(false));
   }, []);
+
+  // Countdown + auto-retry cuando Render está despertando
+  useEffect(() => {
+    if (!retrying || countdown <= 0) return;
+    if (countdown === 0) {
+      setRetrying(false);
+      setLoading(true);
+      loadData();
+      return;
+    }
+    const t = setTimeout(() => {
+      setCountdown(c => {
+        if (c <= 1) {
+          setRetrying(false);
+          setLoading(true);
+          loadData();
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [retrying, countdown, loadData]);
 
   useEffect(() => {
     loadData();
@@ -65,18 +99,47 @@ export default function DashboardPage() {
   const present = (stats?.onTime ?? 0) + (stats?.late ?? 0);
   const absent = Math.max(0, totalEmployees - present); // P4: nunca negativo
 
-  if (loading) return <DashboardSkeleton />;
+  // Skeleton mientras carga o mientras espera auto-reintento
+  if (loading || retrying) return (
+    <div className="app-wrapper">
+      <Sidebar />
+      <main className="main-content">
+        <div style={{ height: 64, borderRadius: 12 }} className="skeleton mb-8" />
+        <div className="grid-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card">
+              <div className="skeleton" style={{ height: 80 }} />
+            </div>
+          ))}
+        </div>
+        {retrying && (
+          <div style={{ textAlign: 'center', padding: '1rem', color: '#64748b', fontSize: '0.85rem' }}>
+            <Activity size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle', color: '#f59e0b' }} />
+            Servidor despertando... reintentando en {countdown}s
+            <span style={{ color: '#94a3b8', marginLeft: 8 }}>({retryCount}/{MAX_RETRIES})</span>
+          </div>
+        )}
+        <div className="card">
+          <div className="skeleton" style={{ height: 300 }} />
+        </div>
+      </main>
+    </div>
+  );
 
-  // P1: pantalla de error si el servidor no respondió
-  if (error && !stats) return (
+  // Solo mostrar error después de agotar todos los reintentos
+  if (!stats && retryCount >= MAX_RETRIES) return (
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="card" style={{ textAlign: 'center', padding: '2rem', maxWidth: 400 }}>
           <WifiOff size={40} style={{ color: '#ef4444', margin: '0 auto 1rem' }} />
           <h2 style={{ marginBottom: '0.5rem' }}>Sin conexión</h2>
-          <p className="text-muted" style={{ marginBottom: '1rem' }}>{error}</p>
-          <button className="btn btn-primary" onClick={loadData}>Reintentar</button>
+          <p className="text-muted" style={{ marginBottom: '1rem' }}>
+            El servidor no respondió después de {MAX_RETRIES} intentos. Verifica tu conexión.
+          </p>
+          <button className="btn btn-primary" onClick={() => { setRetryCount(0); setLoading(true); loadData(); }}>
+            Reintentar
+          </button>
         </div>
       </main>
     </div>
