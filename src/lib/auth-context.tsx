@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { login as apiLogin, LoginResponse, authApi } from '@/lib/api';
+import { login as apiLogin, LoginResponse } from '@/lib/api';
 import { registerServiceWorker, subscribeUserToPush } from '@/lib/push';
 
 interface AuthContextType {
@@ -31,12 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('user');
 
     if (!stored) {
-      // No hay sesión guardada — terminar loading inmediatamente
       setIsLoading(false);
       return;
     }
 
-    // Optimistic: mostrar el usuario de localStorage para evitar flash de carga
+    // Carga optimista desde localStorage para evitar flash de pantalla vacía
     try {
       setUser(JSON.parse(stored));
     } catch {
@@ -45,23 +44,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // P7: Validar que el JWT en cookie sigue siendo válido contra el servidor
-    // Si el token expiró o fue manipulado, el servidor devolverá 401 y cerramos sesión
-    authApi.getMe()
-      .then((serverUser) => {
-        // Actualizar con los datos frescos del servidor (por si cambió el rol, sucursal, etc.)
-        const merged = { ...JSON.parse(stored), ...serverUser };
-        localStorage.setItem('user', JSON.stringify(merged));
-        setUser(merged);
-        autoSubscribePush();
+    // P7: Validar el JWT en cookie contra el servidor usando fetch directo
+    // (NO apiFetch — ese redirige automáticamente en 401, causando doble redirect)
+    fetch('/api/proxy/auth/me', { credentials: 'same-origin' })
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          // Token expirado o inválido — cerrar sesión
+          localStorage.removeItem('user');
+          setUser(null);
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          return;
+        }
+
+        if (res.ok) {
+          // Actualizar con datos frescos del servidor (rol, sucursal, etc.)
+          const serverUser = await res.json();
+          const merged = { ...JSON.parse(stored), ...serverUser };
+          localStorage.setItem('user', JSON.stringify(merged));
+          setUser(merged);
+          autoSubscribePush();
+        }
+        // Para cualquier otro error (503 Render fría, timeout, red) —
+        // conservar el usuario cacheado. El middleware y el backend rechazarán
+        // las llamadas reales si el token realmente no sirve.
       })
       .catch(() => {
-        // Token expirado o inválido — limpiar sesión
-        localStorage.removeItem('user');
-        setUser(null);
-        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
+        // Error de red — conservar usuario cacheado, no cerrar sesión
       })
       .finally(() => setIsLoading(false));
   }, []);
