@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import {
   Clock,
@@ -48,8 +49,14 @@ export default function LoginPage() {
       <div className="login-centered-card animate-slide-up">
         {/* Brand logo & title */}
         <div className="login-brand-header">
-          <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '130px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-            <img src="/logo.png" alt="Vía Gourmet Restaurante" style={{ width: '100%', height: 'auto', display: 'block' }} />
+          <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '130px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', position: 'relative', height: '130px' }}>
+            <Image
+              src="/logo.png"
+              alt="Vía Gourmet Restaurante"
+              fill
+              style={{ objectFit: 'contain', borderRadius: '10px' }}
+              priority
+            />
           </div>
           <h1 className="brand-title" style={{ fontSize: '1.4rem', fontWeight: 800 }}>Checador de Asistencia</h1>
           <p className="brand-subtitle">Control de Asistencia & Turnos — Vía Gourmet</p>
