@@ -1,4 +1,4 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+export const API_BASE = ''; // Frontend Next.js app is the base now
 
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -14,21 +14,10 @@ export interface LoginResponse {
   shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED' | null;
 }
 
-export async function login(username: string, password: string): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
-  });
-  if (!res.ok) {
-    let errorMsg = 'Error al iniciar sesión';
-    try {
-      const err = await res.json();
-      if (err && err.error) errorMsg = err.error;
-    } catch (_) {}
-    throw new Error(errorMsg);
-  }
-  return res.json();
+// login() moved to AuthContext.login() — kept here only for backward-compat imports.
+// @deprecated Use AuthContext.login() instead.
+export async function login(_username: string, _password: string): Promise<LoginResponse> {
+  throw new Error('Deprecated: Use AuthContext.login() instead.');
 }
 
 export interface RegisterData {
@@ -58,17 +47,21 @@ export async function registerEmployee(data: RegisterData): Promise<LoginRespons
 }
 
 export async function getPublicBranches(): Promise<Branch[]> {
-  const res = await fetch(`${API_BASE}/api/branches/public`);
+  const res = await fetch(`${API_BASE}/api/proxy/branches/public`);
   if (!res.ok) return [];
   return res.json();
 }
 
+// P7: Valida la sesión activa contra el servidor (no confiar solo en localStorage)
+export const authApi = {
+  getMe: () => apiFetch<Omit<LoginResponse, 'token' | 'refreshToken'>>('/api/auth/me'),
+};
+
 // ─── API Client helper ────────────────────────────────────────────────────────
 
+// El servidor (Next.js) ahora inyecta el header Authorization con la cookie
 export function getAuthHeaders(): HeadersInit {
-  if (typeof window === 'undefined') return {};
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : {};
+  return { 'Content-Type': 'application/json' };
 }
 
 export async function apiFetch<T>(path: string, options?: RequestInit & { timeout?: number }): Promise<T> {
@@ -76,20 +69,26 @@ export async function apiFetch<T>(path: string, options?: RequestInit & { timeou
   const timeoutMs = options?.timeout || 8000;
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
+  // Redirigimos al proxy interno (ej: /api/employees -> /api/proxy/employees)
+  const proxyPath = path.startsWith('/api/') ? `/api/proxy/${path.substring(5)}` : path;
+
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetch(`${API_BASE}${proxyPath}`, {
       ...options,
       signal: controller.signal,
       headers: {
         ...getAuthHeaders(),
         ...options?.headers,
       },
+      credentials: 'same-origin',
     });
     clearTimeout(id);
 
     if (res.status === 401) {
-      localStorage.clear();
-      window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        // Redirige al login route handler para limpiar cookies
+        window.location.href = '/login';
+      }
       throw new Error('Sesión expirada');
     }
 
@@ -130,6 +129,7 @@ export interface DashboardStats {
   late: number;
   absent: number;
   date: string;
+  totalEmployees: number; // P3: incluido directamente en el backend para evitar llamada extra
 }
 
 export const attendanceApi = {
@@ -170,10 +170,8 @@ export const attendanceApi = {
 
   /** Descarga el Excel de Pre-Nómina como un blob y lo guarda en el navegador. */
   downloadPayroll: async (year: number, month: number): Promise<void> => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const res = await fetch(
-      `${API_BASE}/api/attendance/admin/payroll?year=${year}&month=${month}`,
-      { headers: { Authorization: token ? `Bearer ${token}` : '' } }
+      `${API_BASE}/api/proxy/attendance/admin/payroll?year=${year}&month=${month}`
     );
     if (!res.ok) throw new Error(`Error ${res.status} al descargar Pre-Nómina`);
     const blob = await res.blob();
@@ -320,10 +318,7 @@ export const reportApi = {
     apiFetch<AttendanceRecord[]>(`/api/reports/monthly?year=${year}&month=${month}`),
 
   downloadExcel: async (year: number, month: number) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/api/reports/excel?year=${year}&month=${month}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(`${API_BASE}/api/proxy/reports/excel?year=${year}&month=${month}`);
     if (!res.ok) throw new Error('Error al descargar el reporte');
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);

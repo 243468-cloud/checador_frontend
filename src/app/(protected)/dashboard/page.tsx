@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { attendanceApi, employeeApi, DashboardStats, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
+import { attendanceApi, DashboardStats, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 import { format } from 'date-fns';
@@ -15,6 +15,7 @@ import {
   ClipboardList,
   ArrowRight,
   Activity,
+  WifiOff,
 } from 'lucide-react';
 
 import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
@@ -24,21 +25,27 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [daily, setDaily] = useState<AttendanceRecord[]>([]);
-  const [totalEmployees, setTotalEmployees] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // P1: estado de error
 
-  const today = new Date();
-  const todayStr = format(today, "EEEE d 'de' MMMM, yyyy", { locale: es });
+  // P3: todayStr solo se calcula una vez al montar
+  const todayStr = useMemo(
+    () => format(new Date(), "EEEE d 'de' MMMM, yyyy", { locale: es }),
+    []
+  );
 
   const loadData = useCallback(() => {
+    setError(null);
     Promise.all([
-      attendanceApi.getStats(),
+      attendanceApi.getStats(),   // P3: ya incluye totalEmployees
       attendanceApi.getDaily(),
-      employeeApi.getAll().catch(() => []),
-    ]).then(([s, d, emps]) => {
+    ]).then(([s, d]) => {
       setStats(s);
       setDaily(d);
-      setTotalEmployees(emps.length);
+    }).catch((err) => {
+      // P1: evitar skeleton infinito si el servidor responde 503 (Render despertando)
+      console.error('Dashboard load error:', err);
+      setError('No se pudo conectar con el servidor. Reintentando...');
     }).finally(() => setLoading(false));
   }, []);
 
@@ -53,10 +60,27 @@ export default function DashboardPage() {
     }
   }, [loadData]));
 
+  // P3: totalEmployees ahora viene directo de stats (un solo endpoint)
+  const totalEmployees = stats?.totalEmployees ?? 0;
   const present = (stats?.onTime ?? 0) + (stats?.late ?? 0);
-  const absent = totalEmployees - present;
+  const absent = Math.max(0, totalEmployees - present); // P4: nunca negativo
 
   if (loading) return <DashboardSkeleton />;
+
+  // P1: pantalla de error si el servidor no respondió
+  if (error && !stats) return (
+    <div className="app-wrapper">
+      <Sidebar />
+      <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '2rem', maxWidth: 400 }}>
+          <WifiOff size={40} style={{ color: '#ef4444', margin: '0 auto 1rem' }} />
+          <h2 style={{ marginBottom: '0.5rem' }}>Sin conexión</h2>
+          <p className="text-muted" style={{ marginBottom: '1rem' }}>{error}</p>
+          <button className="btn btn-primary" onClick={loadData}>Reintentar</button>
+        </div>
+      </main>
+    </div>
+  );
 
   return (
     <div className="app-wrapper">

@@ -25,12 +25,11 @@ const notifApi = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 async function fetch_json(path: string, method: string = 'GET') {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  // El token ya no se usa aquí porque apiFetch y EventSource manejan las cookies automáticamente.
   const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
     },
   });
   if (!res.ok) throw new Error(`Error ${res.status}`);

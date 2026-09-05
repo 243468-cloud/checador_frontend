@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
-
 export interface RealtimeEventData {
   type: string;
   data: any;
@@ -17,10 +15,6 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    const eventSourceUrl = `${API_BASE}/api/events/subscribe?token=${encodeURIComponent(token)}`;
     let eventSource: EventSource | null = null;
     let reconnectTimeout: any = null;
 
@@ -29,7 +23,9 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
 
       try {
         if (eventSource) eventSource.close();
-        eventSource = new EventSource(eventSourceUrl);
+        
+        // Proxy interno. Middleware bloquea si no hay token en cookies.
+        eventSource = new EventSource('/api/proxy/events/stream');
 
         const handleMessage = (e: MessageEvent) => {
           try {
@@ -49,7 +45,6 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
         eventSource.onerror = () => {
           if (eventSource) eventSource.close();
           if (reconnectTimeout) clearTimeout(reconnectTimeout);
-          // Auto-reconnect after 3 seconds if connection drops
           reconnectTimeout = setTimeout(connect, 3000);
         };
       } catch (err) {

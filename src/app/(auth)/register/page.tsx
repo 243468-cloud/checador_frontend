@@ -25,7 +25,7 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setTokenAndUser } = useAuth();
+  const { setUserOnly } = useAuth();
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [form, setForm] = useState({
@@ -76,7 +76,7 @@ export default function RegisterPage() {
       });
 
       // Save token and user in context
-      setTokenAndUser(res.token, res);
+      setUserOnly(res);
 
       // Redirect to check-in or dashboard
       if (res.role === 'EMPLOYEE') {

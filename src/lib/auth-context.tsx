@@ -1,15 +1,15 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { login as apiLogin, LoginResponse } from '@/lib/api';
+import { login as apiLogin, LoginResponse, authApi } from '@/lib/api';
 import { registerServiceWorker, subscribeUserToPush } from '@/lib/push';
 
 interface AuthContextType {
   user: LoginResponse | null;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-  setTokenAndUser: (token: string, user: LoginResponse) => void;
+  logout: () => Promise<void>;
+  setUserOnly: (user: LoginResponse) => void;
   isAuthenticated: boolean;
 }
 
@@ -28,25 +28,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Restaurar sesión desde localStorage
     const stored = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (stored && token) {
-      try {
-        setUser(JSON.parse(stored));
-        autoSubscribePush();
-      } catch {
-        localStorage.clear();
-      }
+
+    if (!stored) {
+      // No hay sesión guardada — terminar loading inmediatamente
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
+
+    // Optimistic: mostrar el usuario de localStorage para evitar flash de carga
+    try {
+      setUser(JSON.parse(stored));
+    } catch {
+      localStorage.removeItem('user');
+      setIsLoading(false);
+      return;
+    }
+
+    // P7: Validar que el JWT en cookie sigue siendo válido contra el servidor
+    // Si el token expiró o fue manipulado, el servidor devolverá 401 y cerramos sesión
+    authApi.getMe()
+      .then((serverUser) => {
+        // Actualizar con los datos frescos del servidor (por si cambió el rol, sucursal, etc.)
+        const merged = { ...JSON.parse(stored), ...serverUser };
+        localStorage.setItem('user', JSON.stringify(merged));
+        setUser(merged);
+        autoSubscribePush();
+      })
+      .catch(() => {
+        // Token expirado o inválido — limpiar sesión
+        localStorage.removeItem('user');
+        setUser(null);
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
-  // Keep-Alive background ping to prevent Render free tier spin-down (ping every 10 minutes)
+  // Keep-Alive background ping
   useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     const pingBackend = () => {
-      fetch(`${API_BASE}/api/branches/public`).catch(() => {});
+      fetch(`/api/proxy/branches/public`).catch(() => {});
     };
 
     pingBackend();
@@ -55,31 +78,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (username: string, password: string) => {
-    const data = await apiLogin(username, password);
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('refreshToken', data.refreshToken);
+    // Llama al route handler de Next.js, no al backend directamente
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Error al iniciar sesión' }));
+      throw new Error(err.error || 'Error al iniciar sesión');
+    }
+
+    const data = await res.json();
     localStorage.setItem('user', JSON.stringify(data));
     setUser(data);
     autoSubscribePush();
   };
 
-  const setTokenAndUser = (token: string, userData: LoginResponse) => {
-    localStorage.setItem('token', token);
-    if (userData.refreshToken) {
-      localStorage.setItem('refreshToken', userData.refreshToken);
-    }
+  const setUserOnly = (userData: LoginResponse) => {
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.clear();
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    localStorage.removeItem('user');
     setUser(null);
     window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, setTokenAndUser, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, setUserOnly, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

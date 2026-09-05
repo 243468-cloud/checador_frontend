@@ -42,14 +42,12 @@ export async function subscribeUserToPush(silent: boolean = false): Promise<bool
     const reg = await registerServiceWorker();
     if (!reg) throw new Error('No se pudo obtener el registro del Service Worker.');
 
-    // Fetch VAPID Public Key from Backend
-    const token = localStorage.getItem('token');
-    const resKey = await fetch(`${API_BASE}/api/push/public-key`, {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-    });
-    if (!resKey.ok) throw new Error('Error al obtener la clave VAPID pública.');
+    // 3. Pedir la public key del VAPID
+    const resKey = await fetch('/api/proxy/push/public-key');
+    if (!resKey.ok) {
+      console.warn('No se pudo obtener VAPID public key');
+      return false;
+    }
     const { publicKey } = await resKey.json();
 
     const convertedKey = urlBase64ToUint8Array(publicKey);
@@ -58,21 +56,11 @@ export async function subscribeUserToPush(silent: boolean = false): Promise<bool
       applicationServerKey: convertedKey as unknown as BufferSource,
     });
 
-    // Send subscription object to Backend API
-    const subJson = subscription.toJSON();
-    const resSub = await fetch(`${API_BASE}/api/push/subscribe`, {
+    // 3. Enviar subscripción al backend (el proxy maneja el token)
+    const resSub = await fetch('/api/proxy/push/subscribe', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-      body: JSON.stringify({
-        endpoint: subJson.endpoint,
-        keys: {
-          p256dh: subJson.keys?.p256dh,
-          auth: subJson.keys?.auth,
-        },
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(subscription),
     });
 
     if (!resSub.ok) throw new Error('Falló el registro de suscripción Push en el servidor.');
