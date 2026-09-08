@@ -42,6 +42,8 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
     
     // We remove the transfer-encoding header if it exists because NextJS handles chunking automatically
     resHeaders.delete('transfer-encoding');
+    resHeaders.delete('content-encoding'); // Next.js fetch decompresses automatically
+    resHeaders.delete('content-length');   // Length changes after decompression
 
     return new NextResponse(backendRes.body, {
       status: backendRes.status,
