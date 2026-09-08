@@ -6,46 +6,50 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   const pathParts = resolvedParams.path.join('/');
-  const searchParams = req.nextUrl.search; // get query string
+  const searchParams = req.nextUrl.search;
   const backendUrl = `${API_BASE}/api/${pathParts}${searchParams}`;
 
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
-  const headers = new Headers();
-  // Forward original headers (safely)
-  req.headers.forEach((value, key) => {
-      const lowerKey = key.toLowerCase();
-      // Don't forward host or cookie to backend to prevent mismatch and leaking next cookies.
-      // Don't forward accept-encoding to prevent backend from compressing, which causes decoding errors in the proxy. Vercel compresses the final response anyway.
-      if (lowerKey !== 'host' && lowerKey !== 'cookie' && lowerKey !== 'accept-encoding') {
-          headers.set(key, value);
-      }
-  });
+  // Build clean headers — only forward safe headers to backend
+  const forwardHeaders: Record<string, string> = {
+    'content-type': req.headers.get('content-type') || 'application/json',
+    'accept': 'application/json',
+    // Do NOT forward accept-encoding — backend must respond uncompressed
+    // so that Next.js can pass the body through without decoding issues
+  };
 
   if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+    forwardHeaders['Authorization'] = `Bearer ${token}`;
   }
 
   try {
     const backendRes = await fetch(backendUrl, {
       method: req.method,
-      headers,
+      headers: forwardHeaders,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined,
-      // Pass-through cache control is recommended but fetch does its own thing often
     });
 
-    // We can pipe the response back
+    // Read body as a buffer so Next.js has already decompressed it (fetch auto-decompresses)
+    const bodyBuffer = await backendRes.arrayBuffer();
+
+    // Only forward safe, non-encoding headers to the browser
     const resHeaders = new Headers();
+    const SKIP_HEADERS = new Set([
+      'transfer-encoding',
+      'content-encoding', // body is already decoded by fetch above
+      'content-length',   // length changed after decompression — browser will compute it
+      'connection',
+      'keep-alive',
+    ]);
     backendRes.headers.forEach((value, key) => {
-        // Next.js handles CORS internally for API routes, but we can pass through content-type and others
+      if (!SKIP_HEADERS.has(key.toLowerCase())) {
         resHeaders.set(key, value);
+      }
     });
-    
-    // We remove the transfer-encoding header if it exists because NextJS handles chunking automatically
-    resHeaders.delete('transfer-encoding');
 
-    return new NextResponse(backendRes.body, {
+    return new NextResponse(bodyBuffer, {
       status: backendRes.status,
       statusText: backendRes.statusText,
       headers: resHeaders,

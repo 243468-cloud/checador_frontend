@@ -16,21 +16,20 @@ interface Notif {
 }
 
 const notifApi = {
-  getAll: () => fetch_json('/api/notifications'),
-  getUnreadCount: () => fetch_json('/api/notifications/unread-count'),
-  markAllRead: () => fetch_json('/api/notifications/mark-all-read', 'POST'),
-  markOneRead: (id: number) => fetch_json(`/api/notifications/${id}/read`, 'PATCH'),
+  getAll: () => fetch_json('/api/proxy/notifications'),
+  getUnreadCount: () => fetch_json('/api/proxy/notifications/unread-count'),
+  markAllRead: () => fetch_json('/api/proxy/notifications/mark-all-read', 'POST'),
+  markOneRead: (id: number) => fetch_json(`/api/proxy/notifications/${id}/read`, 'PATCH'),
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
-
+// Nota: fetch_json siempre va a través del proxy interno (/api/proxy/*) para
+// que el middleware de Next.js inyecte el header Authorization con la cookie JWT
+// y no haya problemas de CORS con el backend en Render.
 async function fetch_json(path: string, method: string = 'GET') {
-  // El token ya no se usa aquí porque apiFetch y EventSource manejan las cookies automáticamente.
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(path, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
   });
   if (!res.ok) throw new Error(`Error ${res.status}`);
   return res.json();

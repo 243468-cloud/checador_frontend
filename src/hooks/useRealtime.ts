@@ -24,10 +24,17 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
       try {
         if (eventSource) eventSource.close();
         
-        // Proxy interno. Middleware bloquea si no hay token en cookies.
         eventSource = new EventSource('/api/proxy/events/stream');
 
+        // Si el servidor responde 404 (endpoint SSE no disponible en el backend),
+        // el EventSource fallará de inmediato. Detectamos esto con un timeout corto:
+        // si en 5s no recibe ningún mensaje y hay error, desactivamos SSE permanentemente.
+        let connected = false;
+
+        eventSource.onopen = () => { connected = true; };
+
         const handleMessage = (e: MessageEvent) => {
+          connected = true;
           try {
             const parsed = JSON.parse(e.data);
             if (parsed.type !== 'PING' && parsed.type !== 'CONNECTED') {
@@ -45,7 +52,13 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
         eventSource.onerror = () => {
           if (eventSource) eventSource.close();
           if (reconnectTimeout) clearTimeout(reconnectTimeout);
-          reconnectTimeout = setTimeout(connect, 3000);
+          if (!connected) {
+            // El endpoint SSE no existe en el backend — no reconectar
+            console.warn('[SSE] Endpoint no disponible, modo sin tiempo real activo.');
+            return;
+          }
+          // Sí estaba conectado y se cortó — reintentar después de 5s
+          reconnectTimeout = setTimeout(connect, 5000);
         };
       } catch (err) {
         console.error('Error iniciando conexión SSE en vivo:', err);
