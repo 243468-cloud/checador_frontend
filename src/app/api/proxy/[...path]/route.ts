@@ -15,8 +15,10 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   const headers = new Headers();
   // Forward original headers (safely)
   req.headers.forEach((value, key) => {
-      // Don't forward host or cookie to backend to prevent mismatch and leaking next cookies
-      if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'cookie') {
+      const lowerKey = key.toLowerCase();
+      // Don't forward host or cookie to backend to prevent mismatch and leaking next cookies.
+      // Don't forward accept-encoding to prevent backend from compressing, which causes decoding errors in the proxy. Vercel compresses the final response anyway.
+      if (lowerKey !== 'host' && lowerKey !== 'cookie' && lowerKey !== 'accept-encoding') {
           headers.set(key, value);
       }
   });
@@ -42,8 +44,6 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
     
     // We remove the transfer-encoding header if it exists because NextJS handles chunking automatically
     resHeaders.delete('transfer-encoding');
-    resHeaders.delete('content-encoding'); // Next.js fetch decompresses automatically
-    resHeaders.delete('content-length');   // Length changes after decompression
 
     return new NextResponse(backendRes.body, {
       status: backendRes.status,
