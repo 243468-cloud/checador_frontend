@@ -19,6 +19,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/icons') ||
     pathname === '/favicon.ico' ||
+    pathname === '/logo.png' ||
+    pathname === '/apple-touch-icon.png' ||
     pathname === '/manifest.json' ||
     pathname === '/sw.js'
   ) {
