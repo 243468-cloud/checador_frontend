@@ -50,13 +50,10 @@ export default function LoginPage() {
         {/* Brand logo & title */}
         <div className="login-brand-header">
           <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '130px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '130px' }}>
-            <Image
+            <img
               src="/logo.png"
               alt="Vía Gourmet Restaurante"
-              width={114}
-              height={114}
-              style={{ objectFit: 'contain', borderRadius: '10px' }}
-              priority
+              style={{ width: '114px', height: '114px', objectFit: 'contain', borderRadius: '10px' }}
             />
           </div>
           <h1 className="brand-title" style={{ fontSize: '1.4rem', fontWeight: 800 }}>Checador de Asistencia</h1>
