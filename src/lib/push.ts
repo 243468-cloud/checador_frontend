@@ -74,13 +74,12 @@ export async function subscribeUserToPush(silent: boolean = false): Promise<bool
 
 export async function sendTestPushNotification(): Promise<boolean> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/api/push/test`, {
+    // Usar el proxy para que el middleware inyecte el JWT desde cookie httpOnly
+    // NO leer el token de localStorage — va en cookie y no debe exponerse al JS
+    const res = await fetch('/api/proxy/push/test', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
     });
     return res.ok;
   } catch {
