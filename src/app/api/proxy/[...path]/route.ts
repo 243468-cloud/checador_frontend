@@ -9,6 +9,12 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   const searchParams = req.nextUrl.search;
   const backendUrl = `${API_BASE}/api/${pathParts}${searchParams}`;
 
+  // El backend no tiene endpoint SSE — devolver 204 inmediatamente
+  // para evitar que el proxy intente hacer arrayBuffer() en un stream infinito
+  if (pathParts === 'events/stream') {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 

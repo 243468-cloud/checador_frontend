@@ -70,13 +70,15 @@ export function useRealtime(onEvent: (event: RealtimeEventData) => void) {
       headers: { Accept: 'text/event-stream' },
       signal: AbortSignal.timeout(5000),
     }).then((res) => {
-      if (res.ok || res.status === 0) {
-        // El endpoint existe — conectar via EventSource
+      if (res.status === 200) {
+        // El endpoint existe y acepta SSE — conectar
         connect();
+      } else {
+        // 204 = backend sin SSE, 404, 500, etc. → desactivar permanentemente
+        sseDisabled = true;
       }
-      // Si retorna 404, 500, etc. → sseDisabled = true implícitamente (connect() nunca se llama)
     }).catch(() => {
-      // Error de red o timeout — no intentar SSE
+      sseDisabled = true;
     });
 
     const handleVisibilityOrFocus = () => {
