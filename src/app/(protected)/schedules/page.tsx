@@ -4378,7 +4378,7 @@ export default function SchedulesPage() {
           </div>
         )}
 
-        {/* Modal: Exportar Reporte PDF (DISEÑO PREMIUM & BOTONES CONSISTENTES) */}
+        {/* Modal: Exportar Reporte PDF (DISEÑO ULTRA PREMIUM & RESPONSIVE) */}
         {showReportConfigModal && (
           <div
             className="modal-overlay"
@@ -4386,8 +4386,9 @@ export default function SchedulesPage() {
               position: 'fixed',
               inset: 0,
               zIndex: 99999,
-              background: 'rgba(15, 23, 42, 0.75)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -4399,89 +4400,157 @@ export default function SchedulesPage() {
               className="animate-slide-up"
               style={{
                 width: '100%',
-                maxWidth: 380,
+                maxWidth: 400,
                 background: '#ffffff',
-                border: '1px solid rgba(225, 29, 72, 0.18)',
+                border: '1px solid rgba(225, 29, 72, 0.15)',
                 borderRadius: 24,
-                boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
+                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(225, 29, 72, 0.05)',
                 padding: '24px',
                 color: '#0f172a',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
               }}
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between pb-3.5 mb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <div className="flex items-center gap-2.5">
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#fff1f2', border: '1px solid #fecdd3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FileText size={18} color="#e11d48" />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingBottom: '14px',
+                  borderBottom: '1px solid #f1f5f9',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 12,
+                      background: 'linear-gradient(135deg, #fff1f2, #ffe4e6)',
+                      border: '1px solid #fecdd3',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(225, 29, 72, 0.12)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <FileText size={22} color="#e11d48" />
                   </div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
-                    Exportar Reporte PDF
-                  </h3>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                      Exportar Reporte PDF
+                    </h3>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0 0', fontWeight: 500 }}>
+                      Configura el formato del documento
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  style={{ width: 32, height: 32, borderRadius: '50%', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}
-                  className="hover:bg-slate-200 active:scale-90"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease',
+                  }}
                   onClick={() => setShowReportConfigModal(false)}
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              {/* Minimal Controls */}
-              <div className="flex flex-col gap-4 mb-5">
+              {/* Controls Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Orientation Segmented Control */}
-                <div>
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8, display: 'block' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                     Orientación de Página
                   </label>
-                  <div style={{ display: 'flex', padding: 4, background: '#f1f5f9', borderRadius: 14, border: '1px solid #e2e8f0', gap: 4 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      padding: 4,
+                      background: '#f1f5f9',
+                      borderRadius: 14,
+                      border: '1px solid #e2e8f0',
+                      gap: 6,
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setReportConfig({ ...reportConfig, orientation: 'landscape' })}
                       style={{
                         flex: 1,
-                        height: 38,
+                        height: 40,
                         borderRadius: 10,
-                        fontSize: '0.8rem',
-                        fontWeight: reportConfig.orientation === 'landscape' ? 800 : 700,
-                        border: reportConfig.orientation === 'landscape' ? '1px solid rgba(225, 29, 72, 0.15)' : 'none',
+                        fontSize: '0.82rem',
+                        fontWeight: reportConfig.orientation === 'landscape' ? 800 : 600,
+                        border: reportConfig.orientation === 'landscape' ? '1.5px solid rgba(225, 29, 72, 0.2)' : '1.5px solid transparent',
                         background: reportConfig.orientation === 'landscape' ? '#ffffff' : 'transparent',
                         color: reportConfig.orientation === 'landscape' ? '#e11d48' : '#64748b',
-                        boxShadow: reportConfig.orientation === 'landscape' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                        boxShadow: reportConfig.orientation === 'landscape' ? '0 4px 12px rgba(225, 29, 72, 0.12)' : 'none',
                         cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
                         transition: 'all 0.18s ease',
                       }}
-                      className="active:scale-98"
                     >
-                      Horizontal
+                      <span style={{ fontSize: '1rem', lineHeight: 1 }}>📐</span>
+                      <span>Horizontal</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setReportConfig({ ...reportConfig, orientation: 'portrait' })}
                       style={{
                         flex: 1,
-                        height: 38,
+                        height: 40,
                         borderRadius: 10,
-                        fontSize: '0.8rem',
-                        fontWeight: reportConfig.orientation === 'portrait' ? 800 : 700,
-                        border: reportConfig.orientation === 'portrait' ? '1px solid rgba(225, 29, 72, 0.15)' : 'none',
+                        fontSize: '0.82rem',
+                        fontWeight: reportConfig.orientation === 'portrait' ? 800 : 600,
+                        border: reportConfig.orientation === 'portrait' ? '1.5px solid rgba(225, 29, 72, 0.2)' : '1.5px solid transparent',
                         background: reportConfig.orientation === 'portrait' ? '#ffffff' : 'transparent',
                         color: reportConfig.orientation === 'portrait' ? '#e11d48' : '#64748b',
-                        boxShadow: reportConfig.orientation === 'portrait' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                        boxShadow: reportConfig.orientation === 'portrait' ? '0 4px 12px rgba(225, 29, 72, 0.12)' : 'none',
                         cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
                         transition: 'all 0.18s ease',
                       }}
-                      className="active:scale-98"
                     >
-                      Vertical
+                      <span style={{ fontSize: '1rem', lineHeight: 1 }}>📄</span>
+                      <span>Vertical</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Custom Checkboxes Card */}
-                <div style={{ background: '#f8fafc', padding: 6, borderRadius: 14, border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {/* Custom Options Card */}
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    padding: '8px',
+                    borderRadius: 16,
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
                   <div
                     onClick={() => setReportConfig({ ...reportConfig, includeSummary: !reportConfig.includeSummary })}
                     style={{
@@ -4492,15 +4561,17 @@ export default function SchedulesPage() {
                       gap: 12,
                       cursor: 'pointer',
                       userSelect: 'none',
-                      transition: 'background 0.15s ease',
+                      background: reportConfig.includeSummary ? '#ffffff' : 'transparent',
+                      border: reportConfig.includeSummary ? '1px solid rgba(225, 29, 72, 0.15)' : '1px solid transparent',
+                      boxShadow: reportConfig.includeSummary ? '0 2px 8px rgba(0, 0, 0, 0.04)' : 'none',
+                      transition: 'all 0.15s ease',
                     }}
-                    className="hover:bg-slate-200/60 active:scale-98"
                   >
                     <div
                       style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 6,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 7,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -4508,12 +4579,13 @@ export default function SchedulesPage() {
                         border: reportConfig.includeSummary ? 'none' : '1.5px solid #cbd5e1',
                         color: '#ffffff',
                         flexShrink: 0,
+                        boxShadow: reportConfig.includeSummary ? '0 2px 6px rgba(225, 29, 72, 0.25)' : 'none',
                         transition: 'all 0.15s ease',
                       }}
                     >
                       {reportConfig.includeSummary && <Check size={14} strokeWidth={3} />}
                     </div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>
                       Incluir hoja de resumen por empleado
                     </span>
                   </div>
@@ -4528,15 +4600,17 @@ export default function SchedulesPage() {
                       gap: 12,
                       cursor: 'pointer',
                       userSelect: 'none',
-                      transition: 'background 0.15s ease',
+                      background: reportConfig.includeLegend ? '#ffffff' : 'transparent',
+                      border: reportConfig.includeLegend ? '1px solid rgba(225, 29, 72, 0.15)' : '1px solid transparent',
+                      boxShadow: reportConfig.includeLegend ? '0 2px 8px rgba(0, 0, 0, 0.04)' : 'none',
+                      transition: 'all 0.15s ease',
                     }}
-                    className="hover:bg-slate-200/60 active:scale-98"
                   >
                     <div
                       style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 6,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 7,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -4544,20 +4618,28 @@ export default function SchedulesPage() {
                         border: reportConfig.includeLegend ? 'none' : '1.5px solid #cbd5e1',
                         color: '#ffffff',
                         flexShrink: 0,
+                        boxShadow: reportConfig.includeLegend ? '0 2px 6px rgba(225, 29, 72, 0.25)' : 'none',
                         transition: 'all 0.15s ease',
                       }}
                     >
                       {reportConfig.includeLegend && <Check size={14} strokeWidth={3} />}
                     </div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>
                       Incluir convención de colores
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons (Equal 50/50 Width & Height) */}
-              <div className="flex items-center gap-3 mt-5">
+              {/* Action Buttons */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginTop: '4px',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setShowReportConfigModal(false)}
@@ -4568,7 +4650,7 @@ export default function SchedulesPage() {
                     border: '1.5px solid #cbd5e1',
                     background: '#ffffff',
                     color: '#475569',
-                    fontWeight: 800,
+                    fontWeight: 700,
                     fontSize: '0.84rem',
                     display: 'flex',
                     alignItems: 'center',
@@ -4576,7 +4658,6 @@ export default function SchedulesPage() {
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
-                  className="hover:bg-slate-50 active:scale-95"
                 >
                   Cancelar
                 </button>
@@ -4587,7 +4668,7 @@ export default function SchedulesPage() {
                     setShowReportConfigModal(false);
                   }}
                   style={{
-                    flex: 1,
+                    flex: 1.2,
                     height: 44,
                     borderRadius: 12,
                     border: 'none',
@@ -4598,12 +4679,11 @@ export default function SchedulesPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 6,
-                    boxShadow: '0 4px 14px rgba(225, 29, 72, 0.25)',
+                    gap: 8,
+                    boxShadow: '0 4px 14px rgba(225, 29, 72, 0.3)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
-                  className="hover:opacity-95 active:scale-95"
                 >
                   <FileText size={16} />
                   <span>Generar PDF</span>
