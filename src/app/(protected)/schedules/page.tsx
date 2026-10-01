@@ -1831,7 +1831,9 @@ export default function SchedulesPage() {
     doc.save(`Reporte_Rol_Semanal_${user?.branchName || 'Empresa'}.pdf`);
   };
 
-  const exportIndividualPDF = (employeeName: string) => {
+  const exportIndividualPDF = async (employeeName: string) => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
     const doc = new jsPDF('p', 'mm', 'a4');
     doc.setFillColor(15, 23, 42);
     doc.rect(0, 0, 210, 30, 'F');
