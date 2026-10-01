@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { attendanceApi, AttendanceRecord, STATUS_LABELS, SHIFT_LABELS } from '@/lib/api';
+import { attendanceApi, reportApi, AttendanceRecord, STATUS_LABELS, SHIFT_LABELS } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/Sidebar';
 import {
@@ -189,7 +189,7 @@ export default function ReportsPage() {
   const downloadExcel = async () => {
     setDownloading(true);
     try {
-      await attendanceApi.downloadPayroll(year, month);
+      await reportApi.downloadExcel(year, month, periodType, subPeriod);
     } catch (err: unknown) {
       alert('Error descargando reporte: ' + (err instanceof Error ? err.message : 'Error'));
     } finally {
@@ -201,7 +201,7 @@ export default function ReportsPage() {
   const downloadPayroll = async () => {
     setDownloadingPayroll(true);
     try {
-      await attendanceApi.downloadPayroll(year, month);
+      await attendanceApi.downloadPayroll(year, month, periodType, subPeriod);
     } catch (err: unknown) {
       alert('Error descargando Pre-Nómina: ' + (err instanceof Error ? err.message : 'Error'));
     } finally {

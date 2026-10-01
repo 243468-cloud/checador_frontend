@@ -6,9 +6,7 @@ import { employeeApi, reportApi, scheduleApi, AttendanceRecord, Employee, Roster
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// Lazy loaded modules (XLSX, jsPDF) will be imported dynamically when needed
 import {
   Clock,
   Plus,
@@ -1471,7 +1469,8 @@ export default function SchedulesPage() {
   // -------------------------------------------------------------
   // EXPORT TO EXCEL (100% PURE SCHEDULE DATA & CONFIGURABLE)
   // -------------------------------------------------------------
-  const exportRosterToExcelWithConfig = () => {
+  const exportRosterToExcelWithConfig = async () => {
+    const XLSX = await import('xlsx');
     const headerRow = ['ÁREA / TURNO', ...daysHeader.map(d => `${d.day} ${d.date}`)];
     const rowsData: any[] = [
       [reportConfig.title.toUpperCase()],
@@ -1532,7 +1531,9 @@ export default function SchedulesPage() {
   // -------------------------------------------------------------
   // EXPORT TO PDF (100% PURE SCHEDULE DATA & CONFIGURABLE)
   // -------------------------------------------------------------
-  const exportRosterToPDFWithConfig = () => {
+  const exportRosterToPDFWithConfig = async () => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
     const isLandscape = reportConfig.orientation === 'landscape';
     const doc = new jsPDF({
       orientation: reportConfig.orientation,

@@ -169,18 +169,23 @@ export const attendanceApi = {
     apiFetch<{ message: string }>(`/api/attendance/admin/${id}`, { method: 'DELETE' }),
 
   /** Descarga el Excel de Pre-Nómina como un blob y lo guarda en el navegador. */
-  downloadPayroll: async (year: number, month: number): Promise<void> => {
-    const res = await fetch(
-      `${API_BASE}/api/proxy/attendance/admin/payroll?year=${year}&month=${month}`
-    );
+  downloadPayroll: async (year: number, month: number, periodType?: string, subPeriod?: number): Promise<void> => {
+    let url = `${API_BASE}/api/proxy/attendance/admin/payroll?year=${year}&month=${month}`;
+    if (periodType) url += `&periodType=${periodType}`;
+    if (subPeriod) url += `&subPeriod=${subPeriod}`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`Error ${res.status} al descargar Pre-Nómina`);
     const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
+    const blobUrl  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `prenomina_${month}_${year}.xlsx`;
+    a.href     = blobUrl;
+    let filename = `prenomina_${month}_${year}.xlsx`;
+    if (periodType && subPeriod && periodType !== 'MONTHLY') {
+        filename = `prenomina_${periodType.toLowerCase()}_${subPeriod}_${month}_${year}.xlsx`;
+    }
+    a.download = filename;
     a.click();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(blobUrl);
   },
 };
 
@@ -317,14 +322,21 @@ export const reportApi = {
   getMonthly: (year: number, month: number) =>
     apiFetch<AttendanceRecord[]>(`/api/reports/monthly?year=${year}&month=${month}`),
 
-  downloadExcel: async (year: number, month: number) => {
-    const res = await fetch(`${API_BASE}/api/proxy/reports/excel?year=${year}&month=${month}`);
+  downloadExcel: async (year: number, month: number, periodType?: string, subPeriod?: number) => {
+    let urlStr = `${API_BASE}/api/proxy/reports/excel?year=${year}&month=${month}`;
+    if (periodType) urlStr += `&periodType=${periodType}`;
+    if (subPeriod) urlStr += `&subPeriod=${subPeriod}`;
+    const res = await fetch(urlStr);
     if (!res.ok) throw new Error('Error al descargar el reporte');
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `asistencia-${year}-${String(month).padStart(2, '0')}.xlsx`;
+    let filename = `asistencia-${year}-${String(month).padStart(2, '0')}.xlsx`;
+    if (periodType && subPeriod && periodType !== 'MONTHLY') {
+        filename = `asistencia-${periodType.toLowerCase()}-${subPeriod}-${year}-${String(month).padStart(2, '0')}.xlsx`;
+    }
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   },
