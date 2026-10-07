@@ -13,6 +13,9 @@ import {
   X,
   Loader2,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), { ssr: false });
 
 export default function BranchesPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -147,7 +150,7 @@ export default function BranchesPage() {
 
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-card" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-card" style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div className="modal-header">
                 <div className="modal-header-title">
                   <Building2 size={20} color="#e11d48" />
@@ -165,18 +168,18 @@ export default function BranchesPage() {
                     <label>Dirección</label>
                     <input className="form-input" placeholder="Dirección completa" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
                   </div>
-                  <div className="grid-2">
-                    <div className="form-group">
-                      <label>Latitud *</label>
-                      <input type="number" step="any" className="form-input" placeholder="19.4326" value={form.latitude} onChange={e => setForm(p => ({ ...p, latitude: e.target.value }))} required />
-                    </div>
-                    <div className="form-group">
-                      <label>Longitud *</label>
-                      <input type="number" step="any" className="form-input" placeholder="-99.1332" value={form.longitude} onChange={e => setForm(p => ({ ...p, longitude: e.target.value }))} required />
-                    </div>
+                  <div className="form-group mt-4">
+                    <label>Ubicación y Área Permitida *</label>
+                    <LocationPickerMap
+                      initialLat={Number(form.latitude) || 19.4326}
+                      initialLng={Number(form.longitude) || -99.1332}
+                      initialRadius={Number(form.radiusMeters) || 100}
+                      onLocationChange={(lat, lng) => setForm(p => ({ ...p, latitude: String(lat), longitude: String(lng) }))}
+                      onRadiusChange={(radius) => setForm(p => ({ ...p, radiusMeters: String(radius) }))}
+                    />
                   </div>
-                  <div className="grid-2">
-                    <div className="form-group">
+                  <div className="grid-2 mt-4">
+                    <div className="form-group" style={{ display: 'none' }}>
                       <label>Radio GPS (metros)</label>
                       <input type="number" className="form-input" min="10" max="5000" value={form.radiusMeters} onChange={e => setForm(p => ({ ...p, radiusMeters: e.target.value }))} />
                     </div>
