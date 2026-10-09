@@ -106,30 +106,29 @@ export default function EmployeesPage() {
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        <div className="page-header flex-wrap gap-4">
-          <div>
+        <div className="page-header">
+          <div style={{ flex: 1 }}>
             <h1 className="page-title">Empleados</h1>
             <p className="page-subtitle">{employees.filter(e => e.active).length} empleados activos</p>
           </div>
-          <div className="page-actions flex items-center gap-3 flex-wrap flex-1 max-w-lg justify-end">
-            <div className="input-wrapper flex-1 min-w-[200px]" style={{ position: 'relative' }}>
-              <span className="input-icon" style={{ position: 'absolute', left: 12, top: 10, color: 'var(--color-text-muted)', zIndex: 2 }}>
-                <Search size={16} />
-              </span>
-              <input
-                id="search-employees"
-                type="text"
-                className="form-input"
-                placeholder="Buscar empleado..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{ paddingLeft: 36, width: '100%' }}
-              />
-            </div>
-            <button id="btn-new-employee" className="btn btn-primary flex items-center gap-2 flex-shrink-0" onClick={openCreate}>
-              <Plus size={16} />
-              <span>Nuevo Empleado</span>
-            </button>
+          <button id="btn-new-employee" className="btn btn-primary" onClick={openCreate} style={{ padding: '12px 20px', borderRadius: '100px' }}>
+            <Plus size={18} />
+            <span style={{ display: 'none' }} className="sm:inline">Nuevo Empleado</span>
+          </button>
+        </div>
+
+        {/* Búsqueda Universal iOS Style */}
+        <div className="mb-6" style={{ position: 'relative', maxWidth: 500 }}>
+          <input 
+            type="text" 
+            className="form-input" 
+            placeholder="Buscar por nombre o usuario..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ paddingLeft: 44, borderRadius: 16, background: '#ffffff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}
+          />
+          <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8e8e93' }}>
+            <Search size={18} />
           </div>
         </div>
 
@@ -148,59 +147,25 @@ export default function EmployeesPage() {
         ) : (
           <div className="grid-3 stagger">
             {filtered.map(emp => (
-              <div key={emp.id} className="card animate-slide-up" style={{ opacity: emp.active ? 1 : 0.55 }}>
+              <div 
+                key={emp.id} 
+                className="card animate-slide-up" 
+                style={{ opacity: emp.active ? 1 : 0.55, cursor: 'pointer', transition: 'transform 0.15s' }}
+                onClick={() => openEdit(emp)}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <div style={{
-                    width: 46, height: 46,
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${shiftColors[emp.shiftType] || '#2563eb'}, ${shiftColors[emp.shiftType] || '#0284c7'})`,
+                    width: 48, height: 48,
+                    borderRadius: '16px',
+                    background: `${shiftColors[emp.shiftType] || '#007aff'}15`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 15, fontWeight: 800, color: '#fff',
+                    fontSize: 16, fontWeight: 700, color: shiftColors[emp.shiftType] || '#007aff',
                     flexShrink: 0,
                   }}>
                     {initials(emp.fullName)}
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                      id={`btn-edit-${emp.id}`}
-                      className="btn"
-                      onClick={() => openEdit(emp)}
-                      title="Editar"
-                      style={{
-                        width: 38,
-                        height: 38,
-                        padding: 0,
-                        borderRadius: '50%',
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        color: '#64748b',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                        transition: 'all 0.2s ease',
-                      }}
-                    ><Edit2 size={15} /></button>
-                    <button
-                      id={`btn-delete-${emp.id}`}
-                      className="btn"
-                      onClick={() => handleDeleteEmployee(emp)}
-                      title="Eliminar empleado"
-                      style={{
-                        width: 38,
-                        height: 38,
-                        padding: 0,
-                        borderRadius: '50%',
-                        background: '#fee2e2',
-                        border: '1px solid #fca5a5',
-                        color: '#ef4444',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                        transition: 'all 0.2s ease',
-                      }}
-                    ><Trash2 size={15} /></button>
                   </div>
                 </div>
 
@@ -284,11 +249,21 @@ export default function EmployeesPage() {
                   {error && <div className="alert alert-danger">{error}</div>}
                 </div>
 
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button type="submit" id="btn-save-employee" className="btn btn-primary flex items-center gap-2" disabled={saving}>
-                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Actualizar' : 'Crear Empleado')}
+                <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
+                  <button type="submit" id="btn-save-employee" className="btn btn-primary btn-full flex items-center justify-center gap-2" disabled={saving}>
+                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Guardar Cambios' : 'Crear Empleado')}
                   </button>
+                  {editTarget && (
+                    <>
+                      <button type="button" className="btn btn-ghost btn-full" style={{ color: editTarget.active ? '#ff3b30' : '#34c759' }} onClick={() => toggleActive(editTarget).then(() => setShowModal(false))}>
+                        {editTarget.active ? 'Desactivar Acceso' : 'Reactivar Acceso'}
+                      </button>
+                      <button type="button" className="btn btn-ghost btn-full" style={{ color: '#ff3b30' }} onClick={() => handleDeleteEmployee(editTarget).then(() => setShowModal(false))}>
+                        Eliminar Permanentemente
+                      </button>
+                    </>
+                  )}
+                  <button type="button" className="btn btn-ghost btn-full" onClick={() => setShowModal(false)} style={{ color: '#8e8e93' }}>Cancelar</button>
                 </div>
               </form>
             </div>
