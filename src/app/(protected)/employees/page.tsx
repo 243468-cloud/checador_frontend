@@ -205,7 +205,7 @@ export default function EmployeesPage() {
                 </div>
 
                 <h3 className="truncate" style={{ fontSize: '0.98rem', marginBottom: 2 }}>{emp.fullName}</h3>
-                <p className="truncate" style={{ fontSize: '0.78rem', color: 'var(--color-text-faint)', marginBottom: 10 }}>@{emp.username}</p>
+                <p className="truncate" style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 10 }}>@{emp.username}</p>
 
                 <div className="flex gap-2 flex-wrap">
                   {emp.shiftType && (

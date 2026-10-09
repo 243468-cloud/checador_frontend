@@ -120,7 +120,7 @@ export default function AuditPage() {
                         <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {entry.details || '—'}
                         </td>
-                        <td style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--color-text-faint)' }}>{entry.ipAddress || '—'}</td>
+                        <td style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{entry.ipAddress || '—'}</td>
                         <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{fmt(entry.createdAt)}</td>
                       </tr>
                     ))}

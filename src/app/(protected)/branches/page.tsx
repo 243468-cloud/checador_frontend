@@ -25,6 +25,7 @@ export default function BranchesPage() {
   const [form, setForm] = useState({ name: '', address: '', latitude: '', longitude: '', radiusMeters: '100', toleranceMinutes: '10' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -72,46 +73,73 @@ export default function BranchesPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Desactivar esta sucursal?')) return;
-    await branchApi.delete(id);
+  const handleDelete = async () => {
+    if (!editTarget || !confirm('¿Desactivar esta sucursal?')) return;
+    await branchApi.delete(editTarget.id);
+    setShowModal(false);
     load();
   };
+
+  const filteredBranches = branches.filter(b => 
+    b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (b.address && b.address.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
         <div className="page-header">
-          <div>
+          <div style={{ flex: 1 }}>
             <h1 className="page-title">Sucursales</h1>
             <p className="page-subtitle">{branches.length} sucursales activas</p>
           </div>
-          <button id="btn-new-branch" className="btn btn-primary flex items-center gap-2" onClick={openCreate}>
-            <Plus size={16} />
-            <span>Nueva Sucursal</span>
+          <button id="btn-new-branch" className="btn btn-primary" onClick={openCreate} style={{ padding: '12px 20px', borderRadius: '100px' }}>
+            <Plus size={18} />
+            <span style={{ display: 'none' }} className="sm:inline">Nueva Sucursal</span>
           </button>
+        </div>
+
+        {/* Búsqueda Universal iOS Style */}
+        <div className="mb-6" style={{ position: 'relative', maxWidth: 500 }}>
+          <input 
+            type="text" 
+            className="form-input" 
+            placeholder="Buscar por nombre o dirección..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ paddingLeft: 44, borderRadius: 16, background: '#ffffff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}
+          />
+          <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8e8e93' }}>
+            <Building2 size={18} />
+          </div>
         </div>
 
         {loading ? (
           <div className="grid-3">{[...Array(3)].map((_, i) => <div key={i} className="card"><div className="skeleton" style={{ height: 160 }} /></div>)}</div>
-        ) : branches.length === 0 ? (
+        ) : filteredBranches.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon"><Building2 size={40} /></div>
-            <p>No hay sucursales registradas</p>
-            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={openCreate}>Crear primera</button>
+            <div className="empty-state-icon" style={{ background: 'transparent' }}><Building2 size={40} color="#8e8e93" /></div>
+            <p style={{ color: '#8e8e93' }}>No se encontraron sucursales.</p>
+            {branches.length === 0 && (
+              <button className="btn btn-primary mt-4" onClick={openCreate}>Crear primera</button>
+            )}
           </div>
         ) : (
           <div className="grid-3 stagger">
-            {branches.map(b => (
-              <div key={b.id} className="card animate-slide-up">
+            {filteredBranches.map(b => (
+              <div 
+                key={b.id} 
+                className="card animate-slide-up"
+                style={{ cursor: 'pointer', transition: 'transform 0.15s' }}
+                onClick={() => openEdit(b)}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 <div className="flex items-start justify-between mb-4">
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-                    <Building2 size={22} />
-                  </div>
-                  <div className="flex gap-2">
-                    <button id={`btn-edit-branch-${b.id}`} className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(b)} title="Editar"><Edit2 size={14} /></button>
-                    <button id={`btn-del-branch-${b.id}`} className="btn btn-ghost btn-icon btn-sm" onClick={() => handleDelete(b.id)} title="Eliminar"><Trash2 size={14} /></button>
+                  <div style={{ width: 48, height: 48, borderRadius: '16px', background: 'rgba(255, 149, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff9500' }}>
+                    <Building2 size={24} />
                   </div>
                 </div>
 
@@ -127,19 +155,19 @@ export default function BranchesPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.8rem' }}>
                   <div>
-                    <div style={{ color: 'var(--color-text-faint)', marginBottom: 2 }}>Latitud</div>
+                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Latitud</div>
                     <div style={{ fontFamily: 'monospace', color: 'var(--color-primary)' }}>{b.latitude.toFixed(4)}</div>
                   </div>
                   <div>
-                    <div style={{ color: 'var(--color-text-faint)', marginBottom: 2 }}>Longitud</div>
+                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Longitud</div>
                     <div style={{ fontFamily: 'monospace', color: 'var(--color-primary)' }}>{b.longitude.toFixed(4)}</div>
                   </div>
                   <div>
-                    <div style={{ color: 'var(--color-text-faint)', marginBottom: 2 }}>Radio GPS</div>
+                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Radio GPS</div>
                     <div style={{ fontWeight: 600 }}>{b.radiusMeters} m</div>
                   </div>
                   <div>
-                    <div style={{ color: 'var(--color-text-faint)', marginBottom: 2 }}>Tolerancia</div>
+                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Tolerancia</div>
                     <div style={{ fontWeight: 600 }}>{b.toleranceMinutes} min</div>
                   </div>
                 </div>
@@ -195,11 +223,16 @@ export default function BranchesPage() {
                   {error && <div className="alert alert-danger">{error}</div>}
                 </div>
 
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button type="submit" id="btn-save-branch" className="btn btn-primary flex items-center gap-2" disabled={saving}>
-                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Actualizar' : 'Crear Sucursal')}
+                <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
+                  <button type="submit" id="btn-save-branch" className="btn btn-primary btn-full flex items-center justify-center gap-2" disabled={saving}>
+                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Guardar Cambios' : 'Crear Sucursal')}
                   </button>
+                  {editTarget && (
+                    <button type="button" className="btn btn-ghost btn-full" style={{ color: '#ff3b30' }} onClick={handleDelete}>
+                      Eliminar Sucursal
+                    </button>
+                  )}
+                  <button type="button" className="btn btn-ghost btn-full" onClick={() => setShowModal(false)} style={{ color: '#8e8e93' }}>Cancelar</button>
                 </div>
               </form>
             </div>

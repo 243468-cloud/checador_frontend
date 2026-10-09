@@ -225,7 +225,7 @@ export default function AttendancePage() {
                 <tbody>
                   {paginatedRecords.map((rec, i) => (
                     <tr key={rec.id}>
-                      <td style={{ color: 'var(--color-text-faint)', fontSize: '0.8rem' }}>
+                      <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
                         {(currentPage - 1) * pageSize + i + 1}
                       </td>
                       <td>
@@ -251,7 +251,7 @@ export default function AttendancePage() {
                       <td>
                         {rec.lateMinutes > 0
                           ? <span style={{ color: '#f59e0b', fontWeight: 600 }}>+{rec.lateMinutes} min</span>
-                          : <span style={{ color: 'var(--color-text-faint)' }}>—</span>}
+                          : <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
                       </td>
                       <td style={{ fontWeight: 600 }}>
                         {rec.hoursWorked > 0 ? `${rec.hoursWorked.toFixed(1)}h` : '—'}
@@ -272,7 +272,7 @@ export default function AttendancePage() {
                             {rec.notes}
                           </span>
                         ) : (
-                          <span style={{ color: 'var(--color-text-faint)' }}>—</span>
+                          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
                         )}
                       </td>
                       {isAdmin && (

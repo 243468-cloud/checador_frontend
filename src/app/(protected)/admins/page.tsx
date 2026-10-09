@@ -24,6 +24,7 @@ export default function AdminsPage() {
   const [form, setForm] = useState({ username: '', password: '', fullName: '', email: '', branchId: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -64,6 +65,7 @@ export default function AdminsPage() {
       } else {
         await adminApi.create({ username: form.username, password: form.password, fullName: form.fullName, email: form.email, branchId: Number(form.branchId) });
       }
+      }
       setShowModal(false);
       load();
     } catch (err: any) {
@@ -73,6 +75,18 @@ export default function AdminsPage() {
     }
   };
 
+  const handleToggleActive = async () => {
+    if (!editTarget) return;
+    await adminApi.toggleActive(editTarget.id);
+    setShowModal(false);
+    load();
+  };
+
+  const filteredAdmins = admins.filter(a => 
+    a.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    a.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const initials = (name: string) => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -80,35 +94,56 @@ export default function AdminsPage() {
       <Sidebar />
       <main className="main-content animate-fade-in">
         <div className="page-header">
-          <div>
+          <div style={{ flex: 1 }}>
             <h1 className="page-title">Administradores</h1>
             <p className="page-subtitle">{admins.filter(a => a.active).length} administradores activos</p>
           </div>
-          <button id="btn-new-admin" className="btn btn-primary flex items-center gap-2" onClick={openCreate}>
-            <Plus size={16} />
-            <span>Nuevo Administrador</span>
+          <button id="btn-new-admin" className="btn btn-primary" onClick={openCreate} style={{ padding: '12px 20px', borderRadius: '100px' }}>
+            <Plus size={18} />
+            <span style={{ display: 'none' }} className="sm:inline">Nuevo Admin</span>
           </button>
+        </div>
+
+        {/* Búsqueda Universal iOS Style */}
+        <div className="mb-6" style={{ position: 'relative', maxWidth: 500 }}>
+          <input 
+            type="text" 
+            className="form-input" 
+            placeholder="Buscar por nombre o usuario..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ paddingLeft: 44, borderRadius: 16, background: '#ffffff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}
+          />
+          <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8e8e93' }}>
+            <ShieldCheck size={18} />
+          </div>
         </div>
 
         {loading ? (
           <div className="grid-3">{[...Array(3)].map((_, i) => <div key={i} className="card"><div className="skeleton" style={{ height: 140 }} /></div>)}</div>
+        ) : filteredAdmins.length === 0 ? (
+          <div className="empty-state">
+            <p style={{ color: '#8e8e93', fontSize: '0.95rem' }}>No se encontraron administradores.</p>
+          </div>
         ) : (
           <div className="grid-3 stagger">
-            {admins.map(admin => (
-              <div key={admin.id} className="card animate-slide-up" style={{ opacity: admin.active ? 1 : 0.55 }}>
+            {filteredAdmins.map(admin => (
+              <div 
+                key={admin.id} 
+                className="card animate-slide-up" 
+                style={{ opacity: admin.active ? 1 : 0.55, cursor: 'pointer', transition: 'transform 0.15s' }}
+                onClick={() => openEdit(admin)}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 <div className="flex items-start justify-between mb-4">
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#fff' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '16px', background: 'rgba(0, 122, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#007aff' }}>
                     {initials(admin.fullName)}
-                  </div>
-                  <div className="flex gap-2">
-                    <button id={`btn-edit-admin-${admin.id}`} className="btn btn-ghost btn-icon btn-sm" onClick={() => openEdit(admin)} title="Editar"><Edit2 size={14} /></button>
-                    <button id={`btn-toggle-admin-${admin.id}`} className="btn btn-ghost btn-icon btn-sm" onClick={async () => { await adminApi.toggleActive(admin.id); load(); }} title={admin.active ? 'Desactivar' : 'Activar'}>
-                      {admin.active ? <Ban size={14} /> : <Check size={14} />}
-                    </button>
                   </div>
                 </div>
                 <h3 style={{ fontSize: '1rem', marginBottom: 4 }}>{admin.fullName}</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-faint)', marginBottom: 12 }}>@{admin.username}</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>@{admin.username}</p>
                 <div className="flex gap-2 flex-wrap">
                   <span className="badge badge-primary flex items-center gap-1">
                     <Building2 size={12} />
@@ -174,11 +209,16 @@ export default function AdminsPage() {
                   {error && <div className="alert alert-danger">{error}</div>}
                 </div>
 
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button type="submit" id="btn-save-admin" className="btn btn-primary flex items-center gap-2" disabled={saving}>
-                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Actualizar' : 'Crear Admin')}
+                <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
+                  <button type="submit" id="btn-save-admin" className="btn btn-primary btn-full flex items-center justify-center gap-2" disabled={saving}>
+                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Guardar Cambios' : 'Crear Administrador')}
                   </button>
+                  {editTarget && (
+                    <button type="button" className="btn btn-ghost btn-full" style={{ color: editTarget.active ? '#ff3b30' : '#34c759' }} onClick={handleToggleActive}>
+                      {editTarget.active ? 'Desactivar Cuenta' : 'Activar Cuenta'}
+                    </button>
+                  )}
+                  <button type="button" className="btn btn-ghost btn-full" onClick={() => setShowModal(false)} style={{ color: '#8e8e93' }}>Cancelar</button>
                 </div>
               </form>
             </div>
