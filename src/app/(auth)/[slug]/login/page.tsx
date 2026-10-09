@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
+import { settingsApi, TenantSettingsDTO } from '@/lib/api';
 import {
   Clock,
   User,
@@ -18,21 +19,36 @@ import {
 } from 'lucide-react';
 import InstallPwaCard from '@/components/InstallPwaCard';
 
-export default function LoginPage() {
+export default function TenantLoginPage({ params }: { params: { slug: string } }) {
   const { login } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const [tenantInfo, setTenantInfo] = useState<TenantSettingsDTO | null>(null);
+  const [tenantLoading, setTenantLoading] = useState(true);
+
+  useEffect(() => {
+    // Cargar información pública del tenant
+    settingsApi.getPublicSettings(params.slug)
+      .then(data => setTenantInfo(data))
+      .catch(err => {
+        // Fallback genérico o manejar error si no existe
+      })
+      .finally(() => setTenantLoading(false));
+  }, [params.slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
+      // El login sigue siendo el mismo, enviando username y password
+      // Al hacer login, el JWT en la base de datos se asociará al username
       await login(form.username.trim(), form.password.trim());
-      router.push('/');
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.');
     } finally {
@@ -40,16 +56,26 @@ export default function LoginPage() {
     }
   };
 
+  if (tenantLoading) {
+    return <div className="login-page-container flex justify-center items-center"><Loader2 className="animate-spin text-gray-400" /></div>;
+  }
+
   return (
     <div className="login-page-container">
       <div className="login-centered-card animate-slide-up">
         {/* Brand logo & title */}
         <div className="login-brand-header">
-          <div className="brand-logo-img-container" style={{ background: 'linear-gradient(135deg, #ff2d55, #ff375f)', color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
-            CA
+          <div className="brand-logo-img-container">
+            {tenantInfo ? (
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-xl">
+                {tenantInfo.companyName.substring(0,2).toUpperCase()}
+              </div>
+            ) : (
+              <img src="/logo.png" alt="Logo" />
+            )}
           </div>
-          <h1 className="brand-title">Checador App</h1>
-          <p className="brand-subtitle">Plataforma de Control de Asistencia</p>
+          <h1 className="brand-title">{tenantInfo ? tenantInfo.companyName : 'Checador de Asistencia'}</h1>
+          <p className="brand-subtitle">Control de Asistencia & Turnos</p>
         </div>
 
         {/* Login Form */}

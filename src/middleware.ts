@@ -11,6 +11,7 @@ const PUBLIC_ROUTES = [
   '/api/auth/refresh',
   '/api/proxy/branches/public', // Para el formulario de login/registro
   '/api/proxy/public',          // Para APIs públicas generales
+  '/api/proxy/settings/public', // Para obtener configuraciones públicas del tenant
 ];
 
 export function middleware(request: NextRequest) {
@@ -31,16 +32,19 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get('token')?.value;
 
-  // Si está en ruta pública
-  if (PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
-    // Si ya está autenticado y trata de ir a /login, mandarlo al dashboard
-    if (token && (pathname === '/login' || pathname === '/register' || pathname === '/')) {
+  // Comprobar si es una subruta de login/register (ej: /via-gourmet/login)
+  const isDynamicAuthRoute = pathname.match(/^\/[a-zA-Z0-9-]+\/(login|register)$/);
+
+  // Si está en ruta pública o es una subruta dinámica de auth
+  if (isDynamicAuthRoute || PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
+    // Si ya está autenticado y trata de ir a login/register, mandarlo al dashboard
+    if (token && (pathname === '/login' || pathname === '/register' || pathname === '/' || isDynamicAuthRoute)) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
   }
 
-  // Rutas protegidas: si no hay token, redirigir al login
+  // Rutas protegidas: si no hay token, redirigir al login genérico
   if (!token) {
     // Evita redirigir llamadas API que no deberían ser accedidas directamente
     if (pathname.startsWith('/api/')) {

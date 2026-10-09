@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { getPublicBranches, registerEmployee, Branch } from '@/lib/api';
+import { getPublicBranches, registerEmployee, Branch, settingsApi, TenantSettingsDTO } from '@/lib/api';
 import {
   Clock,
   User,
@@ -18,12 +18,9 @@ import {
   AlertCircle,
   ShieldCheck,
   ArrowLeft,
-  Sun,
-  Moon,
-  Calendar,
 } from 'lucide-react';
 
-export default function RegisterPage() {
+export default function TenantRegisterPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
   const { setUserOnly } = useAuth();
 
@@ -42,7 +39,18 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [fetchingBranches, setFetchingBranches] = useState(true);
 
+  const [tenantInfo, setTenantInfo] = useState<TenantSettingsDTO | null>(null);
+  const [tenantLoading, setTenantLoading] = useState(true);
+
   useEffect(() => {
+    // Cargar información pública del tenant
+    settingsApi.getPublicSettings(params.slug)
+      .then(data => setTenantInfo(data))
+      .catch(err => {
+        // Fallback genérico o manejar error si no existe
+      })
+      .finally(() => setTenantLoading(false));
+
     getPublicBranches()
       .then(data => {
         setBranches(data);
@@ -52,7 +60,7 @@ export default function RegisterPage() {
       })
       .catch(() => {})
       .finally(() => setFetchingBranches(false));
-  }, []);
+  }, [params.slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +99,10 @@ export default function RegisterPage() {
     }
   };
 
+  if (tenantLoading) {
+    return <div className="register-page-container flex justify-center items-center"><Loader2 className="animate-spin text-gray-400" /></div>;
+  }
+
   return (
     <div className="register-page-container">
       {/* Background Glow */}
@@ -99,18 +111,24 @@ export default function RegisterPage() {
 
       <div className="register-centered-card animate-slide-up">
         {/* Back Link */}
-        <Link href="/login" className="back-link">
+        <Link href={`/${params.slug}/login`} className="back-link">
           <ArrowLeft size={16} />
           <span>Volver al Login</span>
         </Link>
 
         {/* Header */}
         <div className="register-brand-header">
-          <div className="brand-logo-img-container" style={{ background: 'linear-gradient(135deg, #ff2d55, #ff375f)', padding: '8px', borderRadius: '16px', width: '120px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem', fontWeight: 'bold' }}>
-            CA
+          <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '120px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+            {tenantInfo ? (
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-xl" style={{ minHeight: '100px' }}>
+                {tenantInfo.companyName.substring(0,2).toUpperCase()}
+              </div>
+            ) : (
+              <img src="/logo.png" alt="Logo" style={{ width: '100%', height: 'auto', display: 'block' }} />
+            )}
           </div>
           <h1 className="brand-title" style={{ fontSize: '1.35rem', fontWeight: 800 }}>Registro de Empleado</h1>
-          <p className="brand-subtitle">Crea tu cuenta en Checador App</p>
+          <p className="brand-subtitle">Crea tu cuenta oficial para {tenantInfo ? tenantInfo.companyName : 'la Empresa'}</p>
         </div>
 
         {/* Form */}

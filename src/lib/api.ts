@@ -582,6 +582,7 @@ export interface TenantSettingsDTO {
 }
 
 export const settingsApi = {
+  getPublicSettings: (slug: string) => apiFetch<TenantSettingsDTO>(`/api/settings/public/${slug}`),
   getAllTenants: () => apiFetch<TenantSettingsDTO[]>('/api/settings/all'),
   getShifts: () => apiFetch<ShiftConfigDTO[]>('/api/settings/shifts'),
   updateShifts: (shifts: ShiftConfigDTO[]) =>
