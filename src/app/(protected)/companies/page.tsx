@@ -120,7 +120,7 @@ export default function CompaniesPage() {
                 <tr>
                   <th className="px-6 py-4">ID / Tenant ID</th>
                   <th className="px-6 py-4">Empresa</th>
-                  <th className="px-6 py-4">Slug (URL)</th>
+                  <th className="px-6 py-4">Slug / Enlaces</th>
                   <th className="px-6 py-4">Suscripción</th>
                   <th className="px-6 py-4">Fecha Alta</th>
                 </tr>
@@ -135,9 +135,19 @@ export default function CompaniesPage() {
                       {t.companyName}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-mono text-xs">
-                        {t.slug}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-mono text-xs w-max">
+                          {t.slug}
+                        </span>
+                        <div className="flex gap-2 mt-1">
+                          <a href={`/${t.slug}/login`} target="_blank" className="text-xs text-rose-600 hover:text-rose-800 flex items-center gap-1 font-medium" title="Abrir Login">
+                            <LinkIcon size={12} /> Login
+                          </a>
+                          <a href={`/${t.slug}/register`} target="_blank" className="text-xs text-emerald-600 hover:text-emerald-800 flex items-center gap-1 font-medium" title="Abrir Registro">
+                            <LinkIcon size={12} /> Registro
+                          </a>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
