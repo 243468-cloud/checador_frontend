@@ -65,7 +65,6 @@ export default function AdminsPage() {
       } else {
         await adminApi.create({ username: form.username, password: form.password, fullName: form.fullName, email: form.email, branchId: Number(form.branchId) });
       }
-      }
       setShowModal(false);
       load();
     } catch (err: any) {

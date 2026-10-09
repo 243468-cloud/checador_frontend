@@ -119,6 +119,7 @@ export default function CheckInPage() {
 
   // Load today's record & monthly tardies history
   useEffect(() => {
+    attendanceApi.getToday()
       .then(rec => {
         setRecord(rec);
         if (rec && rec.status === 'LATE') {
