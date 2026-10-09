@@ -139,8 +139,8 @@ export default function RewardsLeaderboard() {
           padding: '24px',
         }}>
           {/* Badge & Title */}
-          <div className="flex items-center justify-between mb-5 pt-1">
-            <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 width: 38, height: 38, borderRadius: 12,
                 background: 'rgba(245, 158, 11, 0.15)',
@@ -150,8 +150,8 @@ export default function RewardsLeaderboard() {
               }}>
                 <Wine size={20} />
               </div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#92400e', marginBottom: 2 }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#92400e', margin: 0, marginBottom: '2px' }}>
                   Incentivo Quincenal
                 </h3>
                 <span style={{ fontSize: '0.74rem', color: '#b45309', fontWeight: 600 }}>
@@ -167,16 +167,19 @@ export default function RewardsLeaderboard() {
               padding: '4px 12px',
               borderRadius: '20px',
               boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+              flexShrink: 0,
             }}>
               Quincena
             </span>
           </div>
 
           {/* Current Reward Banner */}
-          <div className="p-3.5 rounded-xl mb-5 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(245, 158, 11, 0.25)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-            <Award size={22} color="#d97706" style={{ flexShrink: 0 }} />
-            <div>
-              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px', marginBottom: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', background: '#ffffff', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '12px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            <div style={{ flexShrink: 0, display: 'flex' }}>
+              <Award size={22} color="#d97706" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '2px' }}>
                 Premio de la Quincena:
               </div>
               <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: 800 }}>
@@ -256,8 +259,8 @@ export default function RewardsLeaderboard() {
           padding: '24px',
         }}>
           {/* Badge & Title */}
-          <div className="flex items-center justify-between mb-5 pt-1">
-            <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 width: 38, height: 38, borderRadius: 12,
                 background: 'rgba(225, 29, 72, 0.15)',
@@ -267,8 +270,8 @@ export default function RewardsLeaderboard() {
               }}>
                 <UtensilsCrossed size={20} />
               </div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#9f1239', marginBottom: 2 }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#9f1239', margin: 0, marginBottom: '2px' }}>
                   Incentivo Mensual
                 </h3>
                 <span style={{ fontSize: '0.74rem', color: '#be123c', fontWeight: 600 }}>
@@ -284,16 +287,19 @@ export default function RewardsLeaderboard() {
               padding: '4px 12px',
               borderRadius: '20px',
               boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)',
+              flexShrink: 0,
             }}>
               Mensual
             </span>
           </div>
 
           {/* Current Reward Banner */}
-          <div className="p-3.5 rounded-xl mb-5 flex items-center gap-3" style={{ background: '#ffffff', border: '1px solid rgba(225, 29, 72, 0.25)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-            <Award size={22} color="#e11d48" style={{ flexShrink: 0 }} />
-            <div>
-              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px', marginBottom: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', background: '#ffffff', border: '1px solid rgba(225, 29, 72, 0.25)', borderRadius: '12px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            <div style={{ flexShrink: 0, display: 'flex' }}>
+              <Award size={22} color="#e11d48" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '2px' }}>
                 Premio del Mes:
               </div>
               <div style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: 800 }}>
