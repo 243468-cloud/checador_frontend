@@ -133,14 +133,14 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                   <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
-                    {user?.fullName || 'Usuario Vía Gourmet'}
+                    {user?.fullName || 'Usuario'}
                   </h2>
                   <span className="badge badge-primary" style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 800, borderRadius: '20px' }}>
                     {user?.role === 'SUPERUSER' ? 'SUPERUSUARIO' : user?.role === 'ADMIN' ? 'ADMINISTRADOR' : 'EMPLEADO'}
                   </span>
                 </div>
                 <div style={{ fontSize: '0.88rem', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
-                  Sucursal Asignada: <strong style={{ color: '#0f172a', marginLeft: '4px' }}>{user?.branchName || 'Global Vía Gourmet'}</strong>
+                  Sucursal Asignada: <strong style={{ color: '#0f172a', marginLeft: '4px' }}>{user?.branchName || 'Global'}</strong>
                 </div>
               </div>
             </div>
@@ -190,7 +190,7 @@ export default function SettingsPage() {
                 Sucursal Base
               </div>
               <div style={{ fontSize: '0.96rem', color: '#0f172a', fontWeight: 800 }}>
-                {user?.branchName || 'Vía Gourmet'}
+                {user?.branchName || 'Sucursal Principal'}
               </div>
             </div>
 

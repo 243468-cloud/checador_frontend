@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useTheme } from '@/lib/theme-context';
 import {
   LayoutDashboard,
   Users,
@@ -28,17 +29,18 @@ interface NavItem {
   icon: React.ReactNode;
   label: string;
   roles: string[];
+  module?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Inicio (Home)',       roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/checkin',    icon: <Clock           size={18} />, label: 'Inicio / Checador',   roles: ['EMPLOYEE'] },
-  { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
-  { href: '/ranking',    icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
+  { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'], module: 'schedules' },
+  { href: '/ranking',    icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'], module: 'rankings' },
   { href: '/leaves',     icon: <FileText        size={18} />, label: 'Permisos / Faltas',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
   { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/employees',  icon: <Users           size={18} />, label: 'Empleados',            roles: ['SUPERUSER', 'ADMIN'] },
-  { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['SUPERUSER', 'ADMIN'] },
+  { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['SUPERUSER', 'ADMIN'], module: 'reports' },
   { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER'] },
   { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Administradores',      roles: ['SUPERUSER'] },
   { href: '/companies',  icon: <Building2       size={18} />, label: 'Empresas (Tenants)',   roles: ['SUPERUSER'] },
@@ -54,12 +56,19 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { settings } = useTheme();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!user) return null;
 
-  const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user.role));
+  const visibleItems = NAV_ITEMS.filter(item => {
+    if (!item.roles.includes(user.role)) return false;
+    if (item.module && settings?.activeModules) {
+      if (!settings.activeModules.includes(item.module)) return false;
+    }
+    return true;
+  });
   const initials = user.fullName
     ? user.fullName
         .split(' ')
@@ -141,14 +150,18 @@ export default function Sidebar() {
               flexShrink: 0,
             }}
           >
-            <img src="/logo.png" alt="Vía Gourmet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            {settings?.logoUrl ? (
+              <img src={settings.logoUrl} alt={settings?.companyName || "Empresa"} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : (
+              <div style={{width: '100%', height: '100%', backgroundColor: 'var(--color-primary, #0f172a)', borderRadius: '4px'}} />
+            )}
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <span style={{ fontSize: '1.08rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-              Vía Gourmet
+              {settings?.companyName || "Checador"}
             </span>
-            <span style={{ fontSize: '0.56rem', color: '#e11d48', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-              SABORES • AROMAS • TEXTURAS
+            <span style={{ fontSize: '0.56rem', color: 'var(--color-primary, #e11d48)', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              PLATAFORMA DE ASISTENCIA
             </span>
           </div>
 

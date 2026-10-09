@@ -1840,7 +1840,7 @@ export default function SchedulesPage() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('VÍA GOURMET RESTAURANTE', 14, 14);
+    doc.text(settings?.companyName || 'EMPRESA', 14, 14);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Horario Individual de Trabajo — ${employeeName}`, 14, 22);
@@ -1851,7 +1851,7 @@ export default function SchedulesPage() {
     doc.text(`Empleado: ${employeeName}`, 14, 40);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Sucursal: Via Gourmet | Fecha de Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
+    doc.text(`Sucursal: ${user?.branchName || 'Principal'} | Fecha de Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
 
     const headers = [['Día', 'Fecha', 'Área y Turno Asignado', 'Lapsos de Jornada', 'Origen / Estado']];
     

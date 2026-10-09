@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, CheckCheck, Smartphone, Volume2, ShieldAlert } from 'lucide-react';
 import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
 import { subscribeUserToPush, registerServiceWorker, sendTestPushNotification } from '@/lib/push';
+import { useTheme } from '@/lib/theme-context';
 
 interface Notif {
   id: number;
@@ -84,7 +85,7 @@ function sendSystemNotification(title: string, body: string) {
           body,
           icon: '/logo.png',
           badge: '/icons/icon-192x192.png',
-          tag: 'via-gourmet-notif-' + Date.now(),
+          tag: 'checador-notif-' + Date.now(),
         };
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.ready.then(registration => {
@@ -101,6 +102,8 @@ function sendSystemNotification(title: string, body: string) {
 }
 
 export default function NotificationBell() {
+  const { settings } = useTheme();
+  const companyName = settings?.companyName || "Checador";
   const [open, setOpen]             = useState(false);
   const [notifs, setNotifs]         = useState<Notif[]>([]);
   const [unread, setUnread]         = useState(0);
@@ -115,7 +118,7 @@ export default function NotificationBell() {
       setSystemPerm(Notification.permission);
     }
     if (success) {
-      sendSystemNotification('Vía Gourmet', '¡Notificaciones Push del celular activadas correctamente!');
+      sendSystemNotification(companyName, '¡Notificaciones Push del celular activadas correctamente!');
     }
   };
 
@@ -182,7 +185,7 @@ export default function NotificationBell() {
       const newNotif = event.data;
       playNotificationSound();
       triggerVibration();
-      sendSystemNotification(newNotif.title || 'Vía Gourmet', newNotif.body || 'Nueva notificación de asistencia');
+      sendSystemNotification(newNotif.title || companyName, newNotif.body || 'Nueva notificación de asistencia');
 
       setUnread(prev => prev + 1);
       setNotifs(prev => [newNotif, ...prev]);
@@ -397,7 +400,7 @@ export default function NotificationBell() {
                 onClick={async () => {
                   const sent = await sendTestPushNotification();
                   if (sent) {
-                    sendSystemNotification('Vía Gourmet', '¡Prueba despachada a tu celular!');
+                    sendSystemNotification(companyName, '¡Prueba despachada a tu celular!');
                   } else {
                     alert('No se pudo despachar la notificación de prueba. Asegúrate de haber iniciado sesión.');
                   }
@@ -519,7 +522,7 @@ export default function NotificationBell() {
             color: '#64748b',
             fontWeight: 600,
           }}>
-            Vía Gourmet System • Sincronizado con notificaciones del celular
+            {companyName} System • Sincronizado con notificaciones del celular
           </div>
         </div>
       )}

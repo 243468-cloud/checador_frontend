@@ -10,8 +10,10 @@ export interface TenantSettings {
   companyName: string;
   slug: string;
   logoUrl: string | null;
+  iconUrl: string | null;
   primaryColor: string | null;
   toleranceMinutes: number;
+  activeModules?: string[];
 }
 
 interface ThemeContextType {
@@ -44,6 +46,55 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
       if (data.companyName) {
         document.title = `${data.companyName} | Checador`;
+      }
+      
+      // Theming Dinámico: Inyección de favicon y Apple Touch Icon
+      if (data.iconUrl) {
+        let linkIcon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+        if (!linkIcon) {
+          linkIcon = document.createElement("link");
+          linkIcon.rel = "icon";
+          document.head.appendChild(linkIcon);
+        }
+        linkIcon.href = data.iconUrl;
+
+        let appleIcon = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement;
+        if (!appleIcon) {
+          appleIcon = document.createElement("link");
+          appleIcon.rel = "apple-touch-icon";
+          document.head.appendChild(appleIcon);
+        }
+        appleIcon.href = data.iconUrl;
+
+        // Inyección dinámica del Manifest PWA para este tenant
+        let manifestLink = document.querySelector("link[rel='manifest']") as HTMLLinkElement;
+        if (!manifestLink) {
+          manifestLink = document.createElement("link");
+          manifestLink.rel = "manifest";
+          document.head.appendChild(manifestLink);
+        }
+        const dynamicManifest = {
+          name: data.companyName || "Checador PWA",
+          short_name: data.companyName || "Checador",
+          start_url: `/?empresa=${data.slug}`,
+          display: "standalone",
+          background_color: "#ffffff",
+          theme_color: data.primaryColor || "#0f172a",
+          icons: [
+            {
+              src: data.iconUrl,
+              sizes: "192x192",
+              type: "image/png"
+            },
+            {
+              src: data.iconUrl,
+              sizes: "512x512",
+              type: "image/png"
+            }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(dynamicManifest)], { type: "application/json" });
+        manifestLink.href = URL.createObjectURL(blob);
       }
     };
 

@@ -10,13 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Checador de Asistencia | Vía Gourmet",
-  description: "Sistema de control y gestión de asistencia Vía Gourmet",
-  manifest: "/manifest.json",
+  title: "Checador de Asistencia",
+  description: "Sistema de control y gestión de asistencia",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Checador Vía Gourmet",
+    title: "Checador",
   },
 };
 
