@@ -143,6 +143,12 @@ export default function LoginPage() {
               Regístrate aquí
             </Link>
           </p>
+          <p className="register-prompt" style={{ marginTop: '-8px' }}>
+            ¿Quieres registrar tu empresa?{' '}
+            <Link href="/registro-empresa" className="register-link" style={{ color: '#ff2d55' }}>
+              Comienza aquí
+            </Link>
+          </p>
           <div className="security-badge">
             <ShieldCheck size={14} className="emerald-icon" />
             <span>Acceso seguro al sistema empresarial</span>
