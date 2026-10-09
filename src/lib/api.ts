@@ -165,6 +165,12 @@ export const attendanceApi = {
       body: JSON.stringify(data),
     }),
 
+  createManual: (data: { employeeId: number; date: string; checkInTime?: string; checkOutTime?: string; status: string; notes: string; lateMinutes: number; extraHours: number }) =>
+    apiFetch<AttendanceRecord>('/api/attendance/admin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   delete: (id: number) =>
     apiFetch<{ message: string }>(`/api/attendance/admin/${id}`, { method: 'DELETE' }),
 

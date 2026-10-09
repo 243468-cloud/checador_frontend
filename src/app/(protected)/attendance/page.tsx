@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { attendanceApi, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
+import { attendanceApi, employeeApi, AttendanceRecord, Employee, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 import { format } from 'date-fns';
@@ -49,12 +49,31 @@ export default function AttendancePage() {
 
   const isAdmin = user?.role === 'SUPERUSER' || user?.role === 'ADMIN';
 
+  // Create Modal State
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    employeeId: '',
+    checkInTime: '',
+    checkOutTime: '',
+    status: 'ON_TIME',
+    lateMinutes: 0,
+    extraHours: 0,
+    notes: 'Registro manual por administrador',
+  });
+  const [savingCreate, setSavingCreate] = useState(false);
+
   const load = useCallback(() => {
     setLoading(true);
     attendanceApi.getDaily(selectedDate).then(setRecords).finally(() => setLoading(false));
   }, [selectedDate]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { 
+    load(); 
+    if (isAdmin) {
+      employeeApi.getAll().then(emps => setEmployees(emps.filter(e => e.active)));
+    }
+  }, [load, isAdmin]);
 
   // Actualización en tiempo real sin necesidad de refrescar la página
   useRealtime(useCallback((event: RealtimeEventData) => {
@@ -95,6 +114,30 @@ export default function AttendancePage() {
       alert(err.message || 'Error al actualizar asistencia');
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleSaveCreate = async () => {
+    if (!createForm.employeeId) return alert('Selecciona un empleado');
+    setSavingCreate(true);
+    try {
+      await attendanceApi.createManual({
+        employeeId: Number(createForm.employeeId),
+        date: selectedDate,
+        checkInTime: createForm.checkInTime ? createForm.checkInTime + ':00' : undefined,
+        checkOutTime: createForm.checkOutTime ? createForm.checkOutTime + ':00' : undefined,
+        status: createForm.status,
+        lateMinutes: Number(createForm.lateMinutes),
+        extraHours: Number(createForm.extraHours),
+        notes: createForm.notes,
+      });
+      setShowCreateModal(false);
+      setCreateForm({ employeeId: '', checkInTime: '', checkOutTime: '', status: 'ON_TIME', lateMinutes: 0, extraHours: 0, notes: 'Registro manual por administrador' });
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Error al crear asistencia manual');
+    } finally {
+      setSavingCreate(false);
     }
   };
 
@@ -153,6 +196,11 @@ export default function AttendancePage() {
               onChange={e => setSelectedDate(e.target.value)}
               style={{ width: 160 }}
             />
+            {isAdmin && (
+              <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
+                <span>Crear Asistencia</span>
+              </button>
+            )}
             <select
               id="status-filter"
               className="form-select"
@@ -476,6 +524,127 @@ export default function AttendancePage() {
                 <button className="btn btn-primary flex items-center gap-2" onClick={handleSaveEdit} disabled={savingEdit}>
                   <Save size={16} />
                   <span>{savingEdit ? 'Guardando...' : 'Guardar Cambios'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL CREAR PARA ADMIN / SUPERADMIN */}
+        {showCreateModal && (
+          <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
+              <div className="modal-header">
+                <div className="modal-header-title">
+                  <div className="modal-header-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                    <ClipboardList size={18} />
+                  </div>
+                  <div>
+                    <span>Agregar Asistencia Pasada</span>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', fontWeight: 500, marginTop: 1 }}>
+                      Fecha: <strong>{selectedDate}</strong>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <div className="form-group-field">
+                  <label className="form-label-text">Empleado *</label>
+                  <select
+                    className="form-select"
+                    value={createForm.employeeId}
+                    onChange={e => setCreateForm(p => ({ ...p, employeeId: e.target.value }))}
+                  >
+                    <option value="">Selecciona un empleado</option>
+                    {employees.filter(e => !records.some(r => r.employeeId === e.id)).map(e => (
+                      <option key={e.id} value={e.id}>{e.fullName} (@{e.username})</option>
+                    ))}
+                  </select>
+                  <p style={{ fontSize: '0.7rem', color: '#8e8e93', marginTop: 4 }}>Solo se muestran empleados sin registro en esta fecha.</p>
+                </div>
+
+                <div className="form-group-field">
+                  <label className="form-label-text">Estado de Asistencia *</label>
+                  <select
+                    className="form-select"
+                    value={createForm.status}
+                    onChange={e => setCreateForm(p => ({ ...p, status: e.target.value }))}
+                  >
+                    <option value="ON_TIME">Puntual (ON_TIME)</option>
+                    <option value="LATE">Tardanza (LATE)</option>
+                    <option value="EXCUSED">Justificado / Excusado (EXCUSED)</option>
+                    <option value="ABSENT">Falta (ABSENT)</option>
+                  </select>
+                </div>
+
+                <div className="grid-2 gap-3">
+                  <div className="form-group-field">
+                    <label className="form-label-text">Lapso Entrada</label>
+                    <input
+                      type="datetime-local"
+                      className="form-input"
+                      value={createForm.checkInTime}
+                      onChange={e => setCreateForm(p => ({ ...p, checkInTime: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group-field">
+                    <label className="form-label-text">Lapso Salida</label>
+                    <input
+                      type="datetime-local"
+                      className="form-input"
+                      value={createForm.checkOutTime}
+                      onChange={e => setCreateForm(p => ({ ...p, checkOutTime: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid-2 gap-3">
+                  <div className="form-group-field">
+                    <label className="form-label-text">Minutos de Retardo</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="form-input"
+                      value={createForm.lateMinutes}
+                      onChange={e => setCreateForm(p => ({ ...p, lateMinutes: Number(e.target.value) }))}
+                    />
+                  </div>
+                  <div className="form-group-field">
+                    <label className="form-label-text">Horas Extra</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      className="form-input"
+                      value={createForm.extraHours}
+                      onChange={e => setCreateForm(p => ({ ...p, extraHours: Number(e.target.value) }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-field">
+                  <label className="form-label-text">Notas / Justificación</label>
+                  <textarea
+                    className="form-input"
+                    rows={2}
+                    value={createForm.notes}
+                    onChange={e => setCreateForm(p => ({ ...p, notes: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={() => setShowCreateModal(false)}>Cancelar</button>
+                <button className="btn btn-primary flex items-center gap-2" onClick={handleSaveCreate} disabled={savingCreate || !createForm.employeeId}>
+                  <Save size={16} />
+                  <span>{savingCreate ? 'Creando...' : 'Crear Registro'}</span>
                 </button>
               </div>
             </div>
