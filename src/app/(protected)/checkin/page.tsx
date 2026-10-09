@@ -230,14 +230,10 @@ export default function CheckInPage() {
 
           <div className="checkin-card animate-slide-up" style={{ width: '100%', maxWidth: 500, marginBottom: 32 }}>
             {/* ── Header: date + clock + shift ── */}
-            <div className="checkin-header-card" style={{
-              background: '#ffffff',
-              border: '1px solid rgba(225, 29, 72, 0.18)',
-              borderRadius: '20px',
+            <div className="card checkin-header-card" style={{
               padding: '24px 28px',
-              boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
+              textAlign: 'center',
             }}>
-              <div className="checkin-top-line" />
 
               <p className="checkin-date" style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 700, textTransform: 'capitalize' }}>
                 {date}
@@ -406,21 +402,22 @@ export default function CheckInPage() {
               {/* SARCASTIC LATE COMMENT BANNER */}
               {sarcasticQuote && (
                 <div
-                  className="animate-slide-up p-4 rounded-xl mt-4"
+                  className="animate-slide-up p-4 mt-4"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.15))',
-                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)',
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255, 59, 48, 0.15)',
+                    boxShadow: '0 4px 12px rgba(255, 59, 48, 0.08)',
                   }}
                 >
-                  <div className="flex items-center gap-2 mb-1" style={{ color: '#f87171', fontWeight: 800, fontSize: '0.88rem' }}>
+                  <div className="flex items-center gap-2 mb-1" style={{ color: '#ff3b30', fontWeight: 700, fontSize: '0.88rem' }}>
                     <Flame size={18} color="#ef4444" />
                     <span>Mensaje de Impuntualidad:</span>
                   </div>
-                  <p style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fef08a', fontStyle: 'italic', margin: '4px 0 8px 0' }}>
+                  <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ff9500', fontStyle: 'italic', margin: '4px 0 8px 0' }}>
                     "{sarcasticQuote}"
                   </p>
-                  <div className="flex items-center gap-2" style={{ fontSize: '0.78rem', color: '#fca5a5' }}>
+                  <div className="flex items-center gap-2" style={{ fontSize: '0.78rem', color: '#8e8e93' }}>
                     <Laugh size={14} />
                     <span>Acumulas <strong>{monthlyTardiesCount} retardo{monthlyTardiesCount > 1 ? 's' : ''}</strong> en el mes. ¡Procura salir con tiempo la próxima!</span>
                   </div>

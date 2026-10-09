@@ -96,10 +96,10 @@ body {
    TYPOGRAPHY
    ═══════════════════════════════════════════════════ */
 
-h1 { font-size: 1.85rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; }
-h2 { font-size: 1.4rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; }
-h3 { font-size: 1.15rem; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; }
-h4 { font-size: 0.95rem; font-weight: 500; }
+h1 { font-size: 1.85rem !important; font-weight: 700 !important; line-height: 1.2 !important; letter-spacing: -0.03em !important; color: var(--color-text) !important; }
+h2 { font-size: 1.4rem !important; font-weight: 600 !important; line-height: 1.3 !important; letter-spacing: -0.02em !important; color: var(--color-text) !important; }
+h3 { font-size: 1.15rem !important; font-weight: 600 !important; line-height: 1.4 !important; letter-spacing: -0.01em !important; color: var(--color-text) !important; }
+h4 { font-size: 0.95rem !important; font-weight: 500 !important; color: var(--color-text) !important; }
 
 p { color: var(--color-text-muted); }
 
@@ -339,11 +339,12 @@ a:hover { color: #005bb5; }
    ═══════════════════════════════════════════════════ */
 
 .card {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-fast);
+  background: var(--color-surface) !important;
+  border-radius: var(--radius-xl) !important;
+  padding: var(--space-6) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border: 1px solid var(--color-border-light) !important;
+  transition: all var(--transition-fast) !important;
   position: relative;
 }
 
@@ -604,12 +605,12 @@ tbody td {
   background: currentColor;
 }
 
-.badge-success { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.25); }
-.badge-warning { background: rgba(217, 119, 6, 0.1);  color: #b45309; border-color: rgba(217, 119, 6, 0.25); }
-.badge-danger  { background: rgba(225, 29, 72, 0.1);  color: #e11d48; border-color: rgba(225, 29, 72, 0.25);  }
-.badge-info    { background: rgba(2, 132, 199, 0.1);   color: #0284c7; border-color: rgba(2, 132, 199, 0.25);   }
-.badge-primary { background: rgba(225, 29, 72, 0.1);  color: #e11d48; border-color: rgba(225, 29, 72, 0.25);  }
-.badge-muted   { background: rgba(148, 163, 184, 0.15); color: #64748b; border-color: rgba(148, 163, 184, 0.3); }
+.badge-success { background: rgba(52, 199, 89, 0.1) !important; color: #34c759 !important; border-color: transparent !important; }
+.badge-warning { background: rgba(255, 149, 0, 0.1) !important; color: #ff9500 !important; border-color: transparent !important; }
+.badge-danger  { background: rgba(255, 59, 48, 0.1) !important; color: #ff3b30 !important; border-color: transparent !important; }
+.badge-info    { background: rgba(0, 122, 255, 0.1) !important; color: #007aff !important; border-color: transparent !important; }
+.badge-primary { background: rgba(255, 45, 85, 0.1) !important; color: #ff2d55 !important; border-color: transparent !important; }
+.badge-muted   { background: rgba(142, 142, 147, 0.15) !important; color: #8e8e93 !important; border-color: transparent !important; }
 
 /* ═══════════════════════════════════════════════════
    PAGE HEADER
@@ -623,12 +624,12 @@ tbody td {
   gap: var(--space-4);
 }
 
-.page-title { font-size: 1.75rem; font-weight: 800; color: var(--color-text); letter-spacing: -0.02em; }
+.page-title { font-size: 1.75rem !important; font-weight: 700 !important; color: var(--color-text) !important; letter-spacing: -0.03em !important; }
 
 .page-subtitle {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  margin-top: 2px;
+  font-size: 0.85rem !important;
+  color: var(--color-text-muted) !important;
+  margin-top: 2px !important;
 }
 
 .page-actions { display: flex; align-items: center; gap: var(--space-3); flex-shrink: 0; }
