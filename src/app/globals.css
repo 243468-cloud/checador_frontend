@@ -401,17 +401,22 @@ a:hover { color: #005bb5; }
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 10px 18px;
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--transition-fast);
+  border: none;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
   outline: none;
   font-family: inherit;
   white-space: nowrap;
   text-decoration: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+  opacity: 0.85;
 }
 
 .btn:disabled {
@@ -422,12 +427,6 @@ a:hover { color: #005bb5; }
 .btn-primary {
   background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(255, 45, 85, 0.2);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  box-shadow: 0 6px 16px rgba(255, 45, 85, 0.3);
 }
 
 .btn-success {
@@ -441,15 +440,8 @@ a:hover { color: #005bb5; }
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--color-text);
-  border-color: rgba(255, 255, 255, 0.14);
+  background: var(--color-surface-2);
+  color: var(--color-info);
 }
 
 .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
@@ -916,12 +908,12 @@ tbody td {
 }
 
 .checkin-btn-large {
-  width: 150px;
-  height: 150px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   font-family: inherit;
@@ -930,38 +922,38 @@ tbody td {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease;
   position: relative;
 }
 
 .checkin-btn-in {
-  background: linear-gradient(145deg, #e11d48, #be123c);
+  background: #34c759; /* iOS Green */
   color: #fff;
-  box-shadow: 0 10px 30px rgba(225, 29, 72, 0.4);
+  box-shadow: 0 10px 30px rgba(52, 199, 89, 0.3);
 }
 
-.checkin-btn-in:hover:not(:disabled) {
-  transform: scale(1.04);
-  box-shadow: 0 14px 40px rgba(225, 29, 72, 0.55);
+.checkin-btn-in:active:not(:disabled) {
+  transform: scale(0.94);
+  background: #2ebd4e;
 }
 
 .checkin-btn-out {
-  background: linear-gradient(145deg, #d97706, #b45309);
+  background: #ff3b30; /* iOS Red */
   color: #fff;
-  box-shadow: 0 10px 30px rgba(217, 119, 6, 0.4);
+  box-shadow: 0 10px 30px rgba(255, 59, 48, 0.3);
 }
 
-.checkin-btn-out:hover:not(:disabled) {
-  transform: scale(1.04);
-  box-shadow: 0 14px 40px rgba(244, 63, 94, 0.45);
+.checkin-btn-out:active:not(:disabled) {
+  transform: scale(0.94);
+  background: #fa3126;
 }
 
 .checkin-btn-done {
-  background: rgba(255, 255, 255, 0.04);
+  background: #f2f2f7;
   color: var(--color-text-muted);
-  border: 2px solid var(--color-border) !important;
+  border: 2px solid transparent !important;
   cursor: default;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 .location-indicator {
