@@ -63,6 +63,14 @@ const SARCASTIC_LATE_COMMENTS = [
   "¿Hubo alfombra roja en la entrada o por qué la entrada triunfal a esta hora?",
 ];
 
+const MOTIVATIONAL_COMMENTS = [
+  "¡Excelente puntualidad! Empezando el día con el pie derecho.",
+  "La disciplina es el puente entre las metas y los logros. ¡Buen turno!",
+  "Tu compromiso hace la diferencia en el equipo. ¡Gracias por llegar a tiempo!",
+  "El éxito es la suma de pequeños esfuerzos diarios. ¡Sigue así!",
+  "Llegar a tiempo es el primer paso para un gran día. ¡A darle con todo!",
+];
+
 export default function CheckInPage() {
   const { user, logout } = useAuth();
   const [time, setTime] = useState('');
@@ -92,9 +100,10 @@ export default function CheckInPage() {
 
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
-  // Tardies tracking
+  // Tardies & Quotes tracking
   const [monthlyTardiesCount, setMonthlyTardiesCount] = useState<number>(0);
   const [sarcasticQuote, setSarcasticQuote] = useState<string | null>(null);
+  const [motivationalQuote, setMotivationalQuote] = useState<string | null>(null);
 
   // Clock
   useEffect(() => {
@@ -110,12 +119,14 @@ export default function CheckInPage() {
 
   // Load today's record & monthly tardies history
   useEffect(() => {
-    attendanceApi.getToday()
       .then(rec => {
         setRecord(rec);
         if (rec && rec.status === 'LATE') {
-          const randomComment = SARCASTIC_LATE_COMMENTS[Math.floor(Math.random() * SARCASTIC_LATE_COMMENTS.length)];
-          setSarcasticQuote(randomComment);
+          setSarcasticQuote(SARCASTIC_LATE_COMMENTS[Math.floor(Math.random() * SARCASTIC_LATE_COMMENTS.length)]);
+          setMotivationalQuote(null);
+        } else if (rec && rec.status === 'ON_TIME') {
+          setMotivationalQuote(MOTIVATIONAL_COMMENTS[Math.floor(Math.random() * MOTIVATIONAL_COMMENTS.length)]);
+          setSarcasticQuote(null);
         }
       })
       .catch(() => setRecord(null));
@@ -169,14 +180,17 @@ export default function CheckInPage() {
         setMonthlyTardiesCount(newCount);
         localStorage.setItem(`tardies_${user?.userId}`, newCount.toString());
 
-        const randomComment = SARCASTIC_LATE_COMMENTS[Math.floor(Math.random() * SARCASTIC_LATE_COMMENTS.length)];
-        setSarcasticQuote(randomComment);
+        setSarcasticQuote(SARCASTIC_LATE_COMMENTS[Math.floor(Math.random() * SARCASTIC_LATE_COMMENTS.length)]);
+        setMotivationalQuote(null);
 
         setMessage({
           type: 'error',
           text: `Entrada registrada con retardo (+${rec.lateMinutes} min tarde). ¡Cuidado con la impuntualidad!`,
         });
       } else {
+        setMotivationalQuote(MOTIVATIONAL_COMMENTS[Math.floor(Math.random() * MOTIVATIONAL_COMMENTS.length)]);
+        setSarcasticQuote(null);
+
         setMessage({
           type: 'success',
           text: `Entrada registrada a las ${rec.checkIn.split('T')[1]?.slice(0,5)} · ¡Llegaste puntual!`,
@@ -399,25 +413,44 @@ export default function CheckInPage() {
                 </div>
               )}
 
+              {/* MOTIVATIONAL LATE COMMENT BANNER */}
+              {motivationalQuote && (
+                <div
+                  className="animate-slide-up p-4 mt-4"
+                  style={{
+                    background: 'rgba(52, 199, 89, 0.1)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(52, 199, 89, 0.25)',
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-1" style={{ color: '#15803d', fontWeight: 700, fontSize: '0.88rem' }}>
+                    <CheckCircle2 size={18} color="#15803d" />
+                    <span>Inspiración del día:</span>
+                  </div>
+                  <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#166534', fontStyle: 'italic', margin: '4px 0 8px 0' }}>
+                    "{motivationalQuote}"
+                  </p>
+                </div>
+              )}
+
               {/* SARCASTIC LATE COMMENT BANNER */}
               {sarcasticQuote && (
                 <div
                   className="animate-slide-up p-4 mt-4"
                   style={{
-                    background: '#ffffff',
+                    background: 'rgba(255, 59, 48, 0.08)',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255, 59, 48, 0.15)',
-                    boxShadow: '0 4px 12px rgba(255, 59, 48, 0.08)',
+                    border: '1px solid rgba(255, 59, 48, 0.25)',
                   }}
                 >
-                  <div className="flex items-center gap-2 mb-1" style={{ color: '#ff3b30', fontWeight: 700, fontSize: '0.88rem' }}>
-                    <Flame size={18} color="#ef4444" />
+                  <div className="flex items-center gap-2 mb-1" style={{ color: '#b91c1c', fontWeight: 700, fontSize: '0.88rem' }}>
+                    <Flame size={18} color="#b91c1c" />
                     <span>Mensaje de Impuntualidad:</span>
                   </div>
-                  <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ff9500', fontStyle: 'italic', margin: '4px 0 8px 0' }}>
+                  <p style={{ fontSize: '0.95rem', fontWeight: 700, color: '#991b1b', fontStyle: 'italic', margin: '4px 0 8px 0' }}>
                     "{sarcasticQuote}"
                   </p>
-                  <div className="flex items-center gap-2" style={{ fontSize: '0.78rem', color: '#8e8e93' }}>
+                  <div className="flex items-center gap-2" style={{ fontSize: '0.78rem', color: '#7f1d1d' }}>
                     <Laugh size={14} />
                     <span>Acumulas <strong>{monthlyTardiesCount} retardo{monthlyTardiesCount > 1 ? 's' : ''}</strong> en el mes. ¡Procura salir con tiempo la próxima!</span>
                   </div>
