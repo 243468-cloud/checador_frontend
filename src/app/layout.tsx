@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
-const montserrat = Montserrat({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-montserrat",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -22,10 +21,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e11d48",
+  themeColor: "#f2f2f7", // iOS light mode background
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false, // Prevents zooming on mobile inputs
 };
 
 import { ThemeProvider } from "@/lib/theme-context";
@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={montserrat.variable}>
+    <html lang="es" className={inter.variable}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />

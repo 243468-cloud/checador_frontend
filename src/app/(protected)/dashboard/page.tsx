@@ -165,10 +165,10 @@ export default function DashboardPage() {
 
         {/* KPI Cards (Clean 4-column / 2x2 Responsive Grid) */}
         <div className="dashboard-kpi-grid">
-          <KPICard icon={<Users size={22} />} label="Total Empleados" value={totalEmployees} color="#4f46e5" bg="#e0e7ff" border="#c7d2fe" />
-          <KPICard icon={<CheckCircle2 size={22} />} label="Presentes" value={present} color="#059669" bg="#d1fae5" border="#a7f3d0" />
-          <KPICard icon={<AlertTriangle size={22} />} label="Tardanzas" value={stats?.late ?? 0} color="#d97706" bg="#fef3c7" border="#fde68a" />
-          <KPICard icon={<UserX size={22} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#dc2626" bg="#fee2e2" border="#fca5a5" />
+          <KPICard icon={<Users size={22} />} label="Total Empleados" value={totalEmployees} color="#007aff" bg="rgba(0,122,255,0.1)" border="" />
+          <KPICard icon={<CheckCircle2 size={22} />} label="Presentes" value={present} color="#34c759" bg="rgba(52,199,89,0.1)" border="" />
+          <KPICard icon={<AlertTriangle size={22} />} label="Tardanzas" value={stats?.late ?? 0} color="#ff9500" bg="rgba(255,149,0,0.1)" border="" />
+          <KPICard icon={<UserX size={22} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#ff3b30" bg="rgba(255,59,48,0.1)" border="" />
         </div>
 
         {/* Ranking & Recompensas Vía Gourmet */}
@@ -251,15 +251,15 @@ export default function DashboardPage() {
   );
 }
 
-function KPICard({ icon, label, value, color, bg, border }: { icon: React.ReactNode; label: string; value: number; color: string; bg: string; border: string }) {
+function KPICard({ icon, label, value, color, bg }: { icon: React.ReactNode; label: string; value: number; color: string; bg: string; border: string }) {
   return (
-    <div className="card animate-slide-up" style={{ padding: '16px 20px', borderRadius: 16, background: '#ffffff', border: `1px solid ${border}`, boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)' }}>
+    <div className="card animate-slide-up" style={{ padding: '20px' }}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{label}</div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 900, color, lineHeight: 1 }}>{value}</div>
+          <div style={{ fontSize: '0.8rem', fontWeight: 500, color: '#8e8e93', marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#000000', lineHeight: 1 }}>{value}</div>
         </div>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 14, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {icon}
         </div>
       </div>

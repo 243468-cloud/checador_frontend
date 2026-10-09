@@ -77,15 +77,8 @@ export default function Sidebar() {
       {/* Mobile Top Header Bar */}
       <header className="mobile-header-navbar">
         <div className="mobile-header-left">
-          <button
-            className="mobile-menu-toggle-btn"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Abrir menú"
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
           <div className="mobile-logo-box">
-            <Clock size={18} color="#60a5fa" />
+            <Clock size={18} color="#ff2d55" />
             <span className="mobile-logo-title">Checador</span>
           </div>
         </div>
@@ -103,6 +96,25 @@ export default function Sidebar() {
           </button>
         </div>
       </header>
+
+      {/* iOS Bottom Tab Bar (Mobile Only) */}
+      <nav className="bottom-tab-bar" style={{ display: 'flex' }}>
+        {visibleItems.slice(0, 4).map(item => {
+          const isActive = pathname.startsWith(item.href);
+          return (
+            <Link key={item.href} href={item.href} className={`tab-bar-item ${isActive ? 'active' : ''}`} onClick={() => setMobileOpen(false)}>
+              {item.icon}
+              <span>{item.label.split(' ')[0]}</span>
+            </Link>
+          );
+        })}
+        {visibleItems.length > 4 && (
+          <button className={`tab-bar-item ${mobileOpen ? 'active' : ''}`} onClick={() => setMobileOpen(!mobileOpen)} style={{ background: 'transparent', border: 'none' }}>
+            <Menu size={18} />
+            <span>Más</span>
+          </button>
+        )}
+      </nav>
 
       {/* Mobile Drawer Overlay */}
       {mobileOpen && (

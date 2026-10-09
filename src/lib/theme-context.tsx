@@ -28,38 +28,50 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Aquí puedes determinar el "slug" basado en el subdominio de la URL actual.
-    // Por ahora, como ejemplo, forzaremos un slug "mi-empresa" o leeremos un env.
-    const slug = process.env.NEXT_PUBLIC_TENANT_SLUG || "mi-empresa";
+    // 1. Intentar leer el código de empresa (slug) de la URL (ej. ?empresa=kfc)
+    const params = new URLSearchParams(window.location.search);
+    let slug = params.get("empresa");
 
-    axios.get(`${API_URL}/api/settings/public/${slug}`)
-      .then((response) => {
-        const data = response.data;
-        setSettings(data);
-        
-        // Inyectar el color primario en CSS global
-        if (data.primaryColor) {
-          document.documentElement.style.setProperty("--color-primary", data.primaryColor);
-          // Si usas un sistema de variables específico en globals.css (ej. Tailwind variables),
-          // puedes inyectarlas aquí también.
-        }
+    // Si no está en la URL, intentar leerlo de memoria (si entraron antes)
+    if (!slug) {
+      slug = localStorage.getItem("tenantSlug");
+    }
 
-        if (data.companyName) {
-          document.title = `${data.companyName} | Checador`;
-        }
-      })
-      .catch((error) => {
-        console.warn("No se pudo cargar la configuración de marca blanca", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    const applySettings = (data: TenantSettings) => {
+      setSettings(data);
+      if (data.primaryColor) {
+        document.documentElement.style.setProperty("--color-primary", data.primaryColor);
+      }
+      if (data.companyName) {
+        document.title = `${data.companyName} | Checador`;
+      }
+    };
+
+    if (slug) {
+      // Guardarlo en memoria para futuras visitas
+      localStorage.setItem("tenantSlug", slug);
+
+      // Pedir la configuración pública
+      axios.get(`${API_URL}/api/settings/public/${slug}`)
+        .then((res) => applySettings(res.data))
+        .catch(() => console.warn("No se encontró configuración pública para", slug))
+        .finally(() => setLoading(false));
+
+    } else {
+      // Si no hay slug, intentar obtener la configuración privada del usuario ya logueado
+      // Usamos el proxy para que inyecte automáticamente la cookie (JWT)
+      axios.get('/api/proxy/settings/current')
+        .then((res) => applySettings(res.data))
+        .catch(() => {
+          // Si falla (ej. no está logueado), no pasa nada, se queda el diseño genérico
+          console.log("Cargando diseño genérico por defecto.");
+        })
+        .finally(() => setLoading(false));
+    }
   }, []);
 
   return (
     <ThemeContext.Provider value={{ settings, loading }}>
-      {/* Si prefieres no mostrar nada hasta cargar el theme, puedes hacer un condicional aquí.
-          Pero es mejor renderizar para evitar pantallas blancas. */}
       {children}
     </ThemeContext.Provider>
   );
