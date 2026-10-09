@@ -13,8 +13,8 @@ export interface RewardsConfig {
 }
 
 const DEFAULT_CONFIG: RewardsConfig = {
-  fortnightReward: 'Bebida sin alcohol (Smoothie / Mocktail Gourmet)',
-  monthlyReward: 'Platillo Especial Vía Gourmet a Elección',
+  fortnightReward: 'Bebida Especial / Snack Cortesia',
+  monthlyReward: 'Día Libre o Premio Especial a Elección',
   fortnightMinAttendance: 12,
   monthlyMaxLateMinutes: 0,
 };
@@ -92,7 +92,7 @@ export default function RewardsLeaderboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
-                Ranking & Recompensas Vía Gourmet
+                Ranking & Recompensas
               </h2>
               <span className="badge badge-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', padding: '4px 10px', fontWeight: 800, borderRadius: '20px', width: 'fit-content' }}>
                 <Sparkles size={11} />
@@ -387,7 +387,7 @@ export default function RewardsLeaderboard() {
             <form onSubmit={handleSaveConfig}>
               <div className="modal-body">
                 <div style={{ background: 'rgba(225, 29, 72, 0.06)', border: '1px solid rgba(225, 29, 72, 0.2)', padding: '12px 14px', borderRadius: '12px', fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>
-                  Como <strong>Superadministrador</strong>, puedes modificar los nombres de los premios e incentivos oficiales para motivar la asistencia puntual en el restaurante.
+                  Como <strong>Superadministrador</strong>, puedes modificar los nombres de los premios e incentivos oficiales para motivar la asistencia puntual en tu empresa.
                 </div>
 
                 <div className="form-group">
@@ -396,7 +396,7 @@ export default function RewardsLeaderboard() {
                     type="text"
                     value={editForm.fortnightReward}
                     onChange={e => setEditForm(p => ({ ...p, fortnightReward: e.target.value }))}
-                    placeholder="Ej: Bebida sin alcohol (Smoothie Gourmet)"
+                    placeholder="Ej: Bebida o Snack Especial"
                     required
                   />
                 </div>
@@ -407,7 +407,7 @@ export default function RewardsLeaderboard() {
                     type="text"
                     value={editForm.monthlyReward}
                     onChange={e => setEditForm(p => ({ ...p, monthlyReward: e.target.value }))}
-                    placeholder="Ej: Platillo Vía Gourmet a Elección"
+                    placeholder="Ej: Platillo Especial o Tarjeta de Regalo"
                     required
                   />
                 </div>
