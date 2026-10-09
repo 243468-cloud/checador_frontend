@@ -76,8 +76,8 @@ export default function RewardsLeaderboard() {
       padding: '24px',
     }}>
       {/* Leaderboard Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-5 mb-6" style={{ borderBottom: '1px solid rgba(225, 29, 72, 0.12)' }}>
-        <div className="flex items-start gap-4">
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', paddingBottom: '20px', marginBottom: '24px', borderBottom: '1px solid rgba(225, 29, 72, 0.12)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
           <div style={{
             width: 48, height: 48, borderRadius: 14,
             background: 'linear-gradient(135deg, #e11d48, #be123c)',
@@ -90,11 +90,11 @@ export default function RewardsLeaderboard() {
             <Trophy size={24} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: 0 }}>
                 Ranking & Recompensas Vía Gourmet
               </h2>
-              <span className="badge badge-primary flex items-center gap-1.5" style={{ fontSize: '10px', padding: '4px 10px', fontWeight: 800, borderRadius: '20px', width: 'fit-content' }}>
+              <span className="badge badge-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', padding: '4px 10px', fontWeight: 800, borderRadius: '20px', width: 'fit-content' }}>
                 <Sparkles size={11} />
                 Programa Oficial
               </span>
@@ -106,11 +106,12 @@ export default function RewardsLeaderboard() {
         </div>
 
         {isSuperUser && (
-          <div style={{ marginTop: '10px' }} className="md:mt-0">
+          <div style={{ marginTop: '10px', flexShrink: 0 }}>
             <button
               onClick={() => setShowConfigModal(true)}
-              className="btn btn-ghost flex items-center gap-2"
+              className="btn btn-ghost"
               style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
                 background: 'rgba(225, 29, 72, 0.08)',
                 color: '#e11d48',
                 border: '1px solid rgba(225, 29, 72, 0.25)',
@@ -118,7 +119,7 @@ export default function RewardsLeaderboard() {
                 fontSize: '0.82rem',
                 borderRadius: '10px',
                 padding: '10px 16px',
-                width: '100%',
+                width: 'max-content',
               }}
             >
               <Settings size={15} />
@@ -128,10 +129,11 @@ export default function RewardsLeaderboard() {
         )}
       </div>
 
-      {/* 2 Main Reward Columns (Responsive Flex Col on Mobile, Flex Row on Desktop) */}
-      <div className="flex flex-col md:flex-row gap-6 mb-6">
+      {/* 2 Main Reward Columns */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', marginBottom: '24px' }}>
         {/* FORTNIGHTLY REWARD CARD */}
-        <div className="flex-1 p-6 rounded-2xl" style={{
+        <div style={{
+          flex: '1 1 300px',
           background: 'linear-gradient(135deg, #fffdfa 0%, #fff7f2 100%)',
           border: '1px solid rgba(245, 158, 11, 0.3)',
           boxShadow: '0 8px 24px -6px rgba(245, 158, 11, 0.12)',
@@ -251,7 +253,8 @@ export default function RewardsLeaderboard() {
         </div>
 
         {/* MONTHLY REWARD CARD */}
-        <div className="flex-1 p-6 rounded-2xl" style={{
+        <div style={{
+          flex: '1 1 300px',
           background: 'linear-gradient(135deg, #fffdfb 0%, #fff2f5 100%)',
           border: '1px solid rgba(225, 29, 72, 0.3)',
           boxShadow: '0 8px 24px -6px rgba(225, 29, 72, 0.12)',
