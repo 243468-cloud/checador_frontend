@@ -5,10 +5,12 @@ import type { NextRequest } from 'next/server';
 const PUBLIC_ROUTES = [
   '/login',
   '/register',
+  '/registro-empresa',
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/refresh',
   '/api/proxy/branches/public', // Para el formulario de login/registro
+  '/api/proxy/public',          // Para APIs públicas generales
 ];
 
 export function middleware(request: NextRequest) {

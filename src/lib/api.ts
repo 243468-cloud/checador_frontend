@@ -56,7 +56,7 @@ export interface CompanyRegistrationData {
 }
 
 export async function registerCompany(data: CompanyRegistrationData): Promise<any> {
-  const res = await fetch(`${API_BASE}/api/public/register-company`, {
+  const res = await fetch(`${API_BASE}/api/proxy/public/register-company`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
