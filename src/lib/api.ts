@@ -46,6 +46,32 @@ export async function registerEmployee(data: RegisterData): Promise<LoginRespons
   return res.json();
 }
 
+export interface CompanyRegistrationData {
+  companyName: string;
+  slug: string;
+  adminFullName: string;
+  adminUsername: string;
+  adminEmail: string;
+  adminPassword: string;
+}
+
+export async function registerCompany(data: CompanyRegistrationData): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/public/register-company`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    let errorMsg = 'Error al registrar empresa';
+    try {
+      const err = await res.json();
+      if (err && err.error) errorMsg = err.error;
+    } catch (_) {}
+    throw new Error(errorMsg);
+  }
+  return res.json();
+}
+
 export async function getPublicBranches(): Promise<Branch[]> {
   const res = await fetch(`${API_BASE}/api/proxy/branches/public`);
   if (!res.ok) return [];
@@ -546,7 +572,17 @@ export interface ShiftConfigDTO {
   daysDescription?: string;
 }
 
+export interface TenantSettingsDTO {
+  id: number;
+  tenantId: number;
+  companyName: string;
+  slug: string;
+  subscriptionStatus: string;
+  createdAt: string;
+}
+
 export const settingsApi = {
+  getAllTenants: () => apiFetch<TenantSettingsDTO[]>('/api/settings/all'),
   getShifts: () => apiFetch<ShiftConfigDTO[]>('/api/settings/shifts'),
   updateShifts: (shifts: ShiftConfigDTO[]) =>
     apiFetch<ShiftConfigDTO[]>('/api/settings/shifts', {

@@ -41,6 +41,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER'] },
   { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Administradores',      roles: ['SUPERUSER'] },
+  { href: '/companies',  icon: <Building2       size={18} />, label: 'Empresas (Tenants)',   roles: ['SUPERUSER'] },
   { href: '/audit',      icon: <ClipboardList   size={18} />, label: 'Auditoría',            roles: ['SUPERUSER'] },
   { href: '/settings',   icon: <Settings        size={18} />, label: 'Configuración',        roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
 ];
