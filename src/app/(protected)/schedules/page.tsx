@@ -6,6 +6,7 @@ import { employeeApi, reportApi, scheduleApi, AttendanceRecord, Employee, Roster
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
+import ModuleGuard from '@/components/ModuleGuard';
 // Lazy loaded modules (XLSX, jsPDF) will be imported dynamically when needed
 import {
   Clock,
@@ -414,6 +415,14 @@ const getMondayOfDate = (dateStr: string): string => {
 };
 
 export default function SchedulesPage() {
+  return (
+    <ModuleGuard requiredModule="schedules">
+      <SchedulesPageContent />
+    </ModuleGuard>
+  );
+}
+
+function SchedulesPageContent() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {

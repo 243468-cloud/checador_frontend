@@ -21,9 +21,9 @@ import {
   Filter,
   Trash2,
   ChevronLeft,
-  ChevronRight,
   Smartphone,
 } from 'lucide-react';
+import ModuleGuard from '@/components/ModuleGuard';
 
 const MONTHS = ['', 'Enero','Febrero','Marzo','Abril','Mayo','Junio',
                  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -393,8 +393,9 @@ export default function ReportsPage() {
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        {/* Page Header */}
-        <div className="page-header">
+        <ModuleGuard requiredModule="reports">
+          {/* Page Header */}
+          <div className="page-header">
           <div>
             <h1 className="page-title">Reportes de Asistencia</h1>
             <p className="page-subtitle">Filtra por período semanal, quincenal o mensual y exporta a Excel</p>
@@ -815,6 +816,7 @@ export default function ReportsPage() {
             </div>
           </div>
         )}
+        </ModuleGuard>
       </main>
     </div>
   );
