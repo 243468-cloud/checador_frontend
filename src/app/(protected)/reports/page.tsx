@@ -21,6 +21,7 @@ import {
   Filter,
   Trash2,
   ChevronLeft,
+  ChevronRight,
   Smartphone,
 } from 'lucide-react';
 import ModuleGuard from '@/components/ModuleGuard';

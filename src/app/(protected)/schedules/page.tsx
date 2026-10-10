@@ -1849,7 +1849,7 @@ function SchedulesPageContent() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(settings?.companyName || 'EMPRESA', 14, 14);
+    doc.text('EMPRESA', 14, 14);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Horario Individual de Trabajo — ${employeeName}`, 14, 22);
