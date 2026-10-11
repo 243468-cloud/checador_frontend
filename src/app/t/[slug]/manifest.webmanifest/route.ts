@@ -5,7 +5,11 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!baseUrl) {
+    return new NextResponse(null, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -18,18 +22,17 @@ export async function GET(
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      return new NextResponse(null, { 
-        status: 503, 
-        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } 
-      });
+      return new NextResponse(null, { status: 503, headers: { 'Cache-Control': 'no-store' } });
     }
 
     const data = await res.json();
     
     const manifest = {
+      id: `checador-${slug}`,
       name: data.companyName || 'Checador App',
       short_name: data.companyName || 'Checador',
-      start_url: `/t/${slug}`,
+      start_url: `/t/${slug}/login`,
+      scope: `/t/${slug}`,
       display: 'standalone',
       background_color: '#ffffff',
       theme_color: data.primaryColor || '#000000',
@@ -37,6 +40,11 @@ export async function GET(
         {
           src: data.iconUrl || '/icon-192x192.png',
           sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: data.logoUrl || '/icon-512x512.png',
+          sizes: '512x512',
           type: 'image/png'
         }
       ]
@@ -51,9 +59,6 @@ export async function GET(
 
   } catch (error) {
     clearTimeout(timeoutId);
-    return new NextResponse(null, { 
-      status: 503, 
-      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } 
-    });
+    return new NextResponse(null, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
 }
