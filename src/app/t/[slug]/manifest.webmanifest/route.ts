@@ -14,7 +14,7 @@ export async function GET(
   const timeoutId = setTimeout(() => controller.abort(), 5000);
 
   try {
-    const res = await fetch(`${baseUrl}/api/settings/public/${slug}`, {
+    const res = await fetch(`${baseUrl}/api/settings/public/${encodeURIComponent(slug)}`, {
       signal: controller.signal,
       cache: 'no-store'
     });
@@ -26,6 +26,38 @@ export async function GET(
     }
 
     const data = await res.json();
+
+    const icons: Array<{ src: string; sizes?: string; type?: string; purpose?: string }> = [];
+
+    if (data.iconUrl) {
+      icons.push({
+        src: data.iconUrl,
+        sizes: 'any',
+        type: 'image/png'
+      });
+    } else {
+      icons.push({
+        src: '/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any maskable'
+      });
+    }
+
+    if (data.logoUrl) {
+      icons.push({
+        src: data.logoUrl,
+        sizes: 'any',
+        type: 'image/png'
+      });
+    } else {
+      icons.push({
+        src: '/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable'
+      });
+    }
     
     const manifest = {
       id: `checador-${slug}`,
@@ -36,18 +68,7 @@ export async function GET(
       display: 'standalone',
       background_color: '#ffffff',
       theme_color: data.primaryColor || '#000000',
-      icons: [
-        {
-          src: data.iconUrl || '/icon-192x192.png',
-          sizes: '192x192',
-          type: 'image/png'
-        },
-        {
-          src: data.logoUrl || '/icon-512x512.png',
-          sizes: '512x512',
-          type: 'image/png'
-        }
-      ]
+      icons
     };
 
     return new NextResponse(JSON.stringify(manifest), {
