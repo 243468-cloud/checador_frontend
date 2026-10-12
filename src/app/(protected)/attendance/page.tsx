@@ -238,7 +238,7 @@ export default function AttendancePage() {
           ))}
         </div>
 
-        {/* Ranking & Recompensas Vía Gourmet */}
+        {/* Ranking & Recompensas */}
         <RewardsLeaderboard />
 
         {/* Table */}

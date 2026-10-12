@@ -171,7 +171,7 @@ export default function DashboardPage() {
           <KPICard icon={<UserX size={22} />} label="Ausentes" value={absent >= 0 ? absent : 0} color="#ff3b30" bg="rgba(255,59,48,0.1)" border="" />
         </div>
 
-        {/* Ranking & Recompensas Vía Gourmet */}
+        {/* Ranking & Recompensas */}
         <RewardsLeaderboard />
 
         {/* Daily Attendance Table */}

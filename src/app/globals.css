@@ -12,7 +12,7 @@
   --color-border:      rgba(0, 0, 0, 0.08); /* Soft borders */
   --color-border-light:rgba(0, 0, 0, 0.04);
 
-  /* Primary Brand Accent — Vía Gourmet Crimson Red & Amber Gold */
+  /* Primary Brand Accent — Crimson Red & Amber Gold */
   --color-primary:     #ff2d55;  /* iOS Apple Music Pink/Red */
   --color-primary-hover:#ff375f;
   --color-primary-glow: rgba(255, 45, 85, 0.2);
@@ -508,7 +508,7 @@ a:hover { color: #005bb5; }
 .form-select option { background: #ffffff; color: var(--color-text); }
 
 /* ═══════════════════════════════════════════════════
-   ENTERPRISE DATA TABLE (Estilo Vía Gourmet)
+   ENTERPRISE DATA TABLE
    ═══════════════════════════════════════════════════ */
 
 .table-wrapper {

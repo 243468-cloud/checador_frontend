@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get('token')?.value;
 
-  // Comprobar si es una subruta de login/register (ej: /via-gourmet/login)
+  // Comprobar si es una subruta de login/register (ej: /[slug]/login)
   const isDynamicAuthRoute = pathname.match(/^\/[a-zA-Z0-9-]+\/(login|register)$/);
 
   // Si está en ruta pública o es una subruta dinámica de auth

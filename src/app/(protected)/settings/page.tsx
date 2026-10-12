@@ -344,7 +344,7 @@ export default function SettingsPage() {
 
               <div className="p-5 rounded-xl" style={{ background: '#fdfbf7', border: '1px solid #f1ece1', padding: '20px 24px', borderRadius: '16px' }}>
                 <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', marginBottom: '14px' }}>
-                  Servicios del Sistema Vía Gourmet:
+                  Servicios del Sistema Checador:
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {[

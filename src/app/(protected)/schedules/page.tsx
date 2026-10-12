@@ -2544,7 +2544,7 @@ function SchedulesPageContent() {
                 </h3>
                 <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                   {user?.role === 'EMPLOYEE'
-                    ? 'Consulta tu horario individual asignado esta semana en Vía Gourmet'
+                    ? 'Consulta tu horario individual asignado esta semana'
                     : 'Consulta o descarga en PDF el horario asignado de cada integrante del equipo'}
                 </p>
               </div>

@@ -1,6 +1,6 @@
-// Service Worker Oficial — Checador Vía Gourmet (Push & Offline Cache)
+// Service Worker Oficial — Checador (Push & Offline Cache)
 
-const CACHE_NAME = 'via-gourmet-v1';
+const CACHE_NAME = 'checador-pwa-v1';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -16,14 +16,14 @@ self.addEventListener('push', (event) => {
 
   try {
     const data = event.data.json();
-    const title = data.title || 'Vía Gourmet 🔔';
+    const title = data.title || 'Checador 🔔';
     const options = {
       body: data.body || 'Nueva notificación de asistencia',
-      icon: data.icon || '/logo.png',
-      badge: data.badge || '/icons/icon-192x192.png',
+      icon: data.icon || '/icon-192x192.png',
+      badge: data.badge || '/icon-192x192.png',
       data: { url: data.url || '/' },
       vibrate: [200, 100, 200, 100, 200],
-      tag: 'via-gourmet-push-' + Date.now(),
+      tag: 'checador-push-' + Date.now(),
       renotify: true,
       requireInteraction: false,
     };
