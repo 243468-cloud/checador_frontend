@@ -31,7 +31,7 @@ export async function GET(
       id: `checador-${slug}`,
       name: data.companyName || 'Checador App',
       short_name: data.companyName || 'Checador',
-      start_url: `/t/${slug}/login`,
+      start_url: `/${encodeURIComponent(slug)}/login`,
       scope: `/t/${slug}`,
       display: 'standalone',
       background_color: '#ffffff',
