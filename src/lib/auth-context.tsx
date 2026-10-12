@@ -102,15 +102,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await res.json();
     
-    // Si inicia sesión un tenant distinto, limpiamos TODA la caché residual
+    const clearClientStorage = async () => {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        if (typeof window !== 'undefined' && 'caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+      } catch (e) {
+        console.error('Error al limpiar almacenamiento del cliente:', e);
+      }
+    };
+
+    // Si inicia sesión un tenant distinto, limpiamos TODA la caché, localStorage y sessionStorage
     const stored = localStorage.getItem('user');
     if (stored) {
       try {
         const oldUser = JSON.parse(stored);
-        if (oldUser.tenantId !== data.tenantId) {
-          localStorage.clear();
+        if (oldUser.tenantId !== data.tenantId || oldUser.id !== data.id) {
+          await clearClientStorage();
         }
-      } catch (e) {}
+      } catch (e) {
+        await clearClientStorage();
+      }
     }
 
     localStorage.setItem('user', JSON.stringify(data));
@@ -127,8 +142,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
-    // Limpieza total agresiva para evitar fugas de datos entre tenants
-    localStorage.clear();
+    // Limpieza total agresiva de caches, localStorage y sessionStorage para hermeticidad multi-tenant
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {
+      console.error('Error al limpiar almacenamiento en logout:', e);
+    }
     setUser(null);
     window.location.href = '/login';
   };
