@@ -12,6 +12,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Checador de Asistencia",
   description: "Sistema de control y gestión de asistencia",
+  manifest: "/manifest.json",
+  icons: {
+    apple: "/icons/icon-192x192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -36,10 +40,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={inter.variable}>
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
-      </head>
       <body>
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
