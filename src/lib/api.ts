@@ -12,6 +12,8 @@ export interface LoginResponse {
   branchId: number | null;
   branchName: string | null;
   shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED' | null;
+  tenantId?: number;
+  tenantSlug?: string;
 }
 
 // login() moved to AuthContext.login() — kept here only for backward-compat imports.

@@ -128,17 +128,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    if (data.tenantSlug) {
+      localStorage.setItem('tenantSlug', data.tenantSlug);
+    }
     localStorage.setItem('user', JSON.stringify(data));
     setUser(data);
     autoSubscribePush();
   };
 
   const setUserOnly = (userData: LoginResponse) => {
+    if (userData.tenantSlug) {
+      localStorage.setItem('tenantSlug', userData.tenantSlug);
+    }
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = async () => {
+    // Recuperar el slug de la empresa del usuario actual antes de vaciar el almacenamiento
+    const targetSlug = localStorage.getItem('tenantSlug') || user?.tenantSlug;
+
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
@@ -154,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error al limpiar almacenamiento en logout:', e);
     }
     setUser(null);
-    window.location.href = '/login';
+    window.location.href = targetSlug ? `/${encodeURIComponent(targetSlug)}/login` : '/login';
   };
 
   return (

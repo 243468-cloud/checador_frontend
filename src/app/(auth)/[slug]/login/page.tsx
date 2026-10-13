@@ -45,8 +45,9 @@ export default function TenantLoginPage({ params }: { params: { slug: string } }
     setError('');
     setLoading(true);
     try {
-      // El login sigue siendo el mismo, enviando username y password
-      // Al hacer login, el JWT en la base de datos se asociará al username
+      if (params?.slug) {
+        localStorage.setItem('tenantSlug', params.slug);
+      }
       await login(form.username.trim(), form.password.trim());
       router.push('/dashboard');
     } catch (err: any) {
