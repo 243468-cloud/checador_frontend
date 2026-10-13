@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Sistema de control y gestión de asistencia",
   manifest: "/manifest.json",
   icons: {
-    apple: "/icons/icon-192x192.png",
+    apple: "/icon-192x192.png",
   },
   appleWebApp: {
     capable: true,

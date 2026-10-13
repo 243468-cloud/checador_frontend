@@ -9,7 +9,7 @@ export async function generateMetadata({
   const encodedSlug = encodeURIComponent(slug);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   let companyName = "Checador";
-  let iconUrl = "/icons/icon-192x192.png";
+  let iconUrl = "/icon-192x192.png";
 
   if (baseUrl) {
     try {
