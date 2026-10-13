@@ -1,6 +1,4 @@
-// Service Worker Oficial — Checador (Push & Offline Cache)
-
-const CACHE_NAME = 'checador-pwa-v1';
+// Service Worker Oficial — Checador (Push Notifications Only)
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
