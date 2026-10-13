@@ -7,7 +7,7 @@ import { registerServiceWorker, subscribeUserToPush } from '@/lib/push';
 interface AuthContextType {
   user: LoginResponse | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, slug?: string) => Promise<void>;
   logout: () => Promise<void>;
   setUserOnly: (user: LoginResponse) => void;
   isAuthenticated: boolean;
@@ -87,12 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, slug?: string) => {
     // Llama al route handler de Next.js, no al backend directamente
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, slug }),
     });
 
     if (!res.ok) {

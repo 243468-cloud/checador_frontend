@@ -48,7 +48,7 @@ export default function TenantLoginPage({ params }: { params: { slug: string } }
       if (params?.slug) {
         localStorage.setItem('tenantSlug', params.slug);
       }
-      await login(form.username.trim(), form.password.trim());
+      await login(form.username.trim(), form.password.trim(), params?.slug);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.');
