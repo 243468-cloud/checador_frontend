@@ -10,18 +10,15 @@ export default function ModuleGuard({ children, requiredModule }: { children: Re
 
   useEffect(() => {
     if (!loading) {
-      if (!settings) {
-        // Fail-closed si no se pudo cargar la configuración
-        router.replace('/dashboard');
-      } else if (settings.activeModules && !settings.activeModules.includes(requiredModule)) {
-        // Redirigir si el módulo no está activo
+      if (!settings?.activeModules?.includes(requiredModule)) {
+        // Fail-closed: redirigir si no está activo el módulo o si settings no ha cargado
         router.replace('/dashboard');
       }
     }
   }, [settings, loading, router, requiredModule]);
 
   if (loading) return <div>Cargando...</div>;
-  if (!settings || (settings.activeModules && !settings.activeModules.includes(requiredModule))) {
+  if (!settings?.activeModules?.includes(requiredModule)) {
     return null; // No renderizar mientras redirige
   }
 

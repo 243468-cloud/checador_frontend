@@ -64,8 +64,8 @@ export default function Sidebar() {
 
   const visibleItems = NAV_ITEMS.filter(item => {
     if (!item.roles.includes(user.role)) return false;
-    if (item.module && settings?.activeModules) {
-      if (!settings.activeModules.includes(item.module)) return false;
+    if (item.module) {
+      if (!settings?.activeModules?.includes(item.module)) return false;
     }
     return true;
   });
