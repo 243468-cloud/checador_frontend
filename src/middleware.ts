@@ -25,7 +25,11 @@ export function middleware(request: NextRequest) {
     pathname === '/logo.png' ||
     pathname === '/apple-touch-icon.png' ||
     pathname === '/manifest.json' ||
-    pathname === '/sw.js'
+    pathname === '/sw.js' ||
+    pathname === '/icon-192x192.png' ||
+    pathname === '/icon-512x512.png' ||
+    pathname.startsWith('/api/icons/') ||
+    /^\/t\/[a-zA-Z0-9-]+\/manifest\.webmanifest$/.test(pathname)
   ) {
     return NextResponse.next();
   }
