@@ -27,37 +27,20 @@ export async function GET(
 
     const data = await res.json();
 
-    const icons: Array<{ src: string; sizes?: string; type?: string; purpose?: string }> = [
+    const icons = [
       {
-        src: '/icon-192x192.png',
+        src: `/api/icons/${encodeURIComponent(slug)}/192`,
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any maskable'
       },
       {
-        src: '/icon-512x512.png',
+        src: `/api/icons/${encodeURIComponent(slug)}/512`,
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any maskable'
       }
     ];
-
-    // Solo se permite sizes: "any" para imágenes SVG vectoriales
-    if (data.iconUrl && (data.iconUrl.toLowerCase().endsWith('.svg') || data.iconUrl.startsWith('data:image/svg+xml'))) {
-      icons.unshift({
-        src: data.iconUrl,
-        sizes: 'any',
-        type: 'image/svg+xml'
-      });
-    }
-
-    if (data.logoUrl && (data.logoUrl.toLowerCase().endsWith('.svg') || data.logoUrl.startsWith('data:image/svg+xml'))) {
-      icons.unshift({
-        src: data.logoUrl,
-        sizes: 'any',
-        type: 'image/svg+xml'
-      });
-    }
     
     const manifest = {
       id: `checador-${slug}`,
