@@ -18,6 +18,7 @@ import {
   AlertCircle,
   ShieldCheck,
   ArrowLeft,
+  Key,
 } from 'lucide-react';
 
 export default function TenantRegisterPage({ params }: { params: { slug: string } }) {
@@ -32,6 +33,7 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
     email: '',
     branchId: '',
     shiftType: 'MORNING' as 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED',
+    invitationCode: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -71,6 +73,11 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
       return;
     }
 
+    if (!form.invitationCode.trim()) {
+      setError('Por favor ingresa el código de invitación proporcionado por tu empresa.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -81,6 +88,8 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
         email: form.email.trim() || undefined,
         branchId: Number(form.branchId),
         shiftType: form.shiftType,
+        slug: params.slug,
+        invitationCode: form.invitationCode.trim().toUpperCase(),
       });
 
       // Save token and user in context
@@ -258,6 +267,32 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* Código de Invitación de la Empresa */}
+          <div className="form-group-field">
+            <label className="form-label-text" htmlFor="reg-invitation-code">
+              Código de Invitación de la Empresa *
+            </label>
+            <div className="input-field-wrapper">
+              <span className="input-field-icon">
+                <Key size={18} />
+              </span>
+              <input
+                id="reg-invitation-code"
+                type="text"
+                className="form-input-element"
+                placeholder="Código de 6 caracteres (ej. A9B2X7)"
+                value={form.invitationCode}
+                onChange={e => setForm(p => ({ ...p, invitationCode: e.target.value.toUpperCase() }))}
+                maxLength={10}
+                required
+                style={{ letterSpacing: '2px', fontWeight: 700 }}
+              />
+            </div>
+            <p style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
+              Solicita este código al administrador de tu empresa para poder registrarte.
+            </p>
           </div>
 
           {/* Contraseña */}

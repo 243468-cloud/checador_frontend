@@ -29,6 +29,8 @@ export interface RegisterData {
   email?: string;
   branchId: number;
   shiftType: 'MORNING' | 'EVENING' | 'SUNDAY' | 'MIXED';
+  slug?: string;
+  invitationCode?: string;
 }
 
 export async function registerEmployee(data: RegisterData): Promise<LoginResponse> {
@@ -591,5 +593,10 @@ export const settingsApi = {
     apiFetch<ShiftConfigDTO[]>('/api/settings/shifts', {
       method: 'PUT',
       body: JSON.stringify(shifts),
+    }),
+  generateInvitationCode: (daysValid = 7) =>
+    apiFetch<{ code: string; expiresAt: string; message: string }>('/api/settings/current/invitation-code', {
+      method: 'POST',
+      body: JSON.stringify({ daysValid }),
     }),
 };

@@ -22,6 +22,10 @@ import {
   Award,
   Moon,
   Timer,
+  Copy,
+  RefreshCw,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 
@@ -31,6 +35,34 @@ export default function SettingsPage() {
   const [passForm, setPassForm] = useState({ currentPass: '', newPass: '', confirmPass: '' });
   const [passSuccess, setPassSuccess] = useState(false);
   const [passError, setPassError] = useState('');
+
+  // ─── Invitation Code State ────────────────────────────────────────────────
+  const [invitationData, setInvitationData] = useState<{ code: string; expiresAt: string; message: string } | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [codeError, setCodeError] = useState('');
+
+  const handleGenerateCode = async () => {
+    setGeneratingCode(true);
+    setCodeError('');
+    setCopiedCode(false);
+    try {
+      const res = await settingsApi.generateInvitationCode(7);
+      setInvitationData(res);
+    } catch (e: any) {
+      setCodeError(e.message || 'Error al generar el código de invitación.');
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (invitationData?.code) {
+      navigator.clipboard.writeText(invitationData.code);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2500);
+    }
+  };
 
   // ─── Shift Configurations State ───────────────────────────────────────────
   const [shifts, setShifts] = useState<ShiftConfigDTO[]>([
@@ -206,11 +238,116 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 2. SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
+        {/* 2. INVITATION CODE & SHIFTS & PWA & SYSTEM STATUS GRID (Solo para Administradores y Superusuarios) */}
         {user?.role !== 'EMPLOYEE' && (
-          <div className="grid-2-columns" style={{ gap: '24px' }}>
-            {/* Turnos Oficiales (Configuración Dinámica de Horarios) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '24px' }}>
+            {/* Tarjeta de Código de Invitación para Registro de Empleados */}
             <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '28px' }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+                <h3 className="flex items-center gap-2.5" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+                  <Key size={20} color="#0284c7" />
+                  <span>Código de Invitación para Registro de Empleados</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleGenerateCode}
+                  disabled={generatingCode}
+                  className="btn btn-primary flex items-center gap-2"
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '10px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                    color: '#fff',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <RefreshCw size={14} className={generatingCode ? 'animate-spin' : ''} />
+                  <span>{generatingCode ? 'Generando...' : 'Generar / Rotar Código'}</span>
+                </button>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: 18 }}>
+                Genera un código único de 6 caracteres con vigencia de 7 días. Los nuevos empleados deberán ingresarlo al registrarse en el enlace de tu empresa. Al generar un código nuevo, el anterior queda automáticamente invalidado.
+              </p>
+
+              {codeError && (
+                <div className="alert alert-danger flex items-center gap-2 mb-4" style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem' }}>
+                  <AlertCircle size={16} />
+                  <span>{codeError}</span>
+                </div>
+              )}
+
+              {invitationData ? (
+                <div style={{
+                  background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                  border: '2px dashed #16a34a',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
+                    Nuevo Código Activo (Válido por 7 días)
+                  </div>
+                  <div style={{
+                    fontSize: '2.4rem',
+                    fontFamily: 'monospace',
+                    fontWeight: 900,
+                    letterSpacing: '8px',
+                    color: '#14532d',
+                    margin: '8px 0',
+                  }}>
+                    {invitationData.code}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#166534', marginBottom: 14 }}>
+                    Expira: {new Date(invitationData.expiresAt).toLocaleString('es-MX')}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    className="btn btn-secondary flex items-center gap-2 mx-auto"
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '10px',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      background: '#ffffff',
+                      color: '#15803d',
+                      border: '1px solid #86efac',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {copiedCode ? <CheckCircle2 size={16} color="#16a34a" /> : <Copy size={16} />}
+                    <span>{copiedCode ? '¡Copiado al portapapeles!' : 'Copiar Código'}</span>
+                  </button>
+                  <div className="flex items-center justify-center gap-1.5 mt-3" style={{ fontSize: '0.72rem', color: '#b91c1c', fontWeight: 600 }}>
+                    <AlertTriangle size={14} />
+                    <span>Guarda este código ahora. Por seguridad, no volverá a mostrarse completo al recargar.</span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                }}>
+                  <Shield size={20} color="#64748b" />
+                  <div style={{ fontSize: '0.82rem', color: '#475569' }}>
+                    Presiona el botón <strong>&quot;Generar / Rotar Código&quot;</strong> cuando necesites registrar nuevos empleados de manera segura.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="grid-2-columns" style={{ gap: '24px' }}>
+              {/* Turnos Oficiales (Configuración Dinámica de Horarios) */}
+              <div className="card animate-slide-up" style={{ borderRadius: '20px', padding: '28px' }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
                 <h3 className="flex items-center gap-2.5" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
                   <Clock size={20} color="#e11d48" />
@@ -364,6 +501,7 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </div>
         )}
 
         {/* CHANGE PASSWORD MODAL */}
