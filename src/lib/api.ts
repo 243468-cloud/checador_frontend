@@ -76,8 +76,9 @@ export async function registerCompany(data: CompanyRegistrationData): Promise<an
   return res.json();
 }
 
-export async function getPublicBranches(): Promise<Branch[]> {
-  const res = await fetch(`${API_BASE}/api/proxy/branches/public`);
+export async function getPublicBranches(slug?: string): Promise<Branch[]> {
+  const url = slug ? `${API_BASE}/api/proxy/branches/public?slug=${encodeURIComponent(slug)}` : `${API_BASE}/api/proxy/branches/public`;
+  const res = await fetch(url);
   if (!res.ok) return [];
   return res.json();
 }

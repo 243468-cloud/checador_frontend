@@ -53,7 +53,7 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
       })
       .finally(() => setTenantLoading(false));
 
-    getPublicBranches()
+    getPublicBranches(params.slug)
       .then(data => {
         setBranches(data);
         if (data.length > 0) {
