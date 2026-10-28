@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { getPublicBranches, registerEmployee, Branch, settingsApi, TenantSettingsDTO } from '@/lib/api';
@@ -21,7 +21,9 @@ import {
   Key,
 } from 'lucide-react';
 
-export default function TenantRegisterPage({ params }: { params: { slug: string } }) {
+export default function TenantRegisterPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = typeof params?.slug === 'string' ? params.slug : '';
   const router = useRouter();
   const { setUserOnly } = useAuth();
 
@@ -45,15 +47,20 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
   const [tenantLoading, setTenantLoading] = useState(true);
 
   useEffect(() => {
+    if (!slug) {
+      setTenantLoading(false);
+      setFetchingBranches(false);
+      return;
+    }
     // Cargar información pública del tenant
-    settingsApi.getPublicSettings(params.slug)
+    settingsApi.getPublicSettings(slug)
       .then(data => setTenantInfo(data))
-      .catch(err => {
+      .catch(() => {
         // Fallback genérico o manejar error si no existe
       })
       .finally(() => setTenantLoading(false));
 
-    getPublicBranches(params.slug)
+    getPublicBranches(slug)
       .then(data => {
         setBranches(data);
         if (data.length > 0) {
@@ -62,7 +69,7 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
       })
       .catch(() => {})
       .finally(() => setFetchingBranches(false));
-  }, [params.slug]);
+  }, [slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +95,7 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
         email: form.email.trim() || undefined,
         branchId: Number(form.branchId),
         shiftType: form.shiftType,
-        slug: params.slug,
+        slug,
         invitationCode: form.invitationCode.trim().toUpperCase(),
       });
 
@@ -120,7 +127,7 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
 
       <div className="register-centered-card animate-slide-up">
         {/* Back Link */}
-        <Link href={`/${params.slug}/login`} className="back-link">
+        <Link href={slug ? `/${slug}/login` : '/login'} className="back-link">
           <ArrowLeft size={16} />
           <span>Volver al Login</span>
         </Link>
@@ -357,7 +364,7 @@ export default function TenantRegisterPage({ params }: { params: { slug: string 
         <div className="register-card-footer">
           <p className="login-prompt">
             ¿Ya tienes una cuenta?{' '}
-            <Link href="/login" className="login-link">
+            <Link href={slug ? `/${slug}/login` : '/login'} className="login-link">
               Inicia sesión aquí
             </Link>
           </p>

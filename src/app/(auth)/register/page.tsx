@@ -18,9 +18,8 @@ import {
   AlertCircle,
   ShieldCheck,
   ArrowLeft,
-  Sun,
-  Moon,
-  Calendar,
+  Key,
+  Globe,
 } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -29,6 +28,8 @@ export default function RegisterPage() {
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [form, setForm] = useState({
+    slug: '',
+    invitationCode: '',
     fullName: '',
     username: '',
     password: '',
@@ -40,26 +41,50 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [fetchingBranches, setFetchingBranches] = useState(true);
+  const [fetchingBranches, setFetchingBranches] = useState(false);
 
   useEffect(() => {
-    getPublicBranches()
-      .then(data => {
-        setBranches(data);
-        if (data.length > 0) {
-          setForm(p => ({ ...p, branchId: String(data[0].id) }));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setFetchingBranches(false));
-  }, []);
+    const cleanSlug = form.slug.trim().toLowerCase();
+    if (!cleanSlug) {
+      setBranches([]);
+      setForm(p => ({ ...p, branchId: '' }));
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setFetchingBranches(true);
+      getPublicBranches(cleanSlug)
+        .then(data => {
+          setBranches(data);
+          setForm(p => ({ ...p, branchId: data.length > 0 ? String(data[0].id) : '' }));
+        })
+        .catch(() => {
+          setBranches([]);
+          setForm(p => ({ ...p, branchId: '' }));
+        })
+        .finally(() => setFetchingBranches(false));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [form.slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    const cleanSlug = form.slug.trim().toLowerCase();
+    if (!cleanSlug) {
+      setError('Por favor ingresa el identificador (slug) de tu empresa.');
+      return;
+    }
+
     if (!form.branchId) {
-      setError('Por favor selecciona una sucursal.');
+      setError('Por favor selecciona una sucursal válida de tu empresa.');
+      return;
+    }
+
+    if (!form.invitationCode.trim()) {
+      setError('Por favor ingresa el código de invitación proporcionado por tu empresa.');
       return;
     }
 
@@ -73,6 +98,8 @@ export default function RegisterPage() {
         email: form.email.trim() || undefined,
         branchId: Number(form.branchId),
         shiftType: form.shiftType,
+        slug: cleanSlug,
+        invitationCode: form.invitationCode.trim().toUpperCase(),
       });
 
       // Save token and user in context
@@ -115,6 +142,51 @@ export default function RegisterPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="register-form">
+          {/* Empresa (Slug) y Código de Invitación */}
+          <div className="form-grid-2col">
+            <div className="form-group-field">
+              <label className="form-label-text" htmlFor="reg-slug">
+                ID de Empresa (Slug) *
+              </label>
+              <div className="input-field-wrapper">
+                <span className="input-field-icon">
+                  <Globe size={18} />
+                </span>
+                <input
+                  id="reg-slug"
+                  type="text"
+                  className="form-input-element"
+                  placeholder="Ej. via-gourmet"
+                  value={form.slug}
+                  onChange={e => setForm(p => ({ ...p, slug: e.target.value.toLowerCase() }))}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group-field">
+              <label className="form-label-text" htmlFor="reg-invitation-code">
+                Código de Invitación *
+              </label>
+              <div className="input-field-wrapper">
+                <span className="input-field-icon">
+                  <Key size={18} />
+                </span>
+                <input
+                  id="reg-invitation-code"
+                  type="text"
+                  className="form-input-element"
+                  placeholder="Ej. A9B2X7"
+                  value={form.invitationCode}
+                  onChange={e => setForm(p => ({ ...p, invitationCode: e.target.value.toUpperCase() }))}
+                  maxLength={10}
+                  required
+                  style={{ letterSpacing: '1.5px', fontWeight: 700 }}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Nombre completo */}
           <div className="form-group-field">
             <label className="form-label-text" htmlFor="fullName">
@@ -195,12 +267,14 @@ export default function RegisterPage() {
                   value={form.branchId}
                   onChange={e => setForm(p => ({ ...p, branchId: e.target.value }))}
                   required
-                  disabled={fetchingBranches}
+                  disabled={fetchingBranches || !form.slug.trim()}
                 >
-                  {fetchingBranches ? (
+                  {!form.slug.trim() ? (
+                    <option value="">Ingresa primero el ID de empresa</option>
+                  ) : fetchingBranches ? (
                     <option value="">Cargando sucursales...</option>
                   ) : branches.length === 0 ? (
-                    <option value="">No hay sucursales activas</option>
+                    <option value="">Sin sucursales para este ID</option>
                   ) : (
                     branches.map(b => (
                       <option key={b.id} value={b.id}>

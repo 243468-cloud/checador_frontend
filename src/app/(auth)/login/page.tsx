@@ -3,10 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import {
-  Clock,
   User,
   Lock,
   Eye,
@@ -15,13 +13,15 @@ import {
   Loader2,
   AlertCircle,
   ShieldCheck,
+  Building2,
 } from 'lucide-react';
 import InstallPwaCard from '@/components/InstallPwaCard';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
-  const [form, setForm] = useState({ username: '', password: '' });
+  const [form, setForm] = useState({ username: '', password: '', slug: '' });
+  const [showSlugField, setShowSlugField] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,10 +31,18 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(form.username.trim(), form.password.trim());
+      const cleanSlug = form.slug.trim().toLowerCase();
+      if (cleanSlug) {
+        localStorage.setItem('tenantSlug', cleanSlug);
+      }
+      await login(form.username.trim(), form.password.trim(), cleanSlug || undefined);
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.');
+      const msg = err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.';
+      if (msg.toLowerCase().includes('múltiples empresas') || msg.toLowerCase().includes('slug')) {
+        setShowSlugField(true);
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -104,6 +112,28 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+
+          {showSlugField && (
+            <div className="form-group-field">
+              <label className="form-label-text" htmlFor="slug">
+                Identificador de Empresa (Slug)
+              </label>
+              <div className="input-field-wrapper">
+                <span className="input-field-icon">
+                  <Building2 size={18} />
+                </span>
+                <input
+                  id="slug"
+                  type="text"
+                  className="form-input-element"
+                  placeholder="ID de tu empresa (ej. via-gourmet)"
+                  value={form.slug}
+                  onChange={e => setForm(p => ({ ...p, slug: e.target.value.toLowerCase() }))}
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="login-error-banner" role="alert">

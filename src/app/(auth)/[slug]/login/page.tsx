@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import InstallPwaCard from '@/components/InstallPwaCard';
 
-export default function TenantLoginPage({ params }: { params: { slug: string } }) {
+export default function TenantLoginPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = typeof params?.slug === 'string' ? params.slug : '';
   const { login } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -31,24 +33,28 @@ export default function TenantLoginPage({ params }: { params: { slug: string } }
   const [tenantLoading, setTenantLoading] = useState(true);
 
   useEffect(() => {
+    if (!slug) {
+      setTenantLoading(false);
+      return;
+    }
     // Cargar información pública del tenant
-    settingsApi.getPublicSettings(params.slug)
+    settingsApi.getPublicSettings(slug)
       .then(data => setTenantInfo(data))
-      .catch(err => {
+      .catch(() => {
         // Fallback genérico o manejar error si no existe
       })
       .finally(() => setTenantLoading(false));
-  }, [params.slug]);
+  }, [slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      if (params?.slug) {
-        localStorage.setItem('tenantSlug', params.slug);
+      if (slug) {
+        localStorage.setItem('tenantSlug', slug);
       }
-      await login(form.username.trim(), form.password.trim(), params?.slug);
+      await login(form.username.trim(), form.password.trim(), slug || undefined);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.');
@@ -163,7 +169,7 @@ export default function TenantLoginPage({ params }: { params: { slug: string } }
         <div className="login-card-footer">
           <p className="register-prompt">
             ¿Eres un empleado nuevo?{' '}
-            <Link href="/register" className="register-link">
+            <Link href={slug ? `/${slug}/register` : '/register'} className="register-link">
               Regístrate aquí
             </Link>
           </p>
