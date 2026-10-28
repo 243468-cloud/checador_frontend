@@ -20,7 +20,6 @@ import {
   X,
   LogOut,
   Trophy,
-  CheckSquare,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -41,7 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/employees',  icon: <Users           size={18} />, label: 'Empleados',            roles: ['SUPERUSER', 'ADMIN'] },
   { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['SUPERUSER', 'ADMIN'], module: 'reports' },
-  { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER', 'ADMIN'] },
+  { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER'] },
   { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Administradores',      roles: ['SUPERUSER'] },
   { href: '/companies',  icon: <Building2       size={18} />, label: 'Empresas (Tenants)',   roles: ['SUPERUSER'] },
   { href: '/audit',      icon: <ClipboardList   size={18} />, label: 'Auditoría',            roles: ['SUPERUSER'] },
@@ -65,7 +64,10 @@ export default function Sidebar() {
   const visibleItems = NAV_ITEMS.filter(item => {
     if (!item.roles.includes(user.role)) return false;
     if (item.module) {
-      if (!settings?.activeModules?.includes(item.module)) return false;
+      if (user.role === 'SUPERUSER') return true;
+      if (Array.isArray(settings?.activeModules)) {
+        if (!settings.activeModules.includes(item.module)) return false;
+      }
     }
     return true;
   });

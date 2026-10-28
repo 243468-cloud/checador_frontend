@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { attendanceApi, employeeApi, AttendanceRecord, Employee, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { attendanceApi, employeeApi, reportApi, AttendanceRecord, Employee, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import RewardsLeaderboard from '@/components/RewardsLeaderboard';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useAuth } from '@/lib/auth-context';
 import {
   CheckCircle2,
@@ -19,10 +18,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Download,
 } from 'lucide-react';
 
 import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
-import { useCallback, useMemo } from 'react';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -30,6 +29,7 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -151,6 +151,18 @@ export default function AttendancePage() {
     }
   };
 
+  const handleDownloadDailyExcel = async () => {
+    setDownloadingExcel(true);
+    try {
+      const [y, m] = selectedDate.split('-').map(Number);
+      await reportApi.downloadExcel(y || new Date().getFullYear(), m || (new Date().getMonth() + 1));
+    } catch (err: any) {
+      alert(err.message || 'Error al descargar lista de asistencia');
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
+
   const filtered = useMemo(() => {
     return filterStatus === 'ALL'
       ? records
@@ -197,9 +209,21 @@ export default function AttendancePage() {
               style={{ width: 160 }}
             />
             {isAdmin && (
-              <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
-                <span>Crear Asistencia</span>
-              </button>
+              <>
+                <button
+                  id="btn-download-daily-excel"
+                  className="btn btn-secondary flex items-center gap-2"
+                  onClick={handleDownloadDailyExcel}
+                  disabled={downloadingExcel}
+                  title="Descargar lista de asistencia en Excel"
+                >
+                  <Download size={16} />
+                  <span>{downloadingExcel ? 'Descargando...' : 'Descargar Excel'}</span>
+                </button>
+                <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
+                  <span>Crear Asistencia</span>
+                </button>
+              </>
             )}
             <select
               id="status-filter"

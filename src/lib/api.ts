@@ -582,13 +582,28 @@ export interface TenantSettingsDTO {
   tenantId: number;
   companyName: string;
   slug: string;
+  logoUrl?: string | null;
+  iconUrl?: string | null;
+  primaryColor?: string | null;
+  toleranceMinutes?: number;
   subscriptionStatus: string;
+  activeModules?: string[];
   createdAt: string;
 }
 
 export const settingsApi = {
   getPublicSettings: (slug: string) => apiFetch<TenantSettingsDTO>(`/api/settings/public/${slug}`),
   getAllTenants: () => apiFetch<TenantSettingsDTO[]>('/api/settings/all'),
+  updateTenantBranding: (tenantId: number, data: Partial<TenantSettingsDTO>) =>
+    apiFetch<TenantSettingsDTO>(`/api/settings/tenant/${tenantId}/branding`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  updateTenantModules: (tenantId: number, modules: string[]) =>
+    apiFetch<TenantSettingsDTO>(`/api/settings/tenant/${tenantId}/modules`, {
+      method: 'PUT',
+      body: JSON.stringify(modules),
+    }),
   getShifts: () => apiFetch<ShiftConfigDTO[]>('/api/settings/shifts'),
   updateShifts: (shifts: ShiftConfigDTO[]) =>
     apiFetch<ShiftConfigDTO[]>('/api/settings/shifts', {

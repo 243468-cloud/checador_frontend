@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { branchApi, Branch } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/Sidebar';
 import {
   Building2,
   Plus,
-  Edit2,
-  Trash2,
   MapPin,
   HelpCircle,
   X,
@@ -18,6 +17,8 @@ import dynamic from 'next/dynamic';
 const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), { ssr: false });
 
 export default function BranchesPage() {
+  const { user } = useAuth();
+  const isSuperuser = user?.role === 'SUPERUSER';
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -35,6 +36,7 @@ export default function BranchesPage() {
   useEffect(() => { load(); }, []);
 
   const openCreate = () => {
+    if (!isSuperuser) return;
     setEditTarget(null);
     setForm({ name: '', address: '', latitude: '', longitude: '', radiusMeters: '100', toleranceMinutes: '10' });
     setError('');
@@ -42,6 +44,7 @@ export default function BranchesPage() {
   };
 
   const openEdit = (b: Branch) => {
+    if (!isSuperuser) return;
     setEditTarget(b);
     setForm({
       name: b.name, address: b.address || '',
@@ -94,10 +97,12 @@ export default function BranchesPage() {
             <h1 className="page-title">Sucursales</h1>
             <p className="page-subtitle">{branches.length} sucursales activas</p>
           </div>
-          <button id="btn-new-branch" className="btn btn-primary" onClick={openCreate} style={{ padding: '12px 20px', borderRadius: '100px' }}>
-            <Plus size={18} />
-            <span style={{ display: 'none' }} className="sm:inline">Nueva Sucursal</span>
-          </button>
+          {isSuperuser && (
+            <button id="btn-new-branch" className="btn btn-primary" onClick={openCreate} style={{ padding: '12px 20px', borderRadius: '100px' }}>
+              <Plus size={18} />
+              <span style={{ display: 'none' }} className="sm:inline">Nueva Sucursal</span>
+            </button>
+          )}
         </div>
 
         {/* Búsqueda Universal iOS Style */}
@@ -121,7 +126,7 @@ export default function BranchesPage() {
           <div className="empty-state">
             <div className="empty-state-icon" style={{ background: 'transparent' }}><Building2 size={40} color="#8e8e93" /></div>
             <p style={{ color: '#8e8e93' }}>No se encontraron sucursales.</p>
-            {branches.length === 0 && (
+            {branches.length === 0 && isSuperuser && (
               <button className="btn btn-primary mt-4" onClick={openCreate}>Crear primera</button>
             )}
           </div>
@@ -131,11 +136,11 @@ export default function BranchesPage() {
               <div 
                 key={b.id} 
                 className="card animate-slide-up"
-                style={{ cursor: 'pointer', transition: 'transform 0.15s' }}
+                style={{ cursor: isSuperuser ? 'pointer' : 'default', transition: 'transform 0.15s' }}
                 onClick={() => openEdit(b)}
-                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseDown={(e) => { if (isSuperuser) e.currentTarget.style.transform = 'scale(0.97)'; }}
+                onMouseUp={(e) => { if (isSuperuser) e.currentTarget.style.transform = 'scale(1)'; }}
+                onMouseLeave={(e) => { if (isSuperuser) e.currentTarget.style.transform = 'scale(1)'; }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div style={{ width: 48, height: 48, borderRadius: '16px', background: 'rgba(255, 149, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff9500' }}>
@@ -176,7 +181,7 @@ export default function BranchesPage() {
           </div>
         )}
 
-        {showModal && (
+        {showModal && isSuperuser && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-card" style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div className="modal-header">
@@ -229,7 +234,7 @@ export default function BranchesPage() {
                   </button>
                   {editTarget && (
                     <button type="button" className="btn btn-ghost btn-full" style={{ color: '#ff3b30' }} onClick={handleDelete}>
-                      Eliminar Sucursal
+                      Cerrar / Desactivar Sucursal
                     </button>
                   )}
                   <button type="button" className="btn btn-ghost btn-full" onClick={() => setShowModal(false)} style={{ color: '#8e8e93' }}>Cancelar</button>

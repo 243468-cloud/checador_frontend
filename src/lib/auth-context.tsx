@@ -133,6 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.setItem('user', JSON.stringify(data));
     setUser(data);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+    }
     autoSubscribePush();
   };
 
@@ -142,6 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+    }
   };
 
   const logout = async () => {
