@@ -3,38 +3,94 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/lib/auth-context';
+import { useTheme } from '@/lib/theme-context';
 import { settingsApi, ShiftConfigDTO } from '@/lib/api';
 import {
   Clock,
   Sun,
   Sunset,
   Calendar,
-  User,
   Smartphone,
   CheckCircle2,
   HelpCircle,
-  Activity,
   Shield,
   Key,
   Edit,
   Save,
   X,
-  Award,
   Moon,
   Timer,
   Copy,
   RefreshCw,
   AlertTriangle,
   AlertCircle,
+  Palette,
 } from 'lucide-react';
-import RewardsLeaderboard from '@/components/RewardsLeaderboard';
+
+const PRESET_BRANCH_COLORS = [
+  { name: 'Rojo Carmesí', hex: '#e11d48' },
+  { name: 'Azul Índigo', hex: '#4f46e5' },
+  { name: 'Azul Océano', hex: '#0284c7' },
+  { name: 'Verde Esmeralda', hex: '#059669' },
+  { name: 'Naranja Ámbar', hex: '#ea580c' },
+  { name: 'Morado Real', hex: '#7c3aed' },
+  { name: 'Rosa Fucsia', hex: '#db2777' },
+  { name: 'Pizarra Elegante', hex: '#0f172a' },
+];
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { settings } = useTheme();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passForm, setPassForm] = useState({ currentPass: '', newPass: '', confirmPass: '' });
   const [passSuccess, setPassSuccess] = useState(false);
   const [passError, setPassError] = useState('');
+
+  // ─── Color de Sucursal State ──────────────────────────────────────────────
+  const [branchColor, setBranchColor] = useState('#e11d48');
+  const [savingColor, setSavingColor] = useState(false);
+  const [colorSavedMsg, setColorSavedMsg] = useState(false);
+
+  useEffect(() => {
+    const storageKey = `custom_branch_color_${user?.branchId || user?.tenantId || user?.userId || 'default'}`;
+    const savedLocalColor = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    if (savedLocalColor) {
+      setBranchColor(savedLocalColor);
+      document.documentElement.style.setProperty('--color-primary', savedLocalColor);
+    } else if (settings?.primaryColor) {
+      setBranchColor(settings.primaryColor);
+    }
+  }, [settings?.primaryColor, user?.branchId, user?.tenantId, user?.userId]);
+
+  const handleSelectColor = (hex: string) => {
+    setBranchColor(hex);
+    document.documentElement.style.setProperty('--color-primary', hex);
+  };
+
+  const handleSaveBranchColor = async () => {
+    setSavingColor(true);
+    setColorSavedMsg(false);
+    try {
+      const storageKey = `custom_branch_color_${user?.branchId || user?.tenantId || user?.userId || 'default'}`;
+      localStorage.setItem(storageKey, branchColor);
+      document.documentElement.style.setProperty('--color-primary', branchColor);
+
+      if (user?.role === 'ADMIN' || user?.role === 'SUPERUSER') {
+        await settingsApi.updateCurrentSettings({ primaryColor: branchColor });
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+      }
+      setColorSavedMsg(true);
+      setTimeout(() => setColorSavedMsg(false), 3000);
+    } catch {
+      // Aun si es empleado o falla la red, el color queda guardado en su dispositivo/sucursal local
+      setColorSavedMsg(true);
+      setTimeout(() => setColorSavedMsg(false), 3000);
+    } finally {
+      setSavingColor(false);
+    }
+  };
 
   // ─── Invitation Code State ────────────────────────────────────────────────
   const [invitationData, setInvitationData] = useState<{ code: string; expiresAt: string; message: string } | null>(null);
@@ -134,7 +190,7 @@ export default function SettingsPage() {
               Perfil de Usuario & Configuración
             </h1>
             <p className="page-subtitle" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
-              Ajustes de cuenta, turnos de trabajo y estado del sistema
+              Ajustes de cuenta, colores de tu sucursal, turnos de trabajo y estado del sistema
             </p>
           </div>
         </div>
@@ -151,11 +207,11 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
               <div style={{
                 width: 72, height: 72, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                background: 'var(--color-primary, #e11d48)',
                 color: '#ffffff',
                 fontWeight: 800, fontSize: '1.75rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(225, 29, 72, 0.3)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
                 border: '3px solid #ffffff',
                 flexShrink: 0,
               }}>
@@ -172,7 +228,7 @@ export default function SettingsPage() {
                   </span>
                 </div>
                 <div style={{ fontSize: '0.88rem', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
-                  Sucursal Asignada: <strong style={{ color: '#0f172a', marginLeft: '4px' }}>{user?.branchName || 'Global'}</strong>
+                  Sucursal Asignada: <strong style={{ color: '#0f172a', marginLeft: '4px' }}>{user?.branchName || settings?.companyName || 'Matriz'}</strong>
                 </div>
               </div>
             </div>
@@ -182,13 +238,13 @@ export default function SettingsPage() {
                 onClick={() => setShowPasswordModal(true)}
                 className="btn btn-primary flex items-center gap-2.5"
                 style={{
-                  background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                  background: 'var(--color-primary, #e11d48)',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   padding: '12px 20px',
                   borderRadius: '12px',
-                  boxShadow: '0 4px 14px rgba(225, 29, 72, 0.35)',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.18)',
                 }}
               >
                 <Key size={16} />
@@ -212,7 +268,7 @@ export default function SettingsPage() {
               <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                 Rol de Acceso
               </div>
-              <div style={{ fontSize: '0.96rem', color: '#e11d48', fontWeight: 800 }}>
+              <div style={{ fontSize: '0.96rem', color: 'var(--color-primary, #e11d48)', fontWeight: 800 }}>
                 {user?.role === 'SUPERUSER' ? 'Superusuario Global' : user?.role === 'ADMIN' ? 'Administrador de Sucursal' : 'Empleado Oficial'}
               </div>
             </div>
@@ -222,7 +278,7 @@ export default function SettingsPage() {
                 Sucursal Base
               </div>
               <div style={{ fontSize: '0.96rem', color: '#0f172a', fontWeight: 800 }}>
-                {user?.branchName || 'Sucursal Principal'}
+                {user?.branchName || settings?.companyName || 'Sucursal Principal'}
               </div>
             </div>
 
@@ -234,6 +290,98 @@ export default function SettingsPage() {
                 <CheckCircle2 size={16} color="#059669" />
                 <span style={{ fontSize: '0.96rem', color: '#059669', fontWeight: 800 }}>Activo & Verificado</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 1.5 PERSONALIZACIÓN DE COLORES DE SUCURSAL (Disponible para todos los usuarios) */}
+        <div className="card mb-8 animate-slide-up" style={{ borderRadius: '20px', padding: '28px' }}>
+          <div className="flex items-center justify-between flex-wrap gap-4" style={{ marginBottom: 16 }}>
+            <div>
+              <h3 className="flex items-center gap-2.5" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+                <Palette size={20} color={branchColor} />
+                <span>Color y Personalización de tu Sucursal</span>
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: 4, marginBottom: 0 }}>
+                Elige el color distintivo para tu sucursal ({user?.branchName || settings?.companyName || 'Principal'}). Se aplicará en el menú lateral, botones e indicadores.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveBranchColor}
+              disabled={savingColor}
+              className="btn btn-primary flex items-center gap-2"
+              style={{
+                background: branchColor,
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '10px 20px',
+                fontWeight: 800,
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+              }}
+            >
+              <Save size={16} />
+              <span>{savingColor ? 'Guardando...' : 'Guardar Color'}</span>
+            </button>
+          </div>
+
+          {colorSavedMsg && (
+            <div className="alert alert-success flex items-center gap-2 mb-4" style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700 }}>
+              <CheckCircle2 size={16} />
+              <span>¡Color de la sucursal actualizado correctamente!</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+            {PRESET_BRANCH_COLORS.map(preset => {
+              const isSelected = branchColor.toLowerCase() === preset.hex.toLowerCase();
+              return (
+                <button
+                  key={preset.hex}
+                  type="button"
+                  onClick={() => handleSelectColor(preset.hex)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 14px',
+                    borderRadius: '12px',
+                    border: isSelected ? `2.5px solid ${preset.hex}` : '1px solid #e2e8f0',
+                    background: isSelected ? `${preset.hex}12` : '#ffffff',
+                    cursor: 'pointer',
+                    fontWeight: isSelected ? 800 : 600,
+                    fontSize: '0.8rem',
+                    color: '#0f172a',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: preset.hex,
+                      display: 'inline-block',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }}
+                  />
+                  <span>{preset.name}</span>
+                </button>
+              );
+            })}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto', background: '#f8fafc', padding: '6px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>Color personalizado:</label>
+              <input
+                type="color"
+                value={branchColor}
+                onChange={e => handleSelectColor(e.target.value)}
+                style={{ width: 34, height: 34, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer', background: 'transparent' }}
+              />
+              <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>{branchColor}</span>
             </div>
           </div>
         </div>
@@ -270,7 +418,7 @@ export default function SettingsPage() {
               </div>
 
               <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: 18 }}>
-                Genera un código único de 6 caracteres con vigencia de 7 días. Los nuevos empleados deberán ingresarlo al registrarse en el enlace de tu empresa. Al generar un código nuevo, el anterior queda automáticamente invalidado.
+                Genera un código único de 10 caracteres con vigencia de 7 días. Los nuevos empleados deberán ingresarlo al registrarse en el enlace de tu empresa. Al generar un código nuevo, el anterior queda automáticamente invalidado.
               </p>
 
               {codeError && (

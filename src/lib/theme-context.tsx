@@ -32,8 +32,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const applySettings = useCallback((data: TenantSettings) => {
     setSettings(data);
-    if (data.primaryColor) {
-      document.documentElement.style.setProperty("--color-primary", data.primaryColor);
+
+    let effectiveColor = data.primaryColor;
+    try {
+      const storedUserStr = localStorage.getItem("user");
+      if (storedUserStr) {
+        const u = JSON.parse(storedUserStr);
+        const customKey = `custom_branch_color_${u.branchId || u.tenantId || u.userId || "default"}`;
+        const localColor = localStorage.getItem(customKey);
+        if (localColor) {
+          effectiveColor = localColor;
+        }
+      }
+    } catch {}
+
+    if (effectiveColor) {
+      document.documentElement.style.setProperty("--color-primary", effectiveColor);
     }
     if (data.companyName) {
       document.title = `${data.companyName} | Checador`;
@@ -68,7 +82,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         start_url: `/?empresa=${data.slug}`,
         display: "standalone",
         background_color: "#ffffff",
-        theme_color: data.primaryColor || "#0f172a",
+        theme_color: effectiveColor || "#0f172a",
         icons: [
           {
             src: data.iconUrl,
@@ -98,8 +112,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const hasStoredUser = !!localStorage.getItem("user");
 
     if (hasStoredUser) {
-      // Si el usuario tiene sesión activa, consultar /api/proxy/settings/current
-      // para obtener tanto el branding como activeModules
       axios.get('/api/proxy/settings/current')
         .then((res) => applySettings(res.data))
         .catch(() => {

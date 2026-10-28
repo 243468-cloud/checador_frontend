@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { employeeApi, reportApi, scheduleApi, AttendanceRecord, Employee, RosterCell as ApiRosterCell, EmployeeIndividualScheduleDTO } from '@/lib/api';
+import { branchApi, employeeApi, reportApi, scheduleApi, AttendanceRecord, Branch, Employee, RosterCell as ApiRosterCell, EmployeeIndividualScheduleDTO } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
@@ -46,6 +46,7 @@ import {
   SunDim,
   Moon,
   ArrowRight,
+  Building2,
 } from 'lucide-react';
 
 export interface RosterCell {
@@ -252,6 +253,11 @@ const INITIAL_ROSTER: RosterRow[] = [
 
 const PRESET_NAMES = ['ITZA', 'HIBERT', 'PAULINA', 'ORIANA', 'LUIS', 'LEO', 'JARETH', 'GAEL', 'DIDI'];
 
+const EMPTY_ROSTER_TEMPLATE: RosterRow[] = INITIAL_ROSTER.map(r => ({
+  ...r,
+  employees: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+}));
+
 
 
 // Componente Táctil y Mouse Swipe-to-Delete Profesional
@@ -428,7 +434,11 @@ function SchedulesPageContent() {
   useEffect(() => {
     setMounted(true);
   }, []);
-  const [rosterRows, setRosterRows] = useState<RosterRow[]>(INITIAL_ROSTER);
+  const [allBranches, setAllBranches] = useState<Branch[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(user?.branchId || null);
+  const activeBranchId = user?.role === 'SUPERUSER' ? (selectedBranchId || 1) : (user?.branchId || undefined);
+  const isViaGourmetBranch = (activeBranchId === 1) && (user?.tenantId === 1 || user?.tenantId === 0 || user?.tenantSlug === 'via-gourmet');
+  const [rosterRows, setRosterRows] = useState<RosterRow[]>(EMPTY_ROSTER_TEMPLATE);
   const [daysHeader, setDaysHeader] = useState(DEFAULT_DAYS_HEADER);
   const [weekStart, setWeekStart] = useState<string>(() => {
     const now = new Date();
@@ -744,11 +754,25 @@ function SchedulesPageContent() {
     return cells;
   };
 
-  // ─── Carga el roster desde la API (o localStorage por semana con migración) ─
+  useEffect(() => {
+    if (user?.role === 'SUPERUSER') {
+      branchApi.getAll()
+        .then(list => {
+          setAllBranches(list);
+          if (!selectedBranchId && list.length > 0) {
+            setSelectedBranchId(list[0].id);
+          }
+        })
+        .catch(() => {});
+    } else if (user?.branchId) {
+      setSelectedBranchId(user.branchId);
+    }
+  }, [user?.role, user?.branchId, selectedBranchId]);
+
+  // ─── Carga el roster desde la API (aislado estrictamente por sucursal y semana) ─
   const fetchRosterFromApi = useCallback(() => {
     if (!weekStart) return;
-    const weekStorageKey = `official_roster_rows_${weekStart}`;
-    const activeBranchId = user?.branchId || 1;
+    const weekStorageKey = `official_roster_rows_t${user?.tenantId ?? 0}_b${activeBranchId ?? 'own'}_${weekStart}`;
 
     const loadFromLocalStorage = () => {
       const savedWeek = localStorage.getItem(weekStorageKey);
@@ -762,24 +786,10 @@ function SchedulesPageContent() {
         } catch {}
       }
 
-      // Migración / Fallback de clave legacy
-      const legacySaved = localStorage.getItem('official_roster_rows');
-      if (legacySaved) {
-        try {
-          const parsed = JSON.parse(legacySaved);
-          if (parsed && parsed.length > 0) {
-            setRosterRows(sortRowsChronologically(parsed));
-            localStorage.setItem(weekStorageKey, legacySaved);
-            return;
-          }
-        } catch {}
-      }
-
-      // Si es la semana actual, usar INITIAL_ROSTER predeterminado
-      if (weekStart === currentActualMondayStr) {
+      if (isViaGourmetBranch && weekStart === currentActualMondayStr) {
         setRosterRows(INITIAL_ROSTER);
       } else {
-        setRosterRows(INITIAL_ROSTER.map(r => ({
+        setRosterRows(EMPTY_ROSTER_TEMPLATE.map(r => ({
           ...r,
           employees: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
         })));
@@ -804,7 +814,7 @@ function SchedulesPageContent() {
         loadFromLocalStorage();
         setSyncStatus('idle');
       });
-  }, [user?.branchId, weekStart, currentActualMondayStr]);
+  }, [activeBranchId, isViaGourmetBranch, user?.tenantId, weekStart, currentActualMondayStr]);
 
   useEffect(() => {
     fetchRosterFromApi();
@@ -836,7 +846,6 @@ function SchedulesPageContent() {
   // Carga resolución 100% calculada en Backend para Horarios Individuales
   const fetchBackendIndividualSchedules = useCallback(() => {
     if (!weekStart) return;
-    const activeBranchId = user?.branchId || 1;
     scheduleApi.getIndividualSchedules(weekStart, activeBranchId)
       .then(res => {
         if (Array.isArray(res)) {
@@ -844,19 +853,18 @@ function SchedulesPageContent() {
         }
       })
       .catch(() => {});
-  }, [weekStart, user?.branchId]);
+  }, [weekStart, activeBranchId]);
 
   useEffect(() => {
     fetchBackendIndividualSchedules();
   }, [fetchBackendIndividualSchedules, rosterRows]);
 
-  // ─── Guarda en API + localStorage en clave aislada por semana ─────────────────
+  // ─── Guarda en API + localStorage en clave aislada por sucursal y semana ──────
   const saveRoster = (updated: RosterRow[], targetWeekStart: string = weekStart) => {
     setRosterRows(updated);
-    const weekStorageKey = `official_roster_rows_${targetWeekStart}`;
+    const weekStorageKey = `official_roster_rows_t${user?.tenantId ?? 0}_b${activeBranchId ?? 'own'}_${targetWeekStart}`;
     localStorage.setItem(weekStorageKey, JSON.stringify(updated));
 
-    const activeBranchId = user?.branchId || 1;
     if (targetWeekStart) {
       setSyncStatus('saving');
       const cells = rosterRowsToApiCells(updated, targetWeekStart);
@@ -870,11 +878,12 @@ function SchedulesPageContent() {
   };
 
   const availableNames = useMemo(() => {
-    const raw = employees.length > 0
-      ? employees.map(e => e.fullName.split(' ')[0].toUpperCase())
-      : PRESET_NAMES;
+    const branchEmployees = employees.filter(e => !activeBranchId || !e.branchId || e.branchId === activeBranchId);
+    const raw = branchEmployees.length > 0
+      ? branchEmployees.map(e => e.fullName.split(' ')[0].toUpperCase())
+      : (isViaGourmetBranch ? PRESET_NAMES : []);
     return Array.from(new Set(raw));
-  }, [employees]);
+  }, [employees, activeBranchId, isViaGourmetBranch]);
 
   const uniqueAvailableNames = availableNames;
 
@@ -1916,6 +1925,28 @@ function SchedulesPageContent() {
           </div>
 
           <div className="page-actions flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            {/* Selector de Sucursal exclusivo para SUPERUSER (Marco Antonio Lequin) o insignia de sucursal para ADMIN/EMPLOYEE */}
+            {user?.role === 'SUPERUSER' && allBranches.length > 0 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f8fafc', padding: '6px 12px', borderRadius: 12, border: '1px solid #cbd5e1' }}>
+                <Building2 size={16} color="var(--color-primary, #e11d48)" />
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>Sucursal:</span>
+                <select
+                  value={selectedBranchId || ''}
+                  onChange={e => setSelectedBranchId(Number(e.target.value))}
+                  style={{ border: 'none', background: 'transparent', fontWeight: 800, fontSize: '0.82rem', color: '#0f172a', cursor: 'pointer', outline: 'none' }}
+                >
+                  {allBranches.map(b => (
+                    <option key={b.id} value={b.id}>{b.name} (ID #{b.id})</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8fafc', padding: '8px 14px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>
+                <Building2 size={15} color="var(--color-primary, #e11d48)" />
+                <span>Sucursal: {user?.branchName || 'Principal'}</span>
+              </div>
+            )}
+
             {/* Crear Próxima Semana Button */}
             {!isReadOnly && (
               <button

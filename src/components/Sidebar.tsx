@@ -90,8 +90,8 @@ export default function Sidebar() {
       <header className="mobile-header-navbar">
         <div className="mobile-header-left">
           <div className="mobile-logo-box">
-            <Clock size={18} color="#ff2d55" />
-            <span className="mobile-logo-title">Checador</span>
+            <Clock size={18} color="var(--color-primary, #e11d48)" />
+            <span className="mobile-logo-title">{settings?.companyName || 'Checador'}</span>
           </div>
         </div>
 
@@ -147,7 +147,7 @@ export default function Sidebar() {
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              boxShadow: '0 4px 14px rgba(225, 29, 72, 0.18)',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
               border: '1px solid #f1f5f9',
               flexShrink: 0,
             }}
@@ -155,7 +155,7 @@ export default function Sidebar() {
             {settings?.logoUrl ? (
               <img src={settings.logoUrl} alt={settings?.companyName || "Empresa"} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             ) : (
-              <div style={{width: '100%', height: '100%', backgroundColor: 'var(--color-primary, #0f172a)', borderRadius: '4px'}} />
+              <div style={{width: '100%', height: '100%', backgroundColor: 'var(--color-primary, #e11d48)', borderRadius: '4px'}} />
             )}
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -198,8 +198,8 @@ export default function Sidebar() {
                   fontSize: '0.85rem',
                   fontWeight: isActive ? 800 : 700,
                   color: isActive ? '#ffffff' : '#475569',
-                  background: isActive ? 'linear-gradient(135deg, #e11d48, #be123c)' : 'transparent',
-                  boxShadow: isActive ? '0 6px 18px rgba(225, 29, 72, 0.28)' : 'none',
+                  background: isActive ? 'var(--color-primary, #e11d48)' : 'transparent',
+                  boxShadow: isActive ? '0 6px 18px rgba(0, 0, 0, 0.14)' : 'none',
                   textDecoration: 'none',
                   transition: 'all 0.15s ease',
                   position: 'relative',
@@ -247,7 +247,7 @@ export default function Sidebar() {
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                  background: 'var(--color-primary, #ea580c)',
                   color: '#ffffff',
                   fontWeight: 900,
                   fontSize: '0.82rem',
@@ -255,7 +255,7 @@ export default function Sidebar() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
                 }}
               >
                 {initials}
@@ -279,7 +279,7 @@ export default function Sidebar() {
                 borderRadius: 10,
                 background: '#ffffff',
                 border: '1px solid #cbd5e1',
-                color: '#e11d48',
+                color: 'var(--color-primary, #e11d48)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',

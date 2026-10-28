@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { branchApi, Branch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/Sidebar';
@@ -17,7 +18,8 @@ import dynamic from 'next/dynamic';
 const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), { ssr: false });
 
 export default function BranchesPage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const isSuperuser = user?.role === 'SUPERUSER';
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,12 +30,27 @@ export default function BranchesPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    if (!authLoading && user && user.role !== 'SUPERUSER') {
+      router.replace('/dashboard');
+    }
+  }, [authLoading, user, router]);
+
   const load = () => {
+    if (!isSuperuser) return;
     setLoading(true);
-    branchApi.getAll().then(setBranches).finally(() => setLoading(false));
+    branchApi.getAll().then(setBranches).catch(() => setBranches([])).finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (isSuperuser) {
+      load();
+    }
+  }, [isSuperuser]);
+
+  if (!authLoading && user && user.role !== 'SUPERUSER') {
+    return null;
+  }
 
   const openCreate = () => {
     if (!isSuperuser) return;
@@ -94,7 +111,7 @@ export default function BranchesPage() {
       <main className="main-content animate-fade-in">
         <div className="page-header">
           <div style={{ flex: 1 }}>
-            <h1 className="page-title">Sucursales</h1>
+            <h1 className="page-title">Sucursales (Control Maestro)</h1>
             <p className="page-subtitle">{branches.length} sucursales activas</p>
           </div>
           {isSuperuser && (

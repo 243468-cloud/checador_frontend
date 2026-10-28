@@ -320,6 +320,7 @@ export const employeeApi = {
 
 export interface Branch {
   id: number;
+  tenantId?: number;
   name: string;
   address: string;
   latitude: number;
@@ -397,30 +398,30 @@ export interface RosterCell {
 
 export const scheduleApi = {
   /** Carga la matriz semanal de una sucursal. */
-  getRoster: (branchId: number, weekStart: string) =>
-    apiFetch<RosterCell[]>(`/api/schedules?branchId=${branchId}&weekStart=${weekStart}`),
+  getRoster: (branchId: number | undefined | null, weekStart: string) =>
+    apiFetch<RosterCell[]>(`/api/schedules?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`),
 
   /** Lista de semanas con datos para una sucursal. */
-  getAvailableWeeks: (branchId: number) =>
-    apiFetch<string[]>(`/api/schedules/weeks?branchId=${branchId}`),
+  getAvailableWeeks: (branchId?: number | null) =>
+    apiFetch<string[]>(`/api/schedules/weeks${branchId ? `?branchId=${branchId}` : ''}`),
 
   /** Guarda (reemplaza) la matriz completa de una semana. */
-  saveRoster: (branchId: number, weekStart: string, cells: Omit<RosterCell, 'id' | 'branchId'>[]) =>
+  saveRoster: (branchId: number | undefined | null, weekStart: string, cells: Omit<RosterCell, 'id' | 'branchId'>[]) =>
     apiFetch<{ saved: number; weekStart: string; branchId: number }>('/api/schedules/save', {
       method: 'POST',
-      body: JSON.stringify({ branchId, weekStart, cells }),
+      body: JSON.stringify({ branchId: branchId || null, weekStart, cells }),
     }),
 
   /** Elimina toda la semana de una sucursal. */
-  deleteRoster: (branchId: number, weekStart: string) =>
-    apiFetch(`/api/schedules?branchId=${branchId}&weekStart=${weekStart}`, { method: 'DELETE' }),
+  deleteRoster: (branchId: number | undefined | null, weekStart: string) =>
+    apiFetch(`/api/schedules?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`, { method: 'DELETE' }),
 
   /** Carga resumen de negocio, KPIs y balances calculados 100% en el backend. */
-  getSummary: (weekStart: string, branchId?: number) =>
+  getSummary: (weekStart: string, branchId?: number | null) =>
     apiFetch<ScheduleSummaryDTO>(`/api/schedules/summary?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`),
 
   /** Carga la resolución diaria y lista de horarios individuales calculados 100% en el backend. */
-  getIndividualSchedules: (weekStart: string, branchId?: number) =>
+  getIndividualSchedules: (weekStart: string, branchId?: number | null) =>
     apiFetch<EmployeeIndividualScheduleDTO[]>(`/api/schedules/individual?weekStart=${weekStart}${branchId ? `&branchId=${branchId}` : ''}`),
 };
 
@@ -519,15 +520,13 @@ export function getCurrentPosition(): Promise<GeolocationPosition> {
       return;
     }
 
-    // Intento 1: Ubicación rápida (alta precisión o caché de 30 segundos, máx 4 segundos de espera)
     navigator.geolocation.getCurrentPosition(
       resolve,
       (err) => {
-        // Intento 2: Fallback inmediato a triangulación Wi-Fi/red celular si el GPS satelital tarda en interiores
         navigator.geolocation.getCurrentPosition(
           resolve,
           (err2) => {
-            if (err.code === 1 || err2.code === 1) { // PERMISSION_DENIED
+            if (err.code === 1 || err2.code === 1) {
               reject(new Error('Permiso de ubicación denegado. Permite la ubicación en tu navegador para registrar asistencia.'));
             } else {
               reject(new Error('No se pudo obtener tu ubicación GPS. Asegúrate de tener el GPS activo e intenta de nuevo.'));
@@ -593,6 +592,12 @@ export interface TenantSettingsDTO {
 
 export const settingsApi = {
   getPublicSettings: (slug: string) => apiFetch<TenantSettingsDTO>(`/api/settings/public/${slug}`),
+  getCurrentSettings: () => apiFetch<TenantSettingsDTO>('/api/settings/current'),
+  updateCurrentSettings: (data: Partial<TenantSettingsDTO>) =>
+    apiFetch<TenantSettingsDTO>('/api/settings/current', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
   getAllTenants: () => apiFetch<TenantSettingsDTO[]>('/api/settings/all'),
   updateTenantBranding: (tenantId: number, data: Partial<TenantSettingsDTO>) =>
     apiFetch<TenantSettingsDTO>(`/api/settings/tenant/${tenantId}/branding`, {
