@@ -819,14 +819,17 @@ function SchedulesPageContent() {
   useEffect(() => {
     fetchRosterFromApi();
 
-    employeeApi.getAll()
-      .then(setEmployees)
-      .catch(() => setEmployees([]));
+    // Solo los administradores y superusuarios tienen permiso para consultar todos los empleados y reportes de asistencia
+    if (user?.role === 'ADMIN' || user?.role === 'SUPERUSER') {
+      employeeApi.getAll()
+        .then(setEmployees)
+        .catch(() => setEmployees([]));
 
-    const now = new Date();
-    reportApi.getMonthly(now.getFullYear(), now.getMonth() + 1)
-      .then(setAttendanceRecords)
-      .catch(() => setAttendanceRecords([]));
+      const now = new Date();
+      reportApi.getMonthly(now.getFullYear(), now.getMonth() + 1)
+        .then(setAttendanceRecords)
+        .catch(() => setAttendanceRecords([]));
+    }
 
     const handleFocusOrVisible = () => {
       if (document.visibilityState === 'visible') {
@@ -841,7 +844,7 @@ function SchedulesPageContent() {
       window.removeEventListener('focus', handleFocusOrVisible);
       document.removeEventListener('visibilitychange', handleFocusOrVisible);
     };
-  }, [fetchRosterFromApi]);
+  }, [fetchRosterFromApi, user?.role]);
 
   // Carga resolución 100% calculada en Backend para Horarios Individuales
   const fetchBackendIndividualSchedules = useCallback(() => {
@@ -865,6 +868,9 @@ function SchedulesPageContent() {
     const weekStorageKey = `official_roster_rows_t${user?.tenantId ?? 0}_b${activeBranchId ?? 'own'}_${targetWeekStart}`;
     localStorage.setItem(weekStorageKey, JSON.stringify(updated));
 
+    // Si el usuario es empleado (EMPLOYEE), vista de solo lectura: no enviar mutaciones al backend (evita 403 Forbidden)
+    if (user?.role === 'EMPLOYEE') return;
+
     if (targetWeekStart) {
       setSyncStatus('saving');
       const cells = rosterRowsToApiCells(updated, targetWeekStart);
@@ -882,8 +888,26 @@ function SchedulesPageContent() {
     const raw = branchEmployees.length > 0
       ? branchEmployees.map(e => e.fullName.split(' ')[0].toUpperCase())
       : (isViaGourmetBranch ? PRESET_NAMES : []);
-    return Array.from(new Set(raw));
-  }, [employees, activeBranchId, isViaGourmetBranch]);
+
+    const nameSet = new Set<string>(raw);
+    const standalone = ['DESCANSO', 'CAMBIO TURNO', 'CAMBIO_TURNO', 'DOBLE TURNO', 'DOBLE_TURNO', 'CAMBIO AREA', 'CAMBIO_AREA', 'TURNO NORMAL'];
+    rosterRows.forEach(row => {
+      for (let d = 0; d < 7; d++) {
+        (row.employees[d] || []).forEach(c => {
+          const firstWord = (c.text || '').trim().split(' ')[0].toUpperCase();
+          if (firstWord && !standalone.includes(firstWord) && !firstWord.startsWith('{')) {
+            nameSet.add(firstWord);
+          }
+        });
+      }
+    });
+
+    if (user?.fullName) {
+      nameSet.add(user.fullName.split(' ')[0].toUpperCase());
+    }
+
+    return Array.from(nameSet);
+  }, [employees, activeBranchId, isViaGourmetBranch, rosterRows, user?.fullName]);
 
   const uniqueAvailableNames = availableNames;
 
@@ -2215,52 +2239,56 @@ function SchedulesPageContent() {
 
             {/* Quick Sort Segmented Control Group */}
             <div style={{ display: 'inline-flex', padding: 3, background: '#f1f5f9', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-              <button
-                type="button"
-                onClick={sortByShiftTime}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#ffffff',
-                  color: '#ea580c',
-                  fontWeight: 800,
-                  fontSize: '0.78rem',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s ease',
-                }}
-                title="Ordenar filas cronológicamente por hora de inicio de turno"
-              >
-                <Clock size={14} color="#ea580c" />
-                <span>Ordenar x Horario</span>
-              </button>
+              {!isReadOnly && (
+                <>
+                  <button
+                    type="button"
+                    onClick={sortByShiftTime}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: '#ffffff',
+                      color: '#ea580c',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      transition: 'all 0.15s ease',
+                    }}
+                    title="Ordenar filas cronológicamente por hora de inicio de turno"
+                  >
+                    <Clock size={14} color="#ea580c" />
+                    <span>Ordenar x Horario</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={sortByAreaName}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: 'transparent',
-                  color: '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s ease',
-                }}
-                title="Ordenar filas alfabéticamente por área"
-              >
-                <Filter size={14} />
-                <span>Ordenar x Área</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={sortByAreaName}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#64748b',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      transition: 'all 0.15s ease',
+                    }}
+                    title="Ordenar filas alfabéticamente por área"
+                  >
+                    <Filter size={14} />
+                    <span>Ordenar x Área</span>
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
@@ -2448,21 +2476,21 @@ function SchedulesPageContent() {
                       return (
                         <td
                           key={dayIdx}
-                          onClick={() => openCellModal(row.id, dayIdx, row.area, row.shiftTime, `${d.day} ${d.date}`)}
+                          onClick={() => !isReadOnly && openCellModal(row.id, dayIdx, row.area, row.shiftTime, `${d.day} ${d.date}`)}
                           style={{
                             padding: 8,
                             textAlign: 'center',
                             verticalAlign: 'top',
                             borderRight: '1px solid #f1f5f9',
-                            cursor: 'pointer',
+                            cursor: isReadOnly ? 'default' : 'pointer',
                             transition: 'background 0.15s ease',
                           }}
-                          className="hover:bg-orange-50/50"
+                          className={isReadOnly ? '' : 'hover:bg-orange-50/50'}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch', minHeight: 52 }}>
                             {items.length === 0 ? (
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 8, border: '1px dashed #cbd5e1', background: '#ffffff' }}>
-                                <span style={{ fontSize: '0.78rem', color: '#cbd5e1', fontWeight: 800 }}>+ Asignar</span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 8, border: isReadOnly ? '1px dashed #e2e8f0' : '1px dashed #cbd5e1', background: isReadOnly ? '#f8fafc' : '#ffffff' }}>
+                                <span style={{ fontSize: '0.78rem', color: isReadOnly ? '#94a3b8' : '#cbd5e1', fontWeight: isReadOnly ? 600 : 800 }}>{isReadOnly ? '—' : '+ Asignar'}</span>
                               </div>
                             ) : (
                               items.map((it, itemIdx) => {
@@ -2595,8 +2623,10 @@ function SchedulesPageContent() {
 
                 if (list.length === 0) {
                   return (
-                    <div style={{ gridColumn: '1 / -1', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.84rem', fontWeight: 600 }}>
-                      No hay personal asignado en la matriz semanal activa.
+                    <div style={{ gridColumn: '1 / -1', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '24px 16px', textAlign: 'center', color: '#64748b', fontSize: '0.86rem', fontWeight: 600 }}>
+                      {user?.role === 'EMPLOYEE'
+                        ? 'Aún no tienes turnos asignados en la matriz semanal de tu sucursal. Consulta con tu supervisor.'
+                        : 'No hay personal asignado en la matriz semanal activa.'}
                     </div>
                   );
                 }
