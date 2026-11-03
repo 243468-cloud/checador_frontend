@@ -3,11 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { settingsApi, TenantSettingsDTO } from '@/lib/api';
 import {
-  Clock,
   User,
   Lock,
   Eye,
@@ -28,7 +26,7 @@ export default function TenantLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const [tenantInfo, setTenantInfo] = useState<TenantSettingsDTO | null>(null);
   const [tenantLoading, setTenantLoading] = useState(true);
 
@@ -37,12 +35,10 @@ export default function TenantLoginPage() {
       setTenantLoading(false);
       return;
     }
-    // Cargar información pública del tenant
-    settingsApi.getPublicSettings(slug)
-      .then(data => setTenantInfo(data))
-      .catch(() => {
-        // Fallback genérico o manejar error si no existe
-      })
+    settingsApi
+      .getPublicSettings(slug)
+      .then((data) => setTenantInfo(data))
+      .catch(() => {})
       .finally(() => setTenantLoading(false));
   }, [slug]);
 
@@ -55,7 +51,7 @@ export default function TenantLoginPage() {
         localStorage.setItem('tenantSlug', slug);
       }
       await login(form.username.trim(), form.password.trim(), slug || undefined);
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas. Verifica tu usuario y contraseña.');
     } finally {
@@ -64,24 +60,55 @@ export default function TenantLoginPage() {
   };
 
   if (tenantLoading) {
-    return <div className="login-page-container flex justify-center items-center"><Loader2 className="animate-spin text-gray-400" /></div>;
+    return (
+      <div className="login-page-container flex justify-center items-center">
+        <Loader2 className="animate-spin text-gray-400" />
+      </div>
+    );
   }
+
+  const brandColor = tenantInfo?.primaryColor || '#ff2d55';
+  const customLogo = tenantInfo?.logoUrl || tenantInfo?.iconUrl || null;
 
   return (
     <div className="login-page-container">
       <div className="login-centered-card animate-slide-up">
         {/* Brand logo & title */}
         <div className="login-brand-header">
-          <div className="brand-logo-img-container">
-            {tenantInfo ? (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-xl">
-                {tenantInfo.companyName.substring(0,2).toUpperCase()}
+          <div
+            className="brand-logo-img-container"
+            style={{
+              background: customLogo ? '#ffffff' : brandColor,
+            }}
+          >
+            {customLogo ? (
+              <img
+                src={customLogo}
+                alt={tenantInfo?.companyName || 'Logo'}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6 }}
+              />
+            ) : tenantInfo ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  fontSize: '1.6rem',
+                }}
+              >
+                {tenantInfo.companyName.substring(0, 2).toUpperCase()}
               </div>
             ) : (
               <img src="/logo.png" alt="Logo" />
             )}
           </div>
-          <h1 className="brand-title">{tenantInfo ? tenantInfo.companyName : 'Checador de Asistencia'}</h1>
+          <h1 className="brand-title">
+            {tenantInfo ? tenantInfo.companyName : 'Checador de Asistencia'}
+          </h1>
           <p className="brand-subtitle">Control de Asistencia & Turnos</p>
         </div>
 
@@ -101,7 +128,7 @@ export default function TenantLoginPage() {
                 className="form-input-element"
                 placeholder="Ingresa tu nombre de usuario"
                 value={form.username}
-                onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
+                onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
                 autoComplete="username"
                 required
               />
@@ -122,7 +149,7 @@ export default function TenantLoginPage() {
                 className="form-input-element has-toggle"
                 placeholder="Ingresa tu contraseña"
                 value={form.password}
-                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
                 autoComplete="current-password"
                 required
               />
@@ -149,6 +176,7 @@ export default function TenantLoginPage() {
             type="submit"
             id="login-btn"
             className="login-action-btn"
+            style={{ background: brandColor }}
             disabled={loading}
           >
             {loading ? (
@@ -175,7 +203,7 @@ export default function TenantLoginPage() {
           </p>
           <p className="register-prompt" style={{ marginTop: '-8px' }}>
             ¿Quieres registrar tu empresa?{' '}
-            <Link href="/registro-empresa" className="register-link" style={{ color: '#ff2d55' }}>
+            <Link href="/registro-empresa" className="register-link" style={{ color: brandColor }}>
               Comienza aquí
             </Link>
           </p>
@@ -260,7 +288,7 @@ export default function TenantLoginPage() {
         }
 
         .form-label-text {
-          display: none; /* Hide labels for minimalist look, relying on placeholders */
+          display: none;
         }
 
         .input-field-wrapper {
@@ -356,12 +384,12 @@ export default function TenantLoginPage() {
           font-weight: 600;
           font-family: inherit;
           cursor: pointer;
-          transition: background 0.2s ease;
+          transition: opacity 0.2s ease;
           margin-top: 8px;
         }
 
         .login-action-btn:hover:not(:disabled) {
-          background: #ff375f;
+          opacity: 0.92;
         }
 
         .login-action-btn:active:not(:disabled) {

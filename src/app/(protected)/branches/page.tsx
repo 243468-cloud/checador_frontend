@@ -15,8 +15,9 @@ import {
   Copy,
   Check,
   Share2,
-  ExternalLink,
   Link2,
+  Image as ImageIcon,
+  Palette,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -42,10 +43,24 @@ export default function BranchesPage() {
     radiusMeters: '100',
     toleranceMinutes: '10',
     tenantId: '1',
+    logoUrl: '',
+    iconUrl: '',
+    primaryColor: '#e11d48',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Modal dedicado para editar Logo / Color de Inicio de Sesión de una Sucursal/Matriz
+  const [brandingBranch, setBrandingBranch] = useState<Branch | null>(null);
+  const [brandingForm, setBrandingForm] = useState({
+    companyName: '',
+    logoUrl: '',
+    iconUrl: '',
+    primaryColor: '#e11d48',
+  });
+  const [savingBranding, setSavingBranding] = useState(false);
+  const [brandingError, setBrandingError] = useState('');
 
   useEffect(() => {
     if (!authLoading && user && user.role !== 'SUPERUSER') {
@@ -82,9 +97,18 @@ export default function BranchesPage() {
     return 'https://checador-frontend.vercel.app';
   };
 
+  const getTenantForBranch = (b: Branch): TenantSettingsDTO | undefined => {
+    const found = tenants.find((t) => t.tenantId === b.tenantId);
+    if (found) return found;
+    if (b.name.toLowerCase().includes('miel') || b.name.toLowerCase().includes('selva')) {
+      return tenants.find((t) => t.slug === 'miel-de-la-selva-maya' || t.tenantId === 2);
+    }
+    return tenants.find((t) => t.tenantId === 1);
+  };
+
   const getBranchSlug = (b: Branch) => {
     if (b.tenantSlug) return b.tenantSlug;
-    const found = tenants.find((t) => t.tenantId === b.tenantId);
+    const found = getTenantForBranch(b);
     if (found?.slug) return found.slug;
     if (b.name.toLowerCase().includes('miel') || b.name.toLowerCase().includes('selva')) {
       return 'miel-de-la-selva-maya';
@@ -94,12 +118,22 @@ export default function BranchesPage() {
 
   const getBranchCompanyName = (b: Branch) => {
     if (b.companyName && b.companyName !== 'Sin Empresa') return b.companyName;
-    const found = tenants.find((t) => t.tenantId === b.tenantId);
+    const found = getTenantForBranch(b);
     if (found?.companyName) return found.companyName;
     if (b.name.toLowerCase().includes('miel') || b.name.toLowerCase().includes('selva')) {
       return 'Miel de la Selva Maya';
     }
     return 'Via Gourmet';
+  };
+
+  const getBranchLogo = (b: Branch) => {
+    const found = getTenantForBranch(b);
+    return found?.logoUrl || found?.iconUrl || null;
+  };
+
+  const getBranchColor = (b: Branch) => {
+    const found = getTenantForBranch(b);
+    return found?.primaryColor || '#e11d48';
   };
 
   const getLoginLink = (b: Branch) => `${getOrigin()}/${getBranchSlug(b)}/login`;
@@ -137,6 +171,45 @@ export default function BranchesPage() {
     }
   };
 
+  const openBrandingModal = (b: Branch, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const t = getTenantForBranch(b);
+    setBrandingBranch(b);
+    setBrandingForm({
+      companyName: t?.companyName || getBranchCompanyName(b),
+      logoUrl: t?.logoUrl || '',
+      iconUrl: t?.iconUrl || '',
+      primaryColor: t?.primaryColor || '#e11d48',
+    });
+    setBrandingError('');
+  };
+
+  const handleSaveBranding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!brandingBranch) return;
+    setSavingBranding(true);
+    setBrandingError('');
+    try {
+      const targetTenantId =
+        brandingBranch.tenantId ||
+        getTenantForBranch(brandingBranch)?.tenantId ||
+        (brandingBranch.name.toLowerCase().includes('miel') ? 2 : 1);
+
+      await settingsApi.updateTenantBranding(targetTenantId, {
+        companyName: brandingForm.companyName.trim(),
+        primaryColor: brandingForm.primaryColor,
+        logoUrl: brandingForm.logoUrl.trim() || null,
+        iconUrl: (brandingForm.iconUrl.trim() || brandingForm.logoUrl.trim()) || null,
+      });
+      setBrandingBranch(null);
+      load();
+    } catch (err: any) {
+      setBrandingError(err.message || 'Error al guardar el logo y color');
+    } finally {
+      setSavingBranding(false);
+    }
+  };
+
   const openCreate = () => {
     if (!isSuperuser) return;
     setEditTarget(null);
@@ -146,6 +219,7 @@ export default function BranchesPage() {
         : tenants[0]?.tenantId
         ? String(tenants[0].tenantId)
         : '1';
+    const selTenant = tenants.find((t) => String(t.tenantId) === defaultTenant);
     setForm({
       name: '',
       address: '',
@@ -154,6 +228,9 @@ export default function BranchesPage() {
       radiusMeters: '100',
       toleranceMinutes: '10',
       tenantId: defaultTenant,
+      logoUrl: selTenant?.logoUrl || '',
+      iconUrl: selTenant?.iconUrl || '',
+      primaryColor: selTenant?.primaryColor || '#e11d48',
     });
     setError('');
     setShowModal(true);
@@ -161,6 +238,7 @@ export default function BranchesPage() {
 
   const openEdit = (b: Branch) => {
     if (!isSuperuser) return;
+    const t = getTenantForBranch(b);
     setEditTarget(b);
     setForm({
       name: b.name,
@@ -169,7 +247,10 @@ export default function BranchesPage() {
       longitude: String(b.longitude),
       radiusMeters: String(b.radiusMeters),
       toleranceMinutes: String(b.toleranceMinutes),
-      tenantId: String(b.tenantId || 1),
+      tenantId: String(b.tenantId || t?.tenantId || 1),
+      logoUrl: t?.logoUrl || '',
+      iconUrl: t?.iconUrl || '',
+      primaryColor: t?.primaryColor || '#e11d48',
     });
     setError('');
     setShowModal(true);
@@ -179,6 +260,7 @@ export default function BranchesPage() {
     e.preventDefault();
     setSaving(true);
     setError('');
+    const effectiveTenantId = Number(form.tenantId) || 1;
     const data = {
       name: form.name,
       address: form.address,
@@ -186,9 +268,24 @@ export default function BranchesPage() {
       longitude: Number(form.longitude),
       radiusMeters: Number(form.radiusMeters),
       toleranceMinutes: Number(form.toleranceMinutes),
-      tenantId: Number(form.tenantId) || 1,
+      tenantId: effectiveTenantId,
     };
     try {
+      // Guardar también el logo y color del Login de la matriz seleccionada
+      const currentTenant = tenants.find((t) => t.tenantId === effectiveTenantId);
+      if (
+        form.logoUrl.trim() !== (currentTenant?.logoUrl || '') ||
+        form.iconUrl.trim() !== (currentTenant?.iconUrl || '') ||
+        form.primaryColor !== (currentTenant?.primaryColor || '#e11d48')
+      ) {
+        await settingsApi.updateTenantBranding(effectiveTenantId, {
+          companyName: currentTenant?.companyName || undefined,
+          primaryColor: form.primaryColor,
+          logoUrl: form.logoUrl.trim() || null,
+          iconUrl: (form.iconUrl.trim() || form.logoUrl.trim()) || null,
+        });
+      }
+
       if (editTarget) {
         await branchApi.update(editTarget.id, data);
         setShowModal(false);
@@ -235,9 +332,9 @@ export default function BranchesPage() {
       <main className="main-content animate-fade-in">
         <div className="page-header">
           <div style={{ flex: 1 }}>
-            <h1 className="page-title">Sucursales y Enlaces</h1>
+            <h1 className="page-title">Sucursales, Logos y Enlaces</h1>
             <p className="page-subtitle">
-              {branches.length} sucursales activas · Crea o edita sucursales y comparte su link de acceso
+              {branches.length} sucursales activas · Edita sucursales, personaliza su logo de inicio de sesión y comparte su link
             </p>
           </div>
           {isSuperuser && (
@@ -322,7 +419,7 @@ export default function BranchesPage() {
           <div className="grid-3">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="card">
-                <div className="skeleton" style={{ height: 200 }} />
+                <div className="skeleton" style={{ height: 220 }} />
               </div>
             ))}
           </div>
@@ -343,6 +440,8 @@ export default function BranchesPage() {
             {filteredBranches.map((b) => {
               const loginLink = getLoginLink(b);
               const companyName = getBranchCompanyName(b);
+              const branchLogo = getBranchLogo(b);
+              const branchColor = getBranchColor(b);
               const isCopied = copiedId === `branch-${b.id}`;
               return (
                 <div
@@ -361,28 +460,62 @@ export default function BranchesPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div
                         style={{
-                          width: 46,
-                          height: 46,
+                          width: 48,
+                          height: 48,
                           borderRadius: '14px',
-                          background: 'rgba(255, 149, 0, 0.12)',
+                          background: branchLogo ? '#ffffff' : `${branchColor}18`,
+                          border: branchLogo ? '1px solid #e2e8f0' : 'none',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#ff9500',
+                          color: branchColor,
+                          overflow: 'hidden',
                         }}
                       >
-                        <Building2 size={22} />
+                        {branchLogo ? (
+                          <img
+                            src={branchLogo}
+                            alt={companyName}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }}
+                          />
+                        ) : (
+                          <Building2 size={22} />
+                        )}
                       </div>
-                      <span
-                        className="badge badge-primary"
-                        style={{
-                          fontSize: '0.72rem',
-                          padding: '4px 10px',
-                          borderRadius: '100px',
-                        }}
-                      >
-                        Matriz: {companyName}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                        <span
+                          className="badge badge-primary"
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '4px 10px',
+                            borderRadius: '100px',
+                            background: `${branchColor}18`,
+                            color: branchColor,
+                          }}
+                        >
+                          Matriz: {companyName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => openBrandingModal(b, e)}
+                          className="btn btn-ghost"
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '0.72rem',
+                            borderRadius: '100px',
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                          title="Cambiar logo y color de inicio de sesión"
+                        >
+                          <ImageIcon size={12} />
+                          <span>Cambiar Logo de Login</span>
+                        </button>
+                      </div>
                     </div>
 
                     <h3 style={{ fontSize: '1.05rem', marginBottom: 4 }}>{b.name}</h3>
@@ -509,6 +642,177 @@ export default function BranchesPage() {
           </div>
         )}
 
+        {/* Modal Dedicado: Personalizar Logo y Color de Inicio de Sesión */}
+        {brandingBranch && (
+          <div className="modal-overlay" onClick={() => setBrandingBranch(null)}>
+            <div
+              className="modal-card"
+              style={{ maxWidth: 520 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div className="modal-header-title">
+                  <Palette size={20} color="#e11d48" />
+                  <span>Logo de Inicio de Sesión ({getBranchCompanyName(brandingBranch)})</span>
+                </div>
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: '6px' }}
+                  onClick={() => setBrandingBranch(null)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <form onSubmit={handleSaveBranding}>
+                <div className="modal-body">
+                  {/* Vista previa en vivo del Login */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 16,
+                      padding: 16,
+                      marginBottom: 16,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: 8 }}>
+                      VISTA PREVIA EN LOGIN ({getLoginLink(brandingBranch)})
+                    </div>
+                    <div
+                      style={{
+                        width: 68,
+                        height: 68,
+                        margin: '0 auto 10px',
+                        borderRadius: 16,
+                        background:
+                          brandingForm.logoUrl || brandingForm.iconUrl
+                            ? '#ffffff'
+                            : brandingForm.primaryColor,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {brandingForm.logoUrl || brandingForm.iconUrl ? (
+                        <img
+                          src={brandingForm.logoUrl || brandingForm.iconUrl}
+                          alt="Vista previa logo"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6 }}
+                        />
+                      ) : (
+                        <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.3rem' }}>
+                          {(brandingForm.companyName || 'EM').substring(0, 2).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a' }}>
+                      {brandingForm.companyName || 'Nombre de la Empresa'}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nombre que aparece al Iniciar Sesión *</label>
+                    <input
+                      className="form-input"
+                      value={brandingForm.companyName}
+                      onChange={(e) =>
+                        setBrandingForm((p) => ({ ...p, companyName: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>URL del Logo de Inicio de Sesión (HTTPS PNG/JPG/WEBP)</label>
+                    <input
+                      type="url"
+                      className="form-input"
+                      placeholder="https://ejemplo.com/mi-logo.png"
+                      value={brandingForm.logoUrl}
+                      onChange={(e) =>
+                        setBrandingForm((p) => ({ ...p, logoUrl: e.target.value }))
+                      }
+                    />
+                    <span style={{ fontSize: '0.73rem', color: '#64748b' }}>
+                      Pega el enlace directo (https://...) de la imagen del logo que verán al iniciar sesión.
+                    </span>
+                  </div>
+
+                  <div className="form-group">
+                    <label>URL del Ícono de la App / PWA (Opcional, HTTPS)</label>
+                    <input
+                      type="url"
+                      className="form-input"
+                      placeholder="https://ejemplo.com/icono-cuadrado.png"
+                      value={brandingForm.iconUrl}
+                      onChange={(e) =>
+                        setBrandingForm((p) => ({ ...p, iconUrl: e.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Color Principal del Botón de Login</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={brandingForm.primaryColor}
+                        onChange={(e) =>
+                          setBrandingForm((p) => ({ ...p, primaryColor: e.target.value }))
+                        }
+                        style={{
+                          width: 44,
+                          height: 40,
+                          borderRadius: 10,
+                          border: '1px solid #cbd5e1',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={brandingForm.primaryColor}
+                        onChange={(e) =>
+                          setBrandingForm((p) => ({ ...p, primaryColor: e.target.value }))
+                        }
+                        style={{ fontFamily: 'monospace' }}
+                      />
+                    </div>
+                  </div>
+
+                  {brandingError && <div className="alert alert-danger">{brandingError}</div>}
+                </div>
+
+                <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full flex items-center justify-center gap-2"
+                    disabled={savingBranding}
+                  >
+                    {savingBranding ? (
+                      <>
+                        <Loader2 size={16} className="spin-icon" /> Guardando Logo...
+                      </>
+                    ) : (
+                      'Guardar Logo y Diseño de Login'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-full"
+                    onClick={() => setBrandingBranch(null)}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Modal Crear / Editar Sucursal */}
         {showModal && isSuperuser && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -520,7 +824,7 @@ export default function BranchesPage() {
               <div className="modal-header">
                 <div className="modal-header-title">
                   <Building2 size={20} color="#e11d48" />
-                  <span>{editTarget ? 'Editar Sucursal' : 'Nueva Sucursal'}</span>
+                  <span>{editTarget ? 'Editar Sucursal y Logo' : 'Nueva Sucursal'}</span>
                 </div>
                 <button
                   className="btn btn-ghost"
@@ -538,7 +842,17 @@ export default function BranchesPage() {
                       <select
                         className="form-select"
                         value={form.tenantId}
-                        onChange={(e) => setForm((p) => ({ ...p, tenantId: e.target.value }))}
+                        onChange={(e) => {
+                          const newTId = e.target.value;
+                          const sel = tenants.find((t) => String(t.tenantId) === newTId);
+                          setForm((p) => ({
+                            ...p,
+                            tenantId: newTId,
+                            logoUrl: sel?.logoUrl || '',
+                            iconUrl: sel?.iconUrl || '',
+                            primaryColor: sel?.primaryColor || '#e11d48',
+                          }));
+                        }}
                         required
                       >
                         {tenants.map((t) => (
@@ -569,6 +883,67 @@ export default function BranchesPage() {
                       onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
                     />
                   </div>
+
+                  {/* Sección de Logo y Color de Inicio de Sesión directamente en el modal */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 14,
+                      padding: 14,
+                      marginTop: 12,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div
+                      className="flex items-center gap-2"
+                      style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}
+                    >
+                      <ImageIcon size={16} color="#e11d48" />
+                      <span>Logo y Color al Iniciar Sesión (Login de esta Matriz)</span>
+                    </div>
+                    <div className="grid-2">
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label>URL del Logo (HTTPS PNG/JPG/WEBP)</label>
+                        <input
+                          type="url"
+                          className="form-input"
+                          placeholder="https://ejemplo.com/logo.png"
+                          value={form.logoUrl}
+                          onChange={(e) => setForm((p) => ({ ...p, logoUrl: e.target.value }))}
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label>Color de Login</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={form.primaryColor}
+                            onChange={(e) =>
+                              setForm((p) => ({ ...p, primaryColor: e.target.value }))
+                            }
+                            style={{
+                              width: 42,
+                              height: 40,
+                              borderRadius: 10,
+                              border: '1px solid #cbd5e1',
+                              cursor: 'pointer',
+                            }}
+                          />
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={form.primaryColor}
+                            onChange={(e) =>
+                              setForm((p) => ({ ...p, primaryColor: e.target.value }))
+                            }
+                            style={{ fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="form-group mt-4">
                     <label>Ubicación y Área Permitida *</label>
                     <LocationPickerMap

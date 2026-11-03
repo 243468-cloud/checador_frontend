@@ -33,6 +33,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales y Enlaces', roles: ['SUPERUSER'] },
+  { href: '/companies',  icon: <Building2       size={18} />, label: 'Logos y Matrices',     roles: ['SUPERUSER'] },
   { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Inicio (Home)',        roles: ['ADMIN'] },
   { href: '/checkin',    icon: <Clock           size={18} />, label: 'Inicio / Checador',    roles: ['EMPLOYEE'] },
   { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['ADMIN', 'EMPLOYEE'], module: 'schedules' },

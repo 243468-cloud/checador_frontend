@@ -134,9 +134,11 @@ export default function TenantRegisterPage() {
 
         {/* Header */}
         <div className="register-brand-header">
-          <div className="brand-logo-img-container" style={{ background: '#ffffff', padding: '8px', borderRadius: '16px', width: '120px', margin: '0 auto 12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-            {tenantInfo ? (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-xl" style={{ minHeight: '100px' }}>
+          <div className="brand-logo-img-container" style={{ background: tenantInfo && !(tenantInfo.logoUrl || tenantInfo.iconUrl) ? (tenantInfo.primaryColor || '#e11d48') : '#ffffff', padding: '8px', borderRadius: '16px', width: '100px', height: '100px', margin: '0 auto 12px', boxShadow: '0 8px 20px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {tenantInfo && (tenantInfo.logoUrl || tenantInfo.iconUrl) ? (
+              <img src={(tenantInfo.logoUrl || tenantInfo.iconUrl) ?? ''} alt={tenantInfo.companyName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : tenantInfo ? (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#ffffff', fontSize: '1.6rem' }}>
                 {tenantInfo.companyName.substring(0,2).toUpperCase()}
               </div>
             ) : (
