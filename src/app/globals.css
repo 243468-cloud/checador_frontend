@@ -1693,3 +1693,27 @@ tbody td {
 @media (max-width: 768px) {
   .main-content { padding: 20px 16px; }
 }
+
+/* Garantizar alto contraste en todos los campos de formulario en modo oscuro móvil (iOS/Android) */
+:root {
+  color-scheme: light;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+select,
+textarea {
+  color-scheme: light;
+  color: #0f172a;
+}
+.card input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.card select,
+.card textarea {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a;
+  background-color: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+}
+.card input::placeholder,
+.card textarea::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8;
+}

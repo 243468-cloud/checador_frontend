@@ -37,9 +37,9 @@ const TYPE_ICONS: Record<LeaveType, string> = {
 };
 
 const STATUS_STYLE: Record<LeaveStatus, { label: string; bg: string; color: string }> = {
-  PENDING:  { label: 'Pendiente', bg: 'rgba(245,158,11,0.15)',  color: '#f59e0b' },
-  APPROVED: { label: 'Aprobado',  bg: 'rgba(16,185,129,0.15)',  color: '#10b981' },
-  REJECTED: { label: 'Rechazado', bg: 'rgba(239,68,68,0.15)',   color: '#ef4444' },
+  PENDING:  { label: 'Pendiente', bg: 'rgba(245,158,11,0.15)',  color: '#d97706' },
+  APPROVED: { label: 'Aprobado',  bg: 'rgba(16,185,129,0.15)',  color: '#059669' },
+  REJECTED: { label: 'Rechazado', bg: 'rgba(239,68,68,0.15)',   color: '#dc2626' },
 };
 
 function StatusBadge({ status }: { status: LeaveStatus }) {
@@ -159,6 +159,20 @@ export default function LeavesPage() {
 
   const pendingCount = requests.filter(r => r.status === 'PENDING').length;
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '11px 14px',
+    borderRadius: '10px',
+    fontSize: '0.92rem',
+    backgroundColor: '#f8fafc',
+    color: '#0f172a',
+    fontWeight: 500,
+    border: '1.5px solid #cbd5e1',
+    outline: 'none',
+    colorScheme: 'light',
+    WebkitTextFillColor: '#0f172a',
+  };
+
   return (
     <div className="dashboard-layout">
       <Sidebar />
@@ -179,7 +193,7 @@ export default function LeavesPage() {
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700,
-                background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+                background: 'rgba(245,158,11,0.15)', color: '#d97706',
                 border: '1px solid rgba(245,158,11,0.3)',
               }}>
                 <AlertTriangle size={14}/> {pendingCount} pendiente{pendingCount > 1 ? 's' : ''}
@@ -202,7 +216,7 @@ export default function LeavesPage() {
 
         {error && (
           <div className="card mb-4" style={{ borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', padding: '14px 18px' }}>
-            <p style={{ color: '#ef4444', margin: 0, fontSize: '0.88rem' }}>{error}</p>
+            <p style={{ color: '#dc2626', margin: 0, fontSize: '0.88rem', fontWeight: 500 }}>{error}</p>
           </div>
         )}
 
@@ -215,9 +229,9 @@ export default function LeavesPage() {
                 onClick={() => setFilterStatus(s)}
                 style={{
                   padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600,
-                  border: filterStatus === s ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.1)',
-                  background: filterStatus === s ? 'rgba(99,102,241,0.2)' : 'transparent',
-                  color: filterStatus === s ? '#818cf8' : '#94a3b8',
+                  border: filterStatus === s ? '1px solid var(--color-primary, #e11d48)' : '1px solid #e2e8f0',
+                  background: filterStatus === s ? 'rgba(225, 29, 72, 0.1)' : '#f8fafc',
+                  color: filterStatus === s ? 'var(--color-primary, #e11d48)' : '#475569',
                   cursor: 'pointer', transition: 'all 0.2s',
                 }}
               >
@@ -260,7 +274,7 @@ export default function LeavesPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <span style={{ fontSize: '1.2rem' }}>{TYPE_ICONS[req.requestType]}</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
                       {TYPE_LABELS[req.requestType]}
                     </span>
                     <StatusBadge status={req.status}/>
@@ -268,13 +282,13 @@ export default function LeavesPage() {
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '4px',
                         padding: '2px 8px', borderRadius: '12px', fontSize: '0.73rem',
-                        background: 'rgba(99,102,241,0.12)', color: '#818cf8',
+                        background: 'rgba(99,102,241,0.12)', color: '#4f46e5', fontWeight: 600,
                       }}>
                         <User size={11}/> {req.employeeName}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 flex-wrap" style={{ color: '#94a3b8', fontSize: '0.83rem' }}>
+                  <div className="flex items-center gap-4 flex-wrap" style={{ color: '#475569', fontSize: '0.83rem' }}>
                     <span className="flex items-center gap-1">
                       <Calendar size={13}/>
                       {req.startDate === req.endDate ? req.startDate : `${req.startDate} → ${req.endDate}`}
@@ -284,26 +298,26 @@ export default function LeavesPage() {
                       Enviado: {req.createdAt?.split('T')[0] ?? '—'}
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155' }}>
                     <Briefcase size={13} style={{ marginRight: '4px', verticalAlign: 'middle' }}/>
                     {req.reason}
                   </p>
                   {req.evidenceUrl && (
                     <a href={req.evidenceUrl} target="_blank" rel="noopener noreferrer"
-                       style={{ fontSize: '0.8rem', color: '#60a5fa', textDecoration: 'none' }}>
+                       style={{ fontSize: '0.8rem', color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
                       Ver evidencia
                     </a>
                   )}
                   {req.adminNotes && (
                     <div style={{
                       marginTop: '4px', padding: '8px 12px', borderRadius: '8px',
-                      background: 'rgba(255,255,255,0.04)', borderLeft: '3px solid rgba(99,102,241,0.4)',
+                      background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '3px solid #6366f1',
                     }}>
-                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>
                         <MessageSquare size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }}/>
                         Nota del administrador:
                       </span>
-                      <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#e2e8f0' }}>{req.adminNotes}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#1e293b' }}>{req.adminNotes}</p>
                     </div>
                   )}
                 </div>
@@ -314,7 +328,7 @@ export default function LeavesPage() {
                       onClick={() => { setReviewModal({ request: req, action: 'approve' }); setReviewNotes(''); }}
                       style={{
                         padding: '7px 14px', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem',
-                        background: 'rgba(16,185,129,0.15)', color: '#10b981',
+                        background: 'rgba(16,185,129,0.15)', color: '#059669',
                         border: '1px solid rgba(16,185,129,0.3)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: '5px',
                       }}
@@ -325,7 +339,7 @@ export default function LeavesPage() {
                       onClick={() => { setReviewModal({ request: req, action: 'reject' }); setReviewNotes(''); }}
                       style={{
                         padding: '7px 14px', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem',
-                        background: 'rgba(239,68,68,0.12)', color: '#ef4444',
+                        background: 'rgba(239,68,68,0.12)', color: '#dc2626',
                         border: '1px solid rgba(239,68,68,0.25)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: '5px',
                       }}
@@ -343,16 +357,16 @@ export default function LeavesPage() {
         {showForm && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 9000,
-            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
+            background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
           }}>
-            <div className="card" style={{ width: '100%', maxWidth: '520px', padding: '28px 30px' }}>
+            <div className="card" style={{ width: '100%', maxWidth: '520px', padding: '24px 24px' }}>
               <div className="flex items-center justify-between mb-4">
-                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
+                <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
                   Nueva Solicitud
                 </h2>
                 <button onClick={() => { setShowForm(false); setFormError(null); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569' }}>
                   <X size={22}/>
                 </button>
               </div>
@@ -360,8 +374,8 @@ export default function LeavesPage() {
               {formError && (
                 <div style={{
                   padding: '10px 14px', borderRadius: '8px', marginBottom: '16px',
-                  background: 'rgba(239,68,68,0.1)', color: '#ef4444',
-                  border: '1px solid rgba(239,68,68,0.2)', fontSize: '0.85rem',
+                  background: 'rgba(239,68,68,0.1)', color: '#dc2626',
+                  border: '1px solid rgba(239,68,68,0.25)', fontSize: '0.85rem', fontWeight: 500,
                 }}>
                   {formError}
                 </div>
@@ -369,7 +383,7 @@ export default function LeavesPage() {
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#334155', marginBottom: '6px', fontWeight: 700 }}>
                     Tipo de Solicitud *
                   </label>
                   <div style={{ position: 'relative' }}>
@@ -377,51 +391,52 @@ export default function LeavesPage() {
                       value={form.requestType}
                       onChange={e => setForm(f => ({ ...f, requestType: e.target.value as LeaveType }))}
                       style={{
-                        width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem',
-                        background: 'rgba(255,255,255,0.06)', color: '#f8fafc',
-                        border: '1px solid rgba(255,255,255,0.12)', outline: 'none', appearance: 'none',
+                        ...inputStyle,
+                        paddingRight: '36px',
+                        fontWeight: 600,
+                        appearance: 'none',
                       }}
                     >
                       {(Object.keys(TYPE_LABELS) as LeaveType[]).map(t => (
-                        <option key={t} value={t} style={{ background: '#1e293b' }}>
+                        <option key={t} value={t} style={{ background: '#ffffff', color: '#0f172a' }}>
                           {TYPE_ICONS[t]} {TYPE_LABELS[t]}
                         </option>
                       ))}
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', pointerEvents: 'none' }}/>
+                    <ChevronDown size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#475569', pointerEvents: 'none' }}/>
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.82rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Fecha Inicio *</label>
+                    <label style={{ display: 'block', fontSize: '0.82rem', color: '#334155', marginBottom: '6px', fontWeight: 700 }}>Fecha Inicio *</label>
                     <input type="date" required value={form.startDate}
                       onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem', background: 'rgba(255,255,255,0.06)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.12)', outline: 'none' }}/>
+                      style={inputStyle}/>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.82rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Fecha Fin *</label>
+                    <label style={{ display: 'block', fontSize: '0.82rem', color: '#334155', marginBottom: '6px', fontWeight: 700 }}>Fecha Fin *</label>
                     <input type="date" required value={form.endDate} min={form.startDate}
                       onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem', background: 'rgba(255,255,255,0.06)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.12)', outline: 'none' }}/>
+                      style={inputStyle}/>
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Motivo *</label>
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#334155', marginBottom: '6px', fontWeight: 700 }}>Motivo *</label>
                   <textarea rows={3} required
                     placeholder="Describe brevemente el motivo de tu solicitud..."
                     value={form.reason}
                     onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem', background: 'rgba(255,255,255,0.06)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.12)', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}/>
+                    style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}/>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>URL de evidencia (opcional)</label>
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#334155', marginBottom: '6px', fontWeight: 700 }}>URL de evidencia (opcional)</label>
                   <input type="url" placeholder="https://... (foto, PDF del médico, etc.)"
                     value={form.evidenceUrl}
                     onChange={e => setForm(f => ({ ...f, evidenceUrl: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem', background: 'rgba(255,255,255,0.06)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.12)', outline: 'none' }}/>
+                    style={inputStyle}/>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -442,39 +457,39 @@ export default function LeavesPage() {
         {reviewModal && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 9000,
-            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
+            background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
           }}>
-            <div className="card" style={{ width: '100%', maxWidth: '460px', padding: '28px 30px' }}>
+            <div className="card" style={{ width: '100%', maxWidth: '460px', padding: '24px 24px' }}>
               <div className="flex items-center justify-between mb-4">
-                <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
+                <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
                   {reviewModal.action === 'approve' ? 'Aprobar solicitud' : 'Rechazar solicitud'}
                 </h2>
-                <button onClick={() => setReviewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <button onClick={() => setReviewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569' }}>
                   <X size={22}/>
                 </button>
               </div>
 
-              <div style={{ padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', background: 'rgba(255,255,255,0.04)' }}>
-                <p style={{ margin: 0, fontSize: '0.87rem', color: '#94a3b8' }}>
-                  <strong style={{ color: '#f8fafc' }}>{reviewModal.request.employeeName}</strong> —{' '}
+              <div style={{ padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <p style={{ margin: 0, fontSize: '0.87rem', color: '#475569' }}>
+                  <strong style={{ color: '#0f172a' }}>{reviewModal.request.employeeName}</strong> —{' '}
                   {TYPE_ICONS[reviewModal.request.requestType]} {TYPE_LABELS[reviewModal.request.requestType]}
                 </p>
                 <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
                   {reviewModal.request.startDate} → {reviewModal.request.endDate}
                 </p>
-                <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: '#cbd5e1' }}>{reviewModal.request.reason}</p>
+                <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: '#334155' }}>{reviewModal.request.reason}</p>
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.82rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', color: '#334155', marginBottom: '6px', fontWeight: 700 }}>
                   {reviewModal.action === 'reject' ? 'Motivo del rechazo *' : 'Notas adicionales (opcional)'}
                 </label>
                 <textarea rows={3}
                   placeholder={reviewModal.action === 'reject' ? 'Explica por qué se rechaza...' : 'Notas para el empleado (opcional)...'}
                   value={reviewNotes}
                   onChange={e => setReviewNotes(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem', background: 'rgba(255,255,255,0.06)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.12)', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}/>
+                  style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}/>
               </div>
 
               <div className="flex items-center gap-3">
@@ -483,8 +498,8 @@ export default function LeavesPage() {
                   disabled={reviewing}
                   style={{
                     flex: 1, padding: '10px 18px', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem',
-                    background: reviewModal.action === 'approve' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
-                    color: reviewModal.action === 'approve' ? '#10b981' : '#ef4444',
+                    background: reviewModal.action === 'approve' ? 'rgba(16,185,129,0.18)' : 'rgba(239,68,68,0.18)',
+                    color: reviewModal.action === 'approve' ? '#059669' : '#dc2626',
                     border: reviewModal.action === 'approve' ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(239,68,68,0.35)',
                     cursor: reviewing ? 'not-allowed' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
