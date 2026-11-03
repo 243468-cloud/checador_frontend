@@ -16,6 +16,8 @@ export default function HomePage() {
     }
     switch (user.role) {
       case 'SUPERUSER':
+        router.replace('/branches');
+        break;
       case 'ADMIN':
         router.replace('/dashboard');
         break;

@@ -50,7 +50,7 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get('token')?.value;
   const role = token ? getRoleFromToken(token) : null;
-  const defaultHome = role === 'EMPLOYEE' ? '/checkin' : '/dashboard';
+  const defaultHome = role === 'SUPERUSER' ? '/branches' : role === 'EMPLOYEE' ? '/checkin' : '/dashboard';
 
   // Comprobar si es una subruta de login/register (ej: /[slug]/login)
   const isDynamicAuthRoute = pathname.match(/^\/[a-zA-Z0-9-]+\/(login|register)$/);
@@ -79,6 +79,9 @@ export function middleware(request: NextRequest) {
   }
   if (role === 'EMPLOYEE' && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/checkin', request.url));
+  }
+  if (role === 'SUPERUSER' && pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/branches', request.url));
   }
 
   return NextResponse.next();

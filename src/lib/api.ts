@@ -299,6 +299,8 @@ export interface Employee {
   profilePicture: string;
   branchId: number;
   branchName: string;
+  tenantId?: number;
+  companyName?: string;
 }
 
 export const employeeApi = {
@@ -321,6 +323,8 @@ export const employeeApi = {
 export interface Branch {
   id: number;
   tenantId?: number;
+  tenantSlug?: string;
+  companyName?: string;
   name: string;
   address: string;
   latitude: number;
@@ -344,6 +348,9 @@ export const branchApi = {
 
 export const adminApi = {
   getAll: () => apiFetch<Employee[]>('/api/admins'),
+  getSuperusers: () => apiFetch<Employee[]>('/api/admins/superusers'),
+  createSuperuser: (data: { username: string; password: string; fullName: string; email?: string }) =>
+    apiFetch<Employee>('/api/admins/superusers', { method: 'POST', body: JSON.stringify(data) }),
   create: (data: { username: string; password: string; fullName: string; email?: string; branchId: number }) =>
     apiFetch<Employee>('/api/admins', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: { fullName: string; email: string }) =>

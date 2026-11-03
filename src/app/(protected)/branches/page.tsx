@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { branchApi, Branch } from '@/lib/api';
+import { branchApi, settingsApi, Branch, TenantSettingsDTO } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/Sidebar';
 import {
@@ -12,6 +12,11 @@ import {
   HelpCircle,
   X,
   Loader2,
+  Copy,
+  Check,
+  Share2,
+  ExternalLink,
+  Link2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -22,10 +27,22 @@ export default function BranchesPage() {
   const router = useRouter();
   const isSuperuser = user?.role === 'SUPERUSER';
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [tenants, setTenants] = useState<TenantSettingsDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState<Branch | null>(null);
-  const [form, setForm] = useState({ name: '', address: '', latitude: '', longitude: '', radiusMeters: '100', toleranceMinutes: '10' });
+  const [shareBranch, setShareBranch] = useState<Branch | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedTenantFilter, setSelectedTenantFilter] = useState<string>('ALL');
+  const [form, setForm] = useState({
+    name: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+    radiusMeters: '100',
+    toleranceMinutes: '10',
+    tenantId: '1',
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +56,15 @@ export default function BranchesPage() {
   const load = () => {
     if (!isSuperuser) return;
     setLoading(true);
-    branchApi.getAll().then(setBranches).catch(() => setBranches([])).finally(() => setLoading(false));
+    Promise.all([
+      branchApi.getAll().catch(() => []),
+      settingsApi.getAllTenants().catch(() => []),
+    ])
+      .then(([bList, tList]) => {
+        setBranches(bList);
+        setTenants(tList.filter((t) => t.tenantId > 0));
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -52,10 +77,84 @@ export default function BranchesPage() {
     return null;
   }
 
+  const getOrigin = () => {
+    if (typeof window !== 'undefined') return window.location.origin;
+    return 'https://checador-frontend.vercel.app';
+  };
+
+  const getBranchSlug = (b: Branch) => {
+    if (b.tenantSlug) return b.tenantSlug;
+    const found = tenants.find((t) => t.tenantId === b.tenantId);
+    if (found?.slug) return found.slug;
+    if (b.name.toLowerCase().includes('miel') || b.name.toLowerCase().includes('selva')) {
+      return 'miel-de-la-selva-maya';
+    }
+    return 'via-gourmet';
+  };
+
+  const getBranchCompanyName = (b: Branch) => {
+    if (b.companyName && b.companyName !== 'Sin Empresa') return b.companyName;
+    const found = tenants.find((t) => t.tenantId === b.tenantId);
+    if (found?.companyName) return found.companyName;
+    if (b.name.toLowerCase().includes('miel') || b.name.toLowerCase().includes('selva')) {
+      return 'Miel de la Selva Maya';
+    }
+    return 'Via Gourmet';
+  };
+
+  const getLoginLink = (b: Branch) => `${getOrigin()}/${getBranchSlug(b)}/login`;
+  const getRegisterLink = (b: Branch) => `${getOrigin()}/${getBranchSlug(b)}/register`;
+
+  const copyLink = async (text: string, key: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(key);
+      setTimeout(() => setCopiedId(null), 2200);
+    } catch {
+      // Fallback
+    }
+  };
+
+  const shareViaWhatsApp = (b: Branch, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const company = getBranchCompanyName(b);
+    const loginUrl = getLoginLink(b);
+    const registerUrl = getRegisterLink(b);
+    const msg = `Hola, te comparto los enlaces de acceso del Checador para *${b.name}* (${company}):\n\n🔹 *Iniciar sesión:* ${loginUrl}\n🔹 *Registro de empleados:* ${registerUrl}`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator
+        .share({
+          title: `Checador - ${b.name}`,
+          text: msg,
+          url: loginUrl,
+        })
+        .catch(() => {
+          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        });
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+  };
+
   const openCreate = () => {
     if (!isSuperuser) return;
     setEditTarget(null);
-    setForm({ name: '', address: '', latitude: '', longitude: '', radiusMeters: '100', toleranceMinutes: '10' });
+    const defaultTenant =
+      selectedTenantFilter !== 'ALL'
+        ? selectedTenantFilter
+        : tenants[0]?.tenantId
+        ? String(tenants[0].tenantId)
+        : '1';
+    setForm({
+      name: '',
+      address: '',
+      latitude: '',
+      longitude: '',
+      radiusMeters: '100',
+      toleranceMinutes: '10',
+      tenantId: defaultTenant,
+    });
     setError('');
     setShowModal(true);
   };
@@ -64,9 +163,13 @@ export default function BranchesPage() {
     if (!isSuperuser) return;
     setEditTarget(b);
     setForm({
-      name: b.name, address: b.address || '',
-      latitude: String(b.latitude), longitude: String(b.longitude),
-      radiusMeters: String(b.radiusMeters), toleranceMinutes: String(b.toleranceMinutes),
+      name: b.name,
+      address: b.address || '',
+      latitude: String(b.latitude),
+      longitude: String(b.longitude),
+      radiusMeters: String(b.radiusMeters),
+      toleranceMinutes: String(b.toleranceMinutes),
+      tenantId: String(b.tenantId || 1),
     });
     setError('');
     setShowModal(true);
@@ -77,15 +180,25 @@ export default function BranchesPage() {
     setSaving(true);
     setError('');
     const data = {
-      name: form.name, address: form.address,
-      latitude: Number(form.latitude), longitude: Number(form.longitude),
-      radiusMeters: Number(form.radiusMeters), toleranceMinutes: Number(form.toleranceMinutes),
+      name: form.name,
+      address: form.address,
+      latitude: Number(form.latitude),
+      longitude: Number(form.longitude),
+      radiusMeters: Number(form.radiusMeters),
+      toleranceMinutes: Number(form.toleranceMinutes),
+      tenantId: Number(form.tenantId) || 1,
     };
     try {
-      if (editTarget) await branchApi.update(editTarget.id, data);
-      else await branchApi.create(data as any);
-      setShowModal(false);
-      load();
+      if (editTarget) {
+        await branchApi.update(editTarget.id, data);
+        setShowModal(false);
+        load();
+      } else {
+        const created = await branchApi.create(data as any);
+        setShowModal(false);
+        load();
+        setShareBranch(created);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -100,10 +213,21 @@ export default function BranchesPage() {
     load();
   };
 
-  const filteredBranches = branches.filter(b => 
-    b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (b.address && b.address.toLowerCase().includes(searchQuery.toLowerCase()))
+  const uniqueCompanies = Array.from(
+    new Map(
+      branches.map((b) => [String(b.tenantId || 1), getBranchCompanyName(b)])
+    ).entries()
   );
+
+  const filteredBranches = branches.filter((b) => {
+    const matchesSearch =
+      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      getBranchCompanyName(b).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.address && b.address.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesTenant =
+      selectedTenantFilter === 'ALL' || String(b.tenantId || 1) === selectedTenantFilter;
+    return matchesSearch && matchesTenant;
+  });
 
   return (
     <div className="app-wrapper">
@@ -111,112 +235,339 @@ export default function BranchesPage() {
       <main className="main-content animate-fade-in">
         <div className="page-header">
           <div style={{ flex: 1 }}>
-            <h1 className="page-title">Sucursales (Control Maestro)</h1>
-            <p className="page-subtitle">{branches.length} sucursales activas</p>
+            <h1 className="page-title">Sucursales y Enlaces</h1>
+            <p className="page-subtitle">
+              {branches.length} sucursales activas · Crea o edita sucursales y comparte su link de acceso
+            </p>
           </div>
           {isSuperuser && (
-            <button id="btn-new-branch" className="btn btn-primary" onClick={openCreate} style={{ padding: '12px 20px', borderRadius: '100px' }}>
+            <button
+              id="btn-new-branch"
+              className="btn btn-primary"
+              onClick={openCreate}
+              style={{ padding: '12px 20px', borderRadius: '100px' }}
+            >
               <Plus size={18} />
-              <span style={{ display: 'none' }} className="sm:inline">Nueva Sucursal</span>
+              <span>Nueva Sucursal</span>
             </button>
           )}
         </div>
 
-        {/* Búsqueda Universal iOS Style */}
-        <div className="mb-6" style={{ position: 'relative', maxWidth: 500 }}>
-          <input 
-            type="text" 
-            className="form-input" 
-            placeholder="Buscar por nombre o dirección..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: 44, borderRadius: 16, background: '#ffffff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}
-          />
-          <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8e8e93' }}>
-            <Building2 size={18} />
+        {/* Filtros por Matriz y Búsqueda */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: 420 }}>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Buscar sucursal, matriz o dirección..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                paddingLeft: 44,
+                borderRadius: 16,
+                background: '#ffffff',
+                border: 'none',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: 16,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#8e8e93',
+              }}
+            >
+              <Building2 size={18} />
+            </div>
           </div>
+
+          {uniqueCompanies.length > 1 && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSelectedTenantFilter('ALL')}
+                className={`btn ${selectedTenantFilter === 'ALL' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{
+                  borderRadius: '100px',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
+                  background: selectedTenantFilter === 'ALL' ? undefined : '#ffffff',
+                }}
+              >
+                Todas las Matrices ({branches.length})
+              </button>
+              {uniqueCompanies.map(([tId, cName]) => (
+                <button
+                  key={tId}
+                  type="button"
+                  onClick={() => setSelectedTenantFilter(tId)}
+                  className={`btn ${selectedTenantFilter === tId ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{
+                    borderRadius: '100px',
+                    padding: '8px 16px',
+                    fontSize: '0.82rem',
+                    background: selectedTenantFilter === tId ? undefined : '#ffffff',
+                  }}
+                >
+                  {cName} ({branches.filter((b) => String(b.tenantId || 1) === tId).length})
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {loading ? (
-          <div className="grid-3">{[...Array(3)].map((_, i) => <div key={i} className="card"><div className="skeleton" style={{ height: 160 }} /></div>)}</div>
+          <div className="grid-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="card">
+                <div className="skeleton" style={{ height: 200 }} />
+              </div>
+            ))}
+          </div>
         ) : filteredBranches.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon" style={{ background: 'transparent' }}><Building2 size={40} color="#8e8e93" /></div>
+            <div className="empty-state-icon" style={{ background: 'transparent' }}>
+              <Building2 size={40} color="#8e8e93" />
+            </div>
             <p style={{ color: '#8e8e93' }}>No se encontraron sucursales.</p>
             {branches.length === 0 && isSuperuser && (
-              <button className="btn btn-primary mt-4" onClick={openCreate}>Crear primera</button>
+              <button className="btn btn-primary mt-4" onClick={openCreate}>
+                Crear primera sucursal
+              </button>
             )}
           </div>
         ) : (
           <div className="grid-3 stagger">
-            {filteredBranches.map(b => (
-              <div 
-                key={b.id} 
-                className="card animate-slide-up"
-                style={{ cursor: isSuperuser ? 'pointer' : 'default', transition: 'transform 0.15s' }}
-                onClick={() => openEdit(b)}
-                onMouseDown={(e) => { if (isSuperuser) e.currentTarget.style.transform = 'scale(0.97)'; }}
-                onMouseUp={(e) => { if (isSuperuser) e.currentTarget.style.transform = 'scale(1)'; }}
-                onMouseLeave={(e) => { if (isSuperuser) e.currentTarget.style.transform = 'scale(1)'; }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div style={{ width: 48, height: 48, borderRadius: '16px', background: 'rgba(255, 149, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff9500' }}>
-                    <Building2 size={24} />
+            {filteredBranches.map((b) => {
+              const loginLink = getLoginLink(b);
+              const companyName = getBranchCompanyName(b);
+              const isCopied = copiedId === `branch-${b.id}`;
+              return (
+                <div
+                  key={b.id}
+                  className="card animate-slide-up"
+                  style={{
+                    cursor: isSuperuser ? 'pointer' : 'default',
+                    transition: 'transform 0.15s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                  onClick={() => openEdit(b)}
+                >
+                  <div>
+                    <div className="flex items-start justify-between mb-3">
+                      <div
+                        style={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: '14px',
+                          background: 'rgba(255, 149, 0, 0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#ff9500',
+                        }}
+                      >
+                        <Building2 size={22} />
+                      </div>
+                      <span
+                        className="badge badge-primary"
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '4px 10px',
+                          borderRadius: '100px',
+                        }}
+                      >
+                        Matriz: {companyName}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.05rem', marginBottom: 4 }}>{b.name}</h3>
+                    {b.address && (
+                      <p
+                        className="flex items-center gap-2"
+                        style={{
+                          fontSize: '0.8rem',
+                          color: 'var(--color-text-muted)',
+                          marginBottom: 12,
+                        }}
+                      >
+                        <MapPin size={13} />
+                        <span>{b.address}</span>
+                      </p>
+                    )}
+
+                    {/* Caja de Link Compartible */}
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 12,
+                        padding: '10px 12px',
+                        marginTop: 8,
+                        marginBottom: 12,
+                      }}
+                    >
+                      <div
+                        className="flex items-center gap-1"
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          color: '#64748b',
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Link2 size={12} />
+                        <span>Link de acceso ({getBranchSlug(b)})</span>
+                      </div>
+                      <div
+                        className="truncate"
+                        style={{
+                          fontSize: '0.76rem',
+                          fontFamily: 'monospace',
+                          color: '#334155',
+                          marginBottom: 8,
+                        }}
+                        title={loginLink}
+                      >
+                        {loginLink}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={(e) => copyLink(loginLink, `branch-${b.id}`, e)}
+                          style={{
+                            flex: 1,
+                            padding: '6px 10px',
+                            fontSize: '0.76rem',
+                            borderRadius: 8,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                          }}
+                        >
+                          {isCopied ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{isCopied ? '¡Copiado!' : 'Copiar Link'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={(e) => shareViaWhatsApp(b, e)}
+                          style={{
+                            padding: '6px 10px',
+                            fontSize: '0.76rem',
+                            borderRadius: 8,
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 5,
+                          }}
+                          title="Compartir por WhatsApp"
+                        >
+                          <Share2 size={14} />
+                          <span>Compartir</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="divider" style={{ margin: '10px 0' }} />
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: 10,
+                        fontSize: '0.78rem',
+                      }}
+                    >
+                      <div>
+                        <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>
+                          Radio GPS
+                        </div>
+                        <div style={{ fontWeight: 600 }}>{b.radiusMeters} m</div>
+                      </div>
+                      <div>
+                        <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>
+                          Tolerancia
+                        </div>
+                        <div style={{ fontWeight: 600 }}>{b.toleranceMinutes} min</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <h3 style={{ fontSize: '1.05rem', marginBottom: 4 }}>{b.name}</h3>
-                {b.address && (
-                  <p className="flex items-center gap-2" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 16 }}>
-                    <MapPin size={13} />
-                    <span>{b.address}</span>
-                  </p>
-                )}
-
-                <div className="divider" style={{ margin: '12px 0' }} />
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.8rem' }}>
-                  <div>
-                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Latitud</div>
-                    <div style={{ fontFamily: 'monospace', color: 'var(--color-primary)' }}>{b.latitude.toFixed(4)}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Longitud</div>
-                    <div style={{ fontFamily: 'monospace', color: 'var(--color-primary)' }}>{b.longitude.toFixed(4)}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Radio GPS</div>
-                    <div style={{ fontWeight: 600 }}>{b.radiusMeters} m</div>
-                  </div>
-                  <div>
-                    <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>Tolerancia</div>
-                    <div style={{ fontWeight: 600 }}>{b.toleranceMinutes} min</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
+        {/* Modal Crear / Editar Sucursal */}
         {showModal && isSuperuser && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-card" style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div
+              className="modal-card"
+              style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="modal-header">
                 <div className="modal-header-title">
                   <Building2 size={20} color="#e11d48" />
                   <span>{editTarget ? 'Editar Sucursal' : 'Nueva Sucursal'}</span>
                 </div>
-                <button className="btn btn-ghost" style={{ padding: '6px' }} onClick={() => setShowModal(false)}><X size={18} /></button>
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: '6px' }}
+                  onClick={() => setShowModal(false)}
+                >
+                  <X size={18} />
+                </button>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
+                  {!editTarget && tenants.length > 0 && (
+                    <div className="form-group">
+                      <label>Matriz / Empresa *</label>
+                      <select
+                        className="form-select"
+                        value={form.tenantId}
+                        onChange={(e) => setForm((p) => ({ ...p, tenantId: e.target.value }))}
+                        required
+                      >
+                        {tenants.map((t) => (
+                          <option key={t.tenantId} value={t.tenantId}>
+                            {t.companyName} (/{t.slug}/login)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   <div className="form-group">
-                    <label>Nombre *</label>
-                    <input className="form-input" placeholder="Ej: Sucursal Norte" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
+                    <label>Nombre de la Sucursal *</label>
+                    <input
+                      className="form-input"
+                      placeholder="Ej: Sucursal Norte"
+                      value={form.name}
+                      onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                      required
+                    />
                   </div>
                   <div className="form-group">
                     <label>Dirección</label>
-                    <input className="form-input" placeholder="Dirección completa" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
+                    <input
+                      className="form-input"
+                      placeholder="Dirección completa"
+                      value={form.address}
+                      onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+                    />
                   </div>
                   <div className="form-group mt-4">
                     <label>Ubicación y Área Permitida *</label>
@@ -224,39 +575,265 @@ export default function BranchesPage() {
                       initialLat={Number(form.latitude) || 19.4326}
                       initialLng={Number(form.longitude) || -99.1332}
                       initialRadius={Number(form.radiusMeters) || 100}
-                      onLocationChange={(lat, lng) => setForm(p => ({ ...p, latitude: String(lat), longitude: String(lng) }))}
-                      onRadiusChange={(radius) => setForm(p => ({ ...p, radiusMeters: String(radius) }))}
+                      onLocationChange={(lat, lng) =>
+                        setForm((p) => ({ ...p, latitude: String(lat), longitude: String(lng) }))
+                      }
+                      onRadiusChange={(radius) =>
+                        setForm((p) => ({ ...p, radiusMeters: String(radius) }))
+                      }
                     />
                   </div>
                   <div className="grid-2 mt-4">
-                    <div className="form-group" style={{ display: 'none' }}>
+                    <div className="form-group">
                       <label>Radio GPS (metros)</label>
-                      <input type="number" className="form-input" min="10" max="5000" value={form.radiusMeters} onChange={e => setForm(p => ({ ...p, radiusMeters: e.target.value }))} />
+                      <input
+                        type="number"
+                        className="form-input"
+                        min="10"
+                        max="5000"
+                        value={form.radiusMeters}
+                        onChange={(e) => setForm((p) => ({ ...p, radiusMeters: e.target.value }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Tolerancia (minutos)</label>
-                      <input type="number" className="form-input" min="0" max="60" value={form.toleranceMinutes} onChange={e => setForm(p => ({ ...p, toleranceMinutes: e.target.value }))} />
+                      <input
+                        type="number"
+                        className="form-input"
+                        min="0"
+                        max="60"
+                        value={form.toleranceMinutes}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, toleranceMinutes: e.target.value }))
+                        }
+                      />
                     </div>
                   </div>
-                  <div className="alert alert-info flex items-start gap-2" style={{ fontSize: '0.8rem' }}>
+
+                  {editTarget && (
+                    <div
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 12,
+                        padding: 12,
+                        marginTop: 12,
+                        marginBottom: 12,
+                      }}
+                    >
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: 6 }}>
+                        Enlace de Acceso de esta Sucursal:
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.8rem',
+                          color: '#334155',
+                          wordBreak: 'break-all',
+                          marginBottom: 8,
+                        }}
+                      >
+                        {getLoginLink(editTarget)}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                          onClick={() => copyLink(getLoginLink(editTarget), 'modal-copy')}
+                        >
+                          {copiedId === 'modal-copy' ? '¡Enlace copiado!' : 'Copiar Link'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '0.78rem',
+                            background: '#dcfce7',
+                            color: '#15803d',
+                          }}
+                          onClick={() => shareViaWhatsApp(editTarget)}
+                        >
+                          Compartir por WhatsApp
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    className="alert alert-info flex items-start gap-2"
+                    style={{ fontSize: '0.8rem' }}
+                  >
                     <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                    <span><strong>Tip:</strong> Puedes obtener las coordenadas de Google Maps haciendo clic derecho en la ubicación de tu sucursal.</span>
+                    <span>
+                      <strong>Tip:</strong> Puedes obtener las coordenadas en el mapa o haciendo
+                      clic en el botón de compartir en la tarjeta de la sucursal.
+                    </span>
                   </div>
                   {error && <div className="alert alert-danger">{error}</div>}
                 </div>
 
                 <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
-                  <button type="submit" id="btn-save-branch" className="btn btn-primary btn-full flex items-center justify-center gap-2" disabled={saving}>
-                    {saving ? <><Loader2 size={16} className="spin-icon" /> Guardando...</> : (editTarget ? 'Guardar Cambios' : 'Crear Sucursal')}
+                  <button
+                    type="submit"
+                    id="btn-save-branch"
+                    className="btn btn-primary btn-full flex items-center justify-center gap-2"
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 size={16} className="spin-icon" /> Guardando...
+                      </>
+                    ) : editTarget ? (
+                      'Guardar Cambios'
+                    ) : (
+                      'Crear Sucursal y Obtener Link'
+                    )}
                   </button>
                   {editTarget && (
-                    <button type="button" className="btn btn-ghost btn-full" style={{ color: '#ff3b30' }} onClick={handleDelete}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-full"
+                      style={{ color: '#ff3b30' }}
+                      onClick={handleDelete}
+                    >
                       Cerrar / Desactivar Sucursal
                     </button>
                   )}
-                  <button type="button" className="btn btn-ghost btn-full" onClick={() => setShowModal(false)} style={{ color: '#8e8e93' }}>Cancelar</button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-full"
+                    onClick={() => setShowModal(false)}
+                    style={{ color: '#8e8e93' }}
+                  >
+                    Cancelar
+                  </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Link Listo para Compartir al crear una nueva sucursal */}
+        {shareBranch && (
+          <div className="modal-overlay" onClick={() => setShareBranch(null)}>
+            <div
+              className="modal-card"
+              style={{ maxWidth: 500 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div className="modal-header-title">
+                  <Check size={20} color="#16a34a" />
+                  <span>¡Sucursal Creada con Éxito!</span>
+                </div>
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: '6px' }}
+                  onClick={() => setShareBranch(null)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="modal-body">
+                <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: 16 }}>
+                  La sucursal <strong>{shareBranch.name}</strong> ({getBranchCompanyName(shareBranch)})
+                  ya está activa. Comparte estos enlaces con tu equipo:
+                </p>
+
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 12,
+                    padding: 12,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div style={{ fontSize: '0.76rem', fontWeight: 600, color: '#64748b' }}>
+                    Enlace de Inicio de Sesión:
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.82rem',
+                      color: '#0f172a',
+                      wordBreak: 'break-all',
+                      margin: '6px 0 10px',
+                    }}
+                  >
+                    {getLoginLink(shareBranch)}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-full flex items-center justify-center gap-2"
+                    onClick={() => copyLink(getLoginLink(shareBranch), 'created-login')}
+                  >
+                    {copiedId === 'created-login' ? <Check size={16} /> : <Copy size={16} />}
+                    <span>
+                      {copiedId === 'created-login'
+                        ? '¡Link de Login Copiado!'
+                        : 'Copiar Link de Login'}
+                    </span>
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 12,
+                    padding: 12,
+                  }}
+                >
+                  <div style={{ fontSize: '0.76rem', fontWeight: 600, color: '#64748b' }}>
+                    Enlace de Registro para Nuevos Empleados:
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.82rem',
+                      color: '#0f172a',
+                      wordBreak: 'break-all',
+                      margin: '6px 0 10px',
+                    }}
+                  >
+                    {getRegisterLink(shareBranch)}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-full flex items-center justify-center gap-2"
+                    style={{ border: '1px solid #cbd5e1' }}
+                    onClick={() => copyLink(getRegisterLink(shareBranch), 'created-register')}
+                  >
+                    {copiedId === 'created-register' ? <Check size={16} /> : <Copy size={16} />}
+                    <span>
+                      {copiedId === 'created-register'
+                        ? '¡Link de Registro Copiado!'
+                        : 'Copiar Link de Registro'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-full flex items-center justify-center gap-2"
+                  style={{ background: '#16a34a', color: '#ffffff' }}
+                  onClick={() => shareViaWhatsApp(shareBranch)}
+                >
+                  <Share2 size={16} />
+                  <span>Compartir por WhatsApp</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-full"
+                  onClick={() => setShareBranch(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -42,6 +42,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isLoading && user?.role === 'EMPLOYEE') {
       router.replace('/checkin');
+    } else if (!isLoading && user?.role === 'SUPERUSER') {
+      router.replace('/branches');
     }
   }, [isLoading, user, router]);
 

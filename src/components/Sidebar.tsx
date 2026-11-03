@@ -32,18 +32,16 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Inicio (Home)',       roles: ['SUPERUSER', 'ADMIN'] },
-  { href: '/checkin',    icon: <Clock           size={18} />, label: 'Inicio / Checador',   roles: ['EMPLOYEE'] },
-  { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'], module: 'schedules' },
-  { href: '/ranking',    icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'], module: 'rankings' },
-  { href: '/leaves',     icon: <FileText        size={18} />, label: 'Permisos / Faltas',    roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
-  { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['SUPERUSER', 'ADMIN'] },
+  { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales y Enlaces', roles: ['SUPERUSER'] },
+  { href: '/dashboard',  icon: <LayoutDashboard size={18} />, label: 'Inicio (Home)',        roles: ['ADMIN'] },
+  { href: '/checkin',    icon: <Clock           size={18} />, label: 'Inicio / Checador',    roles: ['EMPLOYEE'] },
+  { href: '/schedules',  icon: <Clock           size={18} />, label: 'Horarios y Turnos',    roles: ['ADMIN', 'EMPLOYEE'], module: 'schedules' },
+  { href: '/ranking',    icon: <Trophy          size={18} />, label: 'Ranking & Recompensas', roles: ['ADMIN', 'EMPLOYEE'], module: 'rankings' },
+  { href: '/leaves',     icon: <FileText        size={18} />, label: 'Permisos / Faltas',    roles: ['ADMIN', 'EMPLOYEE'] },
+  { href: '/attendance', icon: <CalendarCheck   size={18} />, label: 'Asistencia',           roles: ['ADMIN'] },
   { href: '/employees',  icon: <Users           size={18} />, label: 'Empleados',            roles: ['SUPERUSER', 'ADMIN'] },
-  { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['SUPERUSER', 'ADMIN'], module: 'reports' },
-  { href: '/branches',   icon: <Building2       size={18} />, label: 'Sucursales',           roles: ['SUPERUSER'] },
-  { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Administradores',      roles: ['SUPERUSER'] },
-  { href: '/companies',  icon: <Building2       size={18} />, label: 'Empresas (Tenants)',   roles: ['SUPERUSER'] },
-  { href: '/audit',      icon: <ClipboardList   size={18} />, label: 'Auditoría',            roles: ['SUPERUSER'] },
+  { href: '/reports',    icon: <BarChart3       size={18} />, label: 'Reportes',             roles: ['ADMIN'], module: 'reports' },
+  { href: '/admins',     icon: <ShieldCheck     size={18} />, label: 'Super Administradores', roles: ['SUPERUSER'] },
   { href: '/settings',   icon: <Settings        size={18} />, label: 'Configuración',        roles: ['SUPERUSER', 'ADMIN', 'EMPLOYEE'] },
 ];
 
