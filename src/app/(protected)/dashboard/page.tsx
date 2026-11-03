@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { attendanceApi, DashboardStats, AttendanceRecord, STATUS_LABELS, STATUS_COLORS, SHIFT_LABELS } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
@@ -19,10 +20,10 @@ import {
 } from 'lucide-react';
 
 import { useRealtime, RealtimeEventData } from '@/hooks/useRealtime';
-import { useCallback } from 'react';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [daily, setDaily] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,14 @@ export default function DashboardPage() {
     []
   );
 
+  useEffect(() => {
+    if (!isLoading && user?.role === 'EMPLOYEE') {
+      router.replace('/checkin');
+    }
+  }, [isLoading, user, router]);
+
   const loadData = useCallback(() => {
+    if (user?.role === 'EMPLOYEE') return;
     setRetrying(false);
     Promise.all([
       attendanceApi.getStats(),
@@ -47,7 +55,14 @@ export default function DashboardPage() {
       setStats(s);
       setDaily(d);
       setRetryCount(0); // éxito — resetear contador
-    }).catch(() => {
+    }).catch((err) => {
+      const msg = String(err?.message || '');
+      if (msg.includes('403') || msg.includes('Permisos insuficientes') || user?.role === 'EMPLOYEE') {
+        if (user?.role === 'EMPLOYEE') {
+          router.replace('/checkin');
+        }
+        return;
+      }
       setRetryCount(prev => {
         const next = prev + 1;
         if (next < MAX_RETRIES) {
@@ -58,7 +73,7 @@ export default function DashboardPage() {
         return next;
       });
     }).finally(() => setLoading(false));
-  }, []);
+  }, [user, router]);
 
   // Countdown + auto-retry cuando Render está despertando
   useEffect(() => {
@@ -84,20 +99,27 @@ export default function DashboardPage() {
   }, [retrying, countdown, loadData]);
 
   useEffect(() => {
+    if (isLoading) return;
+    if (!user || user.role === 'EMPLOYEE') return;
     loadData();
-  }, [loadData]);
+  }, [isLoading, user, loadData]);
 
   // Actualización en vivo cero latencia al ocurrir entradas o salidas
   useRealtime(useCallback((event: RealtimeEventData) => {
+    if (user?.role === 'EMPLOYEE') return;
     if (event.type === 'CHECK_IN' || event.type === 'CHECK_OUT') {
       loadData();
     }
-  }, [loadData]));
+  }, [user, loadData]));
 
   // P3: totalEmployees ahora viene directo de stats (un solo endpoint)
   const totalEmployees = stats?.totalEmployees ?? 0;
   const present = (stats?.onTime ?? 0) + (stats?.late ?? 0);
   const absent = Math.max(0, totalEmployees - present); // P4: nunca negativo
+
+  if (user?.role === 'EMPLOYEE') {
+    return null;
+  }
 
   // Skeleton mientras carga o mientras espera auto-reintento
   if (loading || retrying) return (
@@ -276,25 +298,4 @@ function StatusBadge({ status }: { status: string }) {
     EXCUSED: 'badge-info',
   };
   return <span className={`badge ${cls[status] || 'badge-muted'}`}>{STATUS_LABELS[status] || status}</span>;
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="app-wrapper">
-      <Sidebar />
-      <main className="main-content">
-        <div style={{ height: 64, borderRadius: 12 }} className="skeleton mb-8" />
-        <div className="grid-4 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="card">
-              <div className="skeleton" style={{ height: 80 }} />
-            </div>
-          ))}
-        </div>
-        <div className="card">
-          <div className="skeleton" style={{ height: 300 }} />
-        </div>
-      </main>
-    </div>
-  );
 }

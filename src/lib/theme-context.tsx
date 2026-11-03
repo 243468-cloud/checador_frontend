@@ -4,8 +4,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { usePathname } from "next/navigation";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
 export interface TenantSettings {
   companyName: string;
   slug: string;
@@ -116,7 +114,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         .then((res) => applySettings(res.data))
         .catch(() => {
           if (slug) {
-            return axios.get(`${API_URL}/api/settings/public/${slug}`)
+            return axios.get(`/api/proxy/settings/public/${encodeURIComponent(slug)}`)
               .then((res) => applySettings(res.data))
               .catch(() => {});
           }
@@ -124,7 +122,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         .finally(() => setLoading(false));
     } else if (slug) {
       localStorage.setItem("tenantSlug", slug);
-      axios.get(`${API_URL}/api/settings/public/${slug}`)
+      axios.get(`/api/proxy/settings/public/${encodeURIComponent(slug)}`)
         .then((res) => applySettings(res.data))
         .catch(() => console.warn("No se encontró configuración pública para", slug))
         .finally(() => setLoading(false));
