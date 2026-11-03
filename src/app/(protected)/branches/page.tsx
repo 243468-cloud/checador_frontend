@@ -20,6 +20,7 @@ import {
   Palette,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import ImageUploadField from '@/components/ImageUploadField';
 
 const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), { ssr: false });
 
@@ -725,34 +726,14 @@ export default function BranchesPage() {
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label>URL del Logo de Inicio de Sesión (HTTPS PNG/JPG/WEBP)</label>
-                    <input
-                      type="url"
-                      className="form-input"
-                      placeholder="https://ejemplo.com/mi-logo.png"
-                      value={brandingForm.logoUrl}
-                      onChange={(e) =>
-                        setBrandingForm((p) => ({ ...p, logoUrl: e.target.value }))
-                      }
-                    />
-                    <span style={{ fontSize: '0.73rem', color: '#64748b' }}>
-                      Pega el enlace directo (https://...) de la imagen del logo que verán al iniciar sesión.
-                    </span>
-                  </div>
-
-                  <div className="form-group">
-                    <label>URL del Ícono de la App / PWA (Opcional, HTTPS)</label>
-                    <input
-                      type="url"
-                      className="form-input"
-                      placeholder="https://ejemplo.com/icono-cuadrado.png"
-                      value={brandingForm.iconUrl}
-                      onChange={(e) =>
-                        setBrandingForm((p) => ({ ...p, iconUrl: e.target.value }))
-                      }
-                    />
-                  </div>
+                  <ImageUploadField
+                    label="Logo de Inicio de Sesión"
+                    value={brandingForm.logoUrl}
+                    onChange={(val) => setBrandingForm((p) => ({ ...p, logoUrl: val }))}
+                    primaryColor={brandingForm.primaryColor}
+                    companyName={brandingForm.companyName}
+                    helperText="Sube una foto desde tu celular o laptop para guardarla como logo en Base64."
+                  />
 
                   <div className="form-group">
                     <label>Color Principal del Botón de Login</label>
@@ -893,53 +874,46 @@ export default function BranchesPage() {
                       padding: 14,
                       marginTop: 12,
                       marginBottom: 12,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
                     }}
                   >
-                    <div
-                      className="flex items-center gap-2"
-                      style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}
-                    >
-                      <ImageIcon size={16} color="#e11d48" />
-                      <span>Logo y Color al Iniciar Sesión (Login de esta Matriz)</span>
-                    </div>
-                    <div className="grid-2">
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label>URL del Logo (HTTPS PNG/JPG/WEBP)</label>
+                    <ImageUploadField
+                      label="Logo de la Matriz (Login de esta Sucursal)"
+                      value={form.logoUrl}
+                      onChange={(val) => setForm((p) => ({ ...p, logoUrl: val }))}
+                      primaryColor={form.primaryColor}
+                      companyName={form.name || 'Sucursal'}
+                      helperText="Sube una foto desde celular o lap (se guardará en Base64)."
+                    />
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label>Color de Login</label>
+                      <div className="flex items-center gap-2">
                         <input
-                          type="url"
-                          className="form-input"
-                          placeholder="https://ejemplo.com/logo.png"
-                          value={form.logoUrl}
-                          onChange={(e) => setForm((p) => ({ ...p, logoUrl: e.target.value }))}
+                          type="color"
+                          value={form.primaryColor}
+                          onChange={(e) =>
+                            setForm((p) => ({ ...p, primaryColor: e.target.value }))
+                          }
+                          style={{
+                            width: 42,
+                            height: 40,
+                            borderRadius: 10,
+                            border: '1px solid #cbd5e1',
+                            cursor: 'pointer',
+                          }}
                         />
-                      </div>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label>Color de Login</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={form.primaryColor}
-                            onChange={(e) =>
-                              setForm((p) => ({ ...p, primaryColor: e.target.value }))
-                            }
-                            style={{
-                              width: 42,
-                              height: 40,
-                              borderRadius: 10,
-                              border: '1px solid #cbd5e1',
-                              cursor: 'pointer',
-                            }}
-                          />
-                          <input
-                            type="text"
-                            className="form-input"
-                            value={form.primaryColor}
-                            onChange={(e) =>
-                              setForm((p) => ({ ...p, primaryColor: e.target.value }))
-                            }
-                            style={{ fontFamily: 'monospace' }}
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={form.primaryColor}
+                          onChange={(e) =>
+                            setForm((p) => ({ ...p, primaryColor: e.target.value }))
+                          }
+                          style={{ fontFamily: 'monospace' }}
+                        />
                       </div>
                     </div>
                   </div>

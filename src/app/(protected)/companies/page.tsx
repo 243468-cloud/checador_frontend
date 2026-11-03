@@ -4,9 +4,21 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { settingsApi, registerCompany, TenantSettingsDTO, CompanyRegistrationData } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
-import { Building2, Plus, Loader2, AlertCircle, Link as LinkIcon, ShieldCheck, Edit2, Palette, Image as ImageIcon, CheckSquare } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import ImageUploadField from '@/components/ImageUploadField';
+import {
+  Building2,
+  Plus,
+  Loader2,
+  AlertCircle,
+  ExternalLink,
+  ShieldCheck,
+  Edit3,
+  Palette,
+  CheckSquare,
+  X,
+  Check,
+  Copy,
+} from 'lucide-react';
 
 const AVAILABLE_MODULES = [
   { id: 'schedules', label: 'Horarios y Turnos' },
@@ -15,13 +27,25 @@ const AVAILABLE_MODULES = [
   { id: 'rankings', label: 'Ranking & Recompensas' },
 ];
 
+const PRESET_COLORS = [
+  { name: 'Rojo Carmesí', hex: '#e11d48' },
+  { name: 'Naranja Ámbar', hex: '#d97706' },
+  { name: 'Azul Índigo', hex: '#4f46e5' },
+  { name: 'Azul Océano', hex: '#0284c7' },
+  { name: 'Verde Esmeralda', hex: '#059669' },
+  { name: 'Morado Real', hex: '#7c3aed' },
+  { name: 'Rosa Fucsia', hex: '#db2777' },
+  { name: 'Pizarra Oscuro', hex: '#0f172a' },
+];
+
 export default function CompaniesPage() {
   const { user } = useAuth();
   const [tenants, setTenants] = useState<TenantSettingsDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
-  // Modal de registro
+  // Modal de registro de nueva empresa
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<CompanyRegistrationData>({
@@ -33,7 +57,7 @@ export default function CompaniesPage() {
     adminPassword: '',
   });
 
-  // Modal de edición de Branding e Íconos (Exclusivo Superusuario Maestro)
+  // Modal de edición de Branding e Íconos
   const [editTarget, setEditTarget] = useState<TenantSettingsDTO | null>(null);
   const [editForm, setEditForm] = useState({
     companyName: '',
@@ -53,7 +77,8 @@ export default function CompaniesPage() {
     try {
       setLoading(true);
       const data = await settingsApi.getAllTenants();
-      setTenants(data);
+      // Filtrar solo empresas reales (tenantId > 0)
+      setTenants(data.filter((t) => t.tenantId > 0));
       setError('');
     } catch (err: any) {
       setError(err.message || 'Error al cargar empresas');
@@ -70,7 +95,7 @@ export default function CompaniesPage() {
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
-    
+
     setForm((p) => ({ ...p, companyName: name, slug }));
   };
 
@@ -88,7 +113,7 @@ export default function CompaniesPage() {
         adminEmail: '',
         adminPassword: '',
       });
-      fetchTenants(); // Recargar lista
+      fetchTenants();
     } catch (err: any) {
       alert(err.message || 'Error al crear la empresa');
     } finally {
@@ -104,17 +129,18 @@ export default function CompaniesPage() {
       logoUrl: t.logoUrl || '',
       iconUrl: t.iconUrl || '',
       subscriptionStatus: t.subscriptionStatus || 'ACTIVE',
-      activeModules: t.activeModules && t.activeModules.length > 0
-        ? t.activeModules
-        : ['schedules', 'reports', 'lateArrivals', 'rankings'],
+      activeModules:
+        t.activeModules && t.activeModules.length > 0
+          ? t.activeModules
+          : ['schedules', 'reports', 'lateArrivals', 'rankings'],
     });
   };
 
   const toggleModule = (modId: string) => {
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
       activeModules: prev.activeModules.includes(modId)
-        ? prev.activeModules.filter(m => m !== modId)
+        ? prev.activeModules.filter((m) => m !== modId)
         : [...prev.activeModules, modId],
     }));
   };
@@ -124,11 +150,14 @@ export default function CompaniesPage() {
     if (!editTarget) return;
     setSavingBranding(true);
     try {
+      const finalLogo = editForm.logoUrl.trim();
+      const finalIcon = (editForm.iconUrl.trim() || finalLogo) || null;
+
       await settingsApi.updateTenantBranding(editTarget.tenantId, {
-        companyName: editForm.companyName,
+        companyName: editForm.companyName.trim(),
         primaryColor: editForm.primaryColor,
-        logoUrl: editForm.logoUrl || null,
-        iconUrl: editForm.iconUrl || null,
+        logoUrl: finalLogo || null,
+        iconUrl: finalIcon,
         subscriptionStatus: editForm.subscriptionStatus,
       });
       await settingsApi.updateTenantModules(editTarget.tenantId, editForm.activeModules);
@@ -141,272 +170,457 @@ export default function CompaniesPage() {
     }
   };
 
+  const copyUrl = (url: string, key: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedSlug(key);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
   if (!user || user.role !== 'SUPERUSER') {
-    return <div className="p-6 text-center text-red-500">Acceso denegado</div>;
+    return <div className="p-6 text-center text-red-500 font-bold">Acceso denegado</div>;
   }
+
+  const getOrigin = () => {
+    if (typeof window !== 'undefined') return window.location.origin;
+    return 'https://checador-frontend.vercel.app';
+  };
 
   return (
     <div className="app-wrapper">
       <Sidebar />
       <main className="main-content animate-fade-in">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-              <Building2 className="text-rose-600" />
-              Gestión de Empresas (Perfil Maestro)
+        {/* Encabezado */}
+        <div className="page-header mb-6">
+          <div style={{ flex: 1 }}>
+            <h1 className="page-title flex items-center gap-2.5">
+              <Building2 size={24} style={{ color: 'var(--color-primary, #e11d48)' }} />
+              <span>Logos y Matrices de Empresas</span>
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Crea o cierra empresas, personaliza su ícono/logo/color y habilita módulos (Horarios, Reportes, Retardos).
+            <p className="page-subtitle">
+              Sube el logo de cada empresa (desde celular o lap en Base64), elige sus colores y administra sus links de acceso.
             </p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition-colors shadow-sm"
+            className="btn btn-primary flex items-center gap-2"
+            style={{
+              padding: '12px 22px',
+              borderRadius: '100px',
+              fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(225, 29, 72, 0.25)',
+            }}
           >
             <Plus size={18} />
-            Nueva Empresa
+            <span>Nueva Empresa</span>
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 border border-red-100 mb-6">
+          <div className="alert alert-danger flex items-center gap-3 mb-6" style={{ borderRadius: 16 }}>
             <AlertCircle size={20} />
-            <p className="text-sm font-medium">{error}</p>
+            <p style={{ margin: 0, fontWeight: 600 }}>{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center h-48">
-            <Loader2 size={32} className="animate-spin text-rose-600" />
+          <div className="grid-2">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="card">
+                <div className="skeleton" style={{ height: 180 }} />
+              </div>
+            ))}
+          </div>
+        ) : tenants.length === 0 ? (
+          <div className="empty-state">
+            <Building2 size={44} color="#8e8e93" />
+            <p style={{ marginTop: 12, color: '#64748b' }}>No hay empresas registradas aún.</p>
+            <button className="btn btn-primary mt-4" onClick={() => setShowModal(true)}>
+              Crear primera empresa
+            </button>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-gray-50 text-gray-700 uppercase font-semibold text-xs border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-4">ID / Tenant</th>
-                    <th className="px-6 py-4">Empresa & Ícono</th>
-                    <th className="px-6 py-4">Slug / Enlaces</th>
-                    <th className="px-6 py-4">Estado</th>
-                    <th className="px-6 py-4">Acciones Maestro</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {tenants.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs">
-                        #{t.id} <span className="text-gray-400">(Tenant {t.tenantId})</span>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        <div className="flex items-center gap-3">
-                          <div
+          /* Tarjetas modernas de cada Matriz */
+          <div className="grid-2 stagger" style={{ gap: '20px' }}>
+            {tenants.map((t) => {
+              const brandColor = t.primaryColor || '#e11d48';
+              const logo = t.logoUrl || t.iconUrl || null;
+              const loginLink = `${getOrigin()}/${t.slug}/login`;
+              const regLink = `${getOrigin()}/${t.slug}/register`;
+              const isLoginCopied = copiedSlug === `login-${t.id}`;
+              const isRegCopied = copiedSlug === `reg-${t.id}`;
+
+              return (
+                <div
+                  key={t.id}
+                  className="card animate-slide-up"
+                  style={{
+                    borderRadius: '20px',
+                    padding: '24px',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: 16,
+                  }}
+                >
+                  <div>
+                    {/* Header de la tarjeta */}
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-3.5">
+                        <div
+                          style={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: '16px',
+                            background: logo ? '#ffffff' : brandColor,
+                            border: logo ? '1.5px solid #e2e8f0' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {logo ? (
+                            <img
+                              src={logo}
+                              alt={t.companyName}
+                              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }}
+                            />
+                          ) : (
+                            <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '1.3rem' }}>
+                              {(t.companyName || 'EM').substring(0, 2).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                              {t.companyName}
+                            </h3>
+                            <span
+                              style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                padding: '3px 8px',
+                                borderRadius: '100px',
+                                background: '#f1f5f9',
+                                color: '#475569',
+                              }}
+                            >
+                              Tenant #{t.tenantId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span
+                              style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: '50%',
+                                background: brandColor,
+                                display: 'inline-block',
+                              }}
+                            />
+                            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
+                              Color: <strong style={{ color: brandColor }}>{brandColor}</strong>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '4px 10px',
+                          borderRadius: '100px',
+                          background: t.subscriptionStatus === 'ACTIVE' ? '#dcfce7' : '#fee2e2',
+                          color: t.subscriptionStatus === 'ACTIVE' ? '#15803d' : '#b91c1c',
+                        }}
+                      >
+                        {t.subscriptionStatus === 'ACTIVE' ? 'ACTIVA' : t.subscriptionStatus || 'ACTIVA'}
+                      </span>
+                    </div>
+
+                    {/* Enlaces de Login y Registro */}
+                    <div
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 14,
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <span style={{ color: '#64748b', fontWeight: 600 }}>Acceso de Login:</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => copyUrl(loginLink, `login-${t.id}`)}
+                            className="btn btn-ghost"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', color: '#0284c7', gap: 4 }}
+                          >
+                            {isLoginCopied ? <Check size={12} /> : <Copy size={12} />}
+                            <span>{isLoginCopied ? 'Copiado' : 'Copiar'}</span>
+                          </button>
+                          <a
+                            href={`/${t.slug}/login`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: t.primaryColor || '#e11d48',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              color: brandColor,
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              overflow: 'hidden',
-                              border: '1px solid #e2e8f0',
+                              gap: 3,
+                              textDecoration: 'none',
                             }}
                           >
-                            {t.iconUrl || t.logoUrl ? (
-                              <img src={(t.iconUrl || t.logoUrl) ?? ''} alt={t.companyName} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }} />
-                            ) : (
-                              <span style={{ color: '#fff', fontWeight: 800, fontSize: 12 }}>
-                                {t.companyName?.slice(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-bold text-gray-900">{t.companyName}</div>
-                            <div className="text-xs text-gray-400">Color: {t.primaryColor || '#4F46E5'}</div>
-                          </div>
+                            <span>Abrir</span>
+                            <ExternalLink size={11} />
+                          </a>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-mono text-xs w-max">
-                            {t.slug}
-                          </span>
-                          <div className="flex gap-2 mt-1">
-                            <a href={`/${t.slug}/login`} target="_blank" className="text-xs text-rose-600 hover:text-rose-800 flex items-center gap-1 font-medium" title="Abrir Login">
-                              <LinkIcon size={12} /> Login
-                            </a>
-                            <a href={`/${t.slug}/register`} target="_blank" className="text-xs text-emerald-600 hover:text-emerald-800 flex items-center gap-1 font-medium" title="Abrir Registro">
-                              <LinkIcon size={12} /> Registro
-                            </a>
-                          </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200">
+                        <span style={{ color: '#64748b', fontWeight: 600 }}>Registro de Empleados:</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => copyUrl(regLink, `reg-${t.id}`)}
+                            className="btn btn-ghost"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', color: '#16a34a', gap: 4 }}
+                          >
+                            {isRegCopied ? <Check size={12} /> : <Copy size={12} />}
+                            <span>{isRegCopied ? 'Copiado' : 'Copiar'}</span>
+                          </button>
+                          <a
+                            href={`/${t.slug}/register`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              color: '#16a34a',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 3,
+                              textDecoration: 'none',
+                            }}
+                          >
+                            <span>Abrir</span>
+                            <ExternalLink size={11} />
+                          </a>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          t.subscriptionStatus === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                          t.subscriptionStatus === 'TRIAL' ? 'bg-blue-100 text-blue-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {t.subscriptionStatus || 'ACTIVE'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => openEditModal(t)}
-                          className="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
-                        >
-                          <Edit2 size={14} />
-                          Editar Ícono / Módulos / Estado
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {tenants.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                        No hay empresas registradas aún.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botón de acción destacado */}
+                  <button
+                    onClick={() => openEditModal(t)}
+                    className="btn btn-primary flex items-center justify-center gap-2"
+                    style={{
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      borderRadius: '12px',
+                      padding: '11px',
+                      fontWeight: 700,
+                      fontSize: '0.84rem',
+                      width: '100%',
+                    }}
+                  >
+                    <Edit3 size={15} />
+                    <span>Cambiar Logo, Color y Módulos</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {/* Modal Personalizar Empresa (Ícono, Logo, Color, Módulos, Estado) */}
+        {/* Modal Editar Logo / Branding / Módulos */}
         {editTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-scale-up">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Palette className="text-rose-600" size={20} />
-                  Configurar Empresa: {editTarget.companyName}
-                </h2>
+          <div className="modal-overlay" onClick={() => setEditTarget(null)}>
+            <div
+              className="modal-card"
+              style={{ maxWidth: 620, maxHeight: '90vh', overflowY: 'auto' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div className="modal-header-title">
+                  <Palette size={20} color="var(--color-primary, #e11d48)" />
+                  <span>Configurar Logo y Diseño: {editTarget.companyName}</span>
+                </div>
                 <button
+                  className="btn btn-ghost"
+                  style={{ padding: '6px' }}
                   onClick={() => setEditTarget(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  ✕
+                  <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveBranding} className="p-6 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                      Nombre de la Empresa
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={editForm.companyName}
-                      onChange={e => setEditForm({ ...editForm, companyName: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                      Estado de Suscripción
-                    </label>
-                    <select
-                      value={editForm.subscriptionStatus}
-                      onChange={e => setEditForm({ ...editForm, subscriptionStatus: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm"
-                    >
-                      <option value="ACTIVE">ACTIVA (Abierta)</option>
-                      <option value="TRIAL">PRUEBA (Trial)</option>
-                      <option value="SUSPENDED">SUSPENDIDA (Cerrada temporalmente)</option>
-                      <option value="CANCELED">CANCELADA (Cerrada)</option>
-                    </select>
+              <form onSubmit={handleSaveBranding}>
+                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Subida de Logo en Base64 */}
+                  <ImageUploadField
+                    label="Logo de la Empresa (para la pantalla de Login y Navegación)"
+                    value={editForm.logoUrl}
+                    onChange={(val) => setEditForm((p) => ({ ...p, logoUrl: val }))}
+                    primaryColor={editForm.primaryColor}
+                    companyName={editForm.companyName}
+                    helperText="Puedes subir una imagen desde tu celular o laptop. Se convertirá automáticamente en Base64 sin usar servidores externos."
+                  />
+
+                  {/* Nombre y Estado */}
+                  <div className="grid-2">
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label>Nombre de la Empresa *</label>
+                      <input
+                        type="text"
+                        required
+                        className="form-input"
+                        value={editForm.companyName}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, companyName: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label>Estado de Suscripción</label>
+                      <select
+                        className="form-select"
+                        value={editForm.subscriptionStatus}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, subscriptionStatus: e.target.value })
+                        }
+                      >
+                        <option value="ACTIVE">ACTIVA</option>
+                        <option value="TRIAL">PRUEBA</option>
+                        <option value="SUSPENDED">SUSPENDIDA</option>
+                        <option value="CANCELED">CANCELADA</option>
+                      </select>
+                    </div>
                   </div>
 
+                  {/* Color Principal */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                      Color Principal (Hex)
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                      Color de la Marca y Botón de Inicio de Sesión
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      {PRESET_COLORS.map((pc) => (
+                        <button
+                          key={pc.hex}
+                          type="button"
+                          onClick={() => setEditForm((p) => ({ ...p, primaryColor: pc.hex }))}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: pc.hex,
+                            border:
+                              editForm.primaryColor.toLowerCase() === pc.hex.toLowerCase()
+                                ? '3px solid #0f172a'
+                                : '1px solid #cbd5e1',
+                            cursor: 'pointer',
+                          }}
+                          title={pc.name}
+                        />
+                      ))}
                       <input
                         type="color"
                         value={editForm.primaryColor}
-                        onChange={e => setEditForm({ ...editForm, primaryColor: e.target.value })}
-                        className="h-9 w-12 rounded cursor-pointer border border-gray-200"
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, primaryColor: e.target.value })
+                        }
+                        style={{
+                          width: 32,
+                          height: 30,
+                          padding: 0,
+                          border: 'none',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          background: 'transparent',
+                        }}
                       />
                       <input
                         type="text"
+                        className="form-input"
                         value={editForm.primaryColor}
-                        onChange={e => setEditForm({ ...editForm, primaryColor: e.target.value })}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono"
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, primaryColor: e.target.value })
+                        }
+                        style={{ width: 110, padding: '6px 10px', fontSize: '0.8rem', fontFamily: 'monospace' }}
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                      URL del Logo (HTTPS PNG/JPG/WEBP)
+                  {/* Módulos Habilitados */}
+                  <div style={{ paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                      <CheckSquare size={15} color="#e11d48" />
+                      <span>Módulos Activos para los Administradores</span>
                     </label>
-                    <input
-                      type="url"
-                      value={editForm.logoUrl}
-                      onChange={e => setEditForm({ ...editForm, logoUrl: e.target.value })}
-                      placeholder="https://ejemplo.com/logo.png"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                      URL del Ícono PWA / Pestaña (HTTPS PNG/JPG/WEBP)
-                    </label>
-                    <input
-                      type="url"
-                      value={editForm.iconUrl}
-                      onChange={e => setEditForm({ ...editForm, iconUrl: e.target.value })}
-                      placeholder="https://ejemplo.com/icono.png"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm"
-                    />
+                    <div className="grid-2" style={{ gap: 8 }}>
+                      {AVAILABLE_MODULES.map((mod) => (
+                        <label
+                          key={mod.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '10px 12px',
+                            borderRadius: 12,
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            color: '#334155',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={editForm.activeModules.includes(mod.id)}
+                            onChange={() => toggleModule(mod.id)}
+                            style={{ accentColor: '#e11d48' }}
+                          />
+                          <span>{mod.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-gray-100">
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1.5">
-                    <CheckSquare size={14} className="text-rose-600" />
-                    Módulos Habilitados para los Administradores de esta Empresa
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {AVAILABLE_MODULES.map(mod => (
-                      <label
-                        key={mod.id}
-                        className="flex items-center gap-2.5 p-2.5 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer text-sm font-medium text-gray-700"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={editForm.activeModules.includes(mod.id)}
-                          onChange={() => toggleModule(mod.id)}
-                          className="rounded text-rose-600 focus:ring-rose-500"
-                        />
-                        <span>{mod.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => setEditTarget(null)}
-                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
-                  >
-                    Cancelar
-                  </button>
+                <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
                   <button
                     type="submit"
                     disabled={savingBranding}
-                    className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-xl flex items-center gap-2 text-sm font-bold shadow-sm disabled:opacity-50"
+                    className="btn btn-primary btn-full flex items-center justify-center gap-2"
                   >
-                    {savingBranding && <Loader2 size={16} className="animate-spin" />}
-                    Guardar Cambios
+                    {savingBranding ? (
+                      <>
+                        <Loader2 size={16} className="spin-icon" /> Guardando...
+                      </>
+                    ) : (
+                      'Guardar Logo y Cambios'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-full"
+                    onClick={() => setEditTarget(null)}
+                  >
+                    Cancelar
                   </button>
                 </div>
               </form>
@@ -414,130 +628,139 @@ export default function CompaniesPage() {
           </div>
         )}
 
-        {/* Modal Nueva Empresa */}
+        {/* Modal Alta de Nueva Empresa */}
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-scale-up">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Building2 className="text-rose-600" size={20} />
-                  Alta de Nueva Empresa
-                </h2>
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+            <div
+              className="modal-card"
+              style={{ maxWidth: 640 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div className="modal-header-title">
+                  <Building2 size={20} color="#e11d48" />
+                  <span>Alta de Nueva Empresa / Matriz</span>
+                </div>
                 <button
+                  className="btn btn-ghost"
+                  style={{ padding: '6px' }}
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  ✕
+                  <X size={18} />
                 </button>
               </div>
-              
-              <form onSubmit={handleCreate} className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                      Nombre Empresa
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.companyName}
-                      onChange={handleCompanyNameChange}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                      placeholder="Ej. Acme Corp"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                      Slug (URL)
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.slug}
-                      onChange={e => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                      placeholder="acme-corp"
-                    />
+
+              <form onSubmit={handleCreate}>
+                <div className="modal-body">
+                  <div className="grid-2">
+                    <div className="form-group">
+                      <label>Nombre de la Empresa *</label>
+                      <input
+                        type="text"
+                        required
+                        className="form-input"
+                        placeholder="Ej. Acme Gourmet"
+                        value={form.companyName}
+                        onChange={handleCompanyNameChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Slug de Acceso (URL) *</label>
+                      <input
+                        type="text"
+                        required
+                        className="form-input"
+                        placeholder="acme-gourmet"
+                        value={form.slug}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                          })
+                        }
+                      />
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                        Acceso será: /{form.slug || 'nombre'}/login
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="sm:col-span-2 pt-2 pb-1 border-b border-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                      <ShieldCheck size={16} className="text-emerald-500"/>
-                      Datos del Administrador Principal
-                    </h3>
-                  </div>
+                  <div style={{ margin: '14px 0 10px', paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
+                    <div className="flex items-center gap-1.5" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>
+                      <ShieldCheck size={16} color="#10b981" />
+                      <span>Administrador Principal de la Empresa</span>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                      Nombre Completo
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.adminFullName}
-                      onChange={e => setForm({ ...form, adminFullName: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                      placeholder="Juan Pérez"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                      Correo Electrónico
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={form.adminEmail}
-                      onChange={e => setForm({ ...form, adminEmail: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                      placeholder="admin@acme.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                      Usuario
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.adminUsername}
-                      onChange={e => setForm({ ...form, adminUsername: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                      placeholder="admin"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                      Contraseña
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      minLength={6}
-                      value={form.adminPassword}
-                      onChange={e => setForm({ ...form, adminPassword: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                      placeholder="Contraseña segura"
-                    />
+                    <div className="grid-2">
+                      <div className="form-group">
+                        <label>Nombre Completo *</label>
+                        <input
+                          type="text"
+                          required
+                          className="form-input"
+                          placeholder="Juan Pérez"
+                          value={form.adminFullName}
+                          onChange={(e) => setForm({ ...form, adminFullName: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Correo Electrónico *</label>
+                        <input
+                          type="email"
+                          required
+                          className="form-input"
+                          placeholder="admin@empresa.com"
+                          value={form.adminEmail}
+                          onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Usuario *</label>
+                        <input
+                          type="text"
+                          required
+                          className="form-input"
+                          placeholder="admin.usuario"
+                          value={form.adminUsername}
+                          onChange={(e) => setForm({ ...form, adminUsername: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Contraseña *</label>
+                        <input
+                          type="password"
+                          required
+                          minLength={6}
+                          className="form-input"
+                          placeholder="Mínimo 6 caracteres"
+                          value={form.adminPassword}
+                          onChange={(e) => setForm({ ...form, adminPassword: e.target.value })}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                  >
-                    Cancelar
-                  </button>
+                <div className="modal-footer" style={{ flexDirection: 'column', gap: 8 }}>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors shadow-sm disabled:opacity-50"
+                    className="btn btn-primary btn-full flex items-center justify-center gap-2"
                   >
-                    {submitting ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                    Crear Empresa
+                    {submitting ? (
+                      <>
+                        <Loader2 size={16} className="spin-icon" /> Creando...
+                      </>
+                    ) : (
+                      'Crear Empresa'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-full"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancelar
                   </button>
                 </div>
               </form>

@@ -80,8 +80,20 @@ export async function GET(
       });
     }
 
-    const safeUrl = assertSafeImageUrl(sourceUrl); // https, sin localhost/IP privada/link-local
-    const { buffer: input, contentType } = await fetchImageLimited(safeUrl);
+    const safeUrl = sourceUrl.startsWith('data:image/') ? null : assertSafeImageUrl(sourceUrl); // https, sin localhost/IP privada/link-local
+    let input: Buffer;
+    let contentType: string;
+    if (sourceUrl.startsWith('data:image/')) {
+      const commaIdx = sourceUrl.indexOf(',');
+      if (commaIdx < 0) return await genericResponse(parsedSize);
+      const header = sourceUrl.substring(5, commaIdx).toLowerCase(); // ej. image/png;base64
+      contentType = header.split(';')[0] || 'image/png';
+      input = Buffer.from(sourceUrl.substring(commaIdx + 1), 'base64');
+    } else {
+      const fetched = await fetchImageLimited(safeUrl!);
+      input = fetched.buffer;
+      contentType = fetched.contentType;
+    }
 
     // SVG y cualquier tipo no raster se descartan sin procesarlos.
     if (!ALLOWED_CONTENT_TYPES.some((t) => contentType.startsWith(t))) {
