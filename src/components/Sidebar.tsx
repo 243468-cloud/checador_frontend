@@ -88,8 +88,31 @@ export default function Sidebar() {
       {/* Mobile Top Header Bar */}
       <header className="mobile-header-navbar">
         <div className="mobile-header-left">
-          <div className="mobile-logo-box">
-            <Clock size={18} color="var(--color-primary, #e11d48)" />
+          <div className="mobile-logo-box" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 9,
+                overflow: 'hidden',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {settings?.logoUrl || settings?.iconUrl ? (
+                <img
+                  src={settings.logoUrl || settings.iconUrl || ''}
+                  alt={settings.companyName || 'Logo'}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 2 }}
+                />
+              ) : (
+                <Clock size={18} color="var(--color-primary, #e11d48)" />
+              )}
+            </div>
             <span className="mobile-logo-title">{settings?.companyName || 'Checador'}</span>
           </div>
         </div>
@@ -151,10 +174,10 @@ export default function Sidebar() {
               flexShrink: 0,
             }}
           >
-            {settings?.logoUrl ? (
-              <img src={settings.logoUrl} alt={settings?.companyName || "Empresa"} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            {settings?.logoUrl || settings?.iconUrl ? (
+              <img src={settings.logoUrl || settings.iconUrl || ''} alt={settings?.companyName || "Empresa"} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 2 }} />
             ) : (
-              <div style={{width: '100%', height: '100%', backgroundColor: 'var(--color-primary, #e11d48)', borderRadius: '4px'}} />
+              <Clock size={20} color="var(--color-primary, #e11d48)" />
             )}
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>

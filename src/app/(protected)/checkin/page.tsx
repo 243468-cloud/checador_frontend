@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { getCurrentPosition, attendanceApi, AttendanceRecord, STATUS_LABELS } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { useTheme } from '@/lib/theme-context';
 import Link from 'next/link';
 import {
   Play,
@@ -73,6 +74,7 @@ const MOTIVATIONAL_COMMENTS = [
 
 export default function CheckInPage() {
   const { user, logout } = useAuth();
+  const { settings } = useTheme();
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
   const [record, setRecord] = useState<AttendanceRecord | null | undefined>(undefined);
@@ -225,8 +227,11 @@ export default function CheckInPage() {
     }
   };
 
-  const hasCheckedIn  = record && record.checkIn;
-  const hasCheckedOut = record && record.checkOut;
+  // Verificación estricta de fecha para evitar que un turno olvidado de ayer aparezca como "SALIDA" hoy
+  const todayIso = new Date().toISOString().split('T')[0];
+  const isRecordFromToday = record ? (record.date ? record.date === todayIso : true) : false;
+  const hasCheckedIn  = Boolean(record && record.checkIn && isRecordFromToday);
+  const hasCheckedOut = Boolean(record && record.checkOut && isRecordFromToday);
   const shiftType     = user?.shiftType ?? '';
 
   return (
@@ -250,6 +255,57 @@ export default function CheckInPage() {
               textAlign: 'center',
             }}>
 
+              {/* Logo y Nombre de la Empresa en la App de Trabajadores */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 14,
+                    background: '#ffffff',
+                    border: '1.5px solid #e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {settings?.logoUrl || settings?.iconUrl ? (
+                    <img
+                      src={settings.logoUrl || settings.iconUrl || ''}
+                      alt={settings.companyName || 'Empresa'}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 3 }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'var(--color-primary, #e11d48)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '1.1rem',
+                      }}
+                    >
+                      {(settings?.companyName || 'CH').substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                    {settings?.companyName || 'Checador'}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>
+                    {user?.branchName || 'Sucursal Principal'}
+                  </div>
+                </div>
+              </div>
+
               <p className="checkin-date" style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 700, textTransform: 'capitalize' }}>
                 {date}
               </p>
@@ -261,9 +317,9 @@ export default function CheckInPage() {
               <div className="checkin-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
                 {shiftType && (
                   <span className="badge badge-primary flex items-center gap-1.5" style={{
-                    background: 'rgba(225, 29, 72, 0.1)',
-                    color: '#e11d48',
-                    border: '1px solid rgba(225, 29, 72, 0.25)',
+                    background: 'rgba(var(--color-primary-rgb, 225, 29, 72), 0.1)',
+                    color: 'var(--color-primary, #e11d48)',
+                    border: '1px solid var(--color-primary, #e11d48)',
                     padding: '6px 14px',
                     fontSize: '0.82rem',
                     fontWeight: 800,

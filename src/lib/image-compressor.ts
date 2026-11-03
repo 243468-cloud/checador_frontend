@@ -58,3 +58,4 @@ export async function fileToBase64Image(
     reader.readAsDataURL(file);
   });
 }
+
