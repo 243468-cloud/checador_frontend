@@ -93,20 +93,36 @@ export interface DailyScheduleResolution {
   displayText: string;
 }
 
+function normalizeScheduleText(s: string): string {
+  return (s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toUpperCase();
+}
+
 export function getEmployeeScheduleForDay(
   employeeName: string,
   dayIdx: number,
   rosterRows: RosterRow[]
 ): DailyScheduleResolution {
-  const normEmpName = employeeName.trim().toUpperCase();
+  const normEmpName = normalizeScheduleText(employeeName);
+  const empTokens = normEmpName.split(/\s+/).filter(t => t.length >= 2);
+  const empFirstWord = empTokens[0] || normEmpName;
 
   // (1) Excepción u homónimo individual explícito para esta persona en cualquier fila para este día
   for (const row of rosterRows) {
     const cells = row.employees[dayIdx] || [];
     const matchCell = cells.find(c => {
-      const txt = c.text.trim().toUpperCase();
-      const firstWord = txt.split(' ')[0];
-      return txt === normEmpName || firstWord === normEmpName;
+      const txt = normalizeScheduleText(c.text);
+      const firstWord = txt.split(/\s+/)[0];
+      if (!firstWord) return false;
+      return (
+        txt === normEmpName ||
+        firstWord === normEmpName ||
+        (empFirstWord.length >= 2 && (txt === empFirstWord || firstWord === empFirstWord)) ||
+        (firstWord.length >= 3 && empTokens.includes(firstWord))
+      );
     });
 
     if (matchCell) {
@@ -1882,7 +1898,7 @@ function SchedulesPageContent() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('EMPRESA', 14, 14);
+    doc.text((user?.branchName || 'CONTROL DE ASISTENCIA').toUpperCase(), 14, 14);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Horario Individual de Trabajo — ${employeeName}`, 14, 22);
@@ -1893,27 +1909,36 @@ function SchedulesPageContent() {
     doc.text(`Empleado: ${employeeName}`, 14, 40);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Sucursal: ${user?.branchName || 'Principal'} | Fecha de Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
+    doc.text(`Sucursal: ${user?.branchName || 'Principal'} | Semana: ${daysHeader[0]?.date || ''} al ${daysHeader[6]?.date || ''} | Emisión: ${new Date().toLocaleDateString('es-MX')}`, 14, 46);
 
-    const headers = [['Día', 'Fecha', 'Área y Turno Asignado', 'Lapsos de Jornada', 'Origen / Estado']];
-    
-    // ELIMINAR DÍAS DE DESCANSO DEL PDF (Mostrar ÚNICAMENTE días de trabajo efectivamente asignados)
-    const workDaysOnly = daysHeader.map((d, i) => {
-      const res = getEmployeeScheduleForDay(employeeName, i, rosterRows);
-      return { day: d.day, date: d.date, res };
-    }).filter(item => {
-      const res = item.res;
-      const isRest = res.type === 'DESCANSO' || res.shiftTime === 'Descanso' || res.area === 'Descanso';
-      return !isRest;
+    const headers = [['Día', 'Fecha', 'Área Asignada', 'Horario / Turno', 'Estado']];
+    const fullDayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+    const normTarget = normalizeScheduleText(employeeName);
+    const targetTokens = normTarget.split(/\s+/).filter(t => t.length >= 2);
+    const backendMatch = backendIndividualSchedules.find(s => {
+      const normS = normalizeScheduleText(s.employeeName);
+      const sFirst = normS.split(/\s+/)[0];
+      return normS === normTarget || normTarget.includes(normS) || normS.includes(normTarget) || (sFirst.length >= 3 && targetTokens.includes(sFirst));
     });
 
-    const rows = workDaysOnly.map(item => [
-      item.day,
-      item.date,
-      `${item.res.area} (${item.res.shiftTime})`,
-      item.res.shiftTime,
-      item.res.source === 'INDIVIDUAL' ? 'Excepción Individual' : 'Turno Asignado'
-    ]);
+    const rows = daysHeader.map((d, i) => {
+      const assignedBackend = backendMatch?.days.find(bd => bd.dayIndex === i);
+      const res = getEmployeeScheduleForDay(employeeName, i, rosterRows);
+      const isRest = !assignedBackend && (res.type === 'DESCANSO' || res.shiftTime === 'Descanso' || res.area === 'Descanso');
+
+      const areaText = assignedBackend ? assignedBackend.area : (isRest ? '—' : res.area);
+      const shiftText = assignedBackend ? assignedBackend.shiftTime : (isRest ? 'Descanso' : res.shiftTime);
+      const statusText = isRest ? 'Día de Descanso' : 'Turno Asignado';
+
+      return [
+        fullDayNames[i] || d.day,
+        d.date,
+        areaText,
+        shiftText,
+        statusText,
+      ];
+    });
 
     autoTable(doc, {
       head: headers,
@@ -1941,10 +1966,12 @@ function SchedulesPageContent() {
         <div className="flex items-center justify-between flex-wrap gap-4 mb-6" style={{ background: '#ffffff', borderRadius: 16, padding: '18px 22px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
           <div>
             <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Rol Semanal y Control de Horarios
+              {isReadOnly ? 'Mi Horario Individual' : 'Rol Semanal y Control de Horarios'}
             </h1>
             <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', marginTop: 4 }}>
-              Gestión y programación de turnos del personal por área y sucursal.
+              {isReadOnly
+                ? 'Consulta tus turnos asignados de la semana y descarga tu horario en PDF.'
+                : 'Gestión y programación de turnos del personal por área y sucursal.'}
             </p>
           </div>
 
@@ -2010,8 +2037,12 @@ function SchedulesPageContent() {
               type="button"
               id="btn-export-pdf-roster"
               onClick={() => {
-                setReportFormat('PDF');
-                setShowReportConfigModal(true);
+                if (isReadOnly) {
+                  exportIndividualPDF(user?.fullName || 'Empleado');
+                } else {
+                  setReportFormat('PDF');
+                  setShowReportConfigModal(true);
+                }
               }}
               style={{
                 height: 44,
@@ -2032,8 +2063,8 @@ function SchedulesPageContent() {
               }}
               className="hover:opacity-95 active:scale-98"
             >
-              <FileText size={18} />
-              <span>Configurar y Exportar PDF</span>
+              <Download size={18} />
+              <span>{isReadOnly ? 'Descargar Mi Horario (PDF)' : 'Configurar y Exportar PDF'}</span>
             </button>
           </div>
         </div>
@@ -2222,7 +2253,9 @@ function SchedulesPageContent() {
           </div>
         </div>
 
-        {/* Official Roster Matrix Card */}
+        {/* Official Roster Matrix Card — Solo visible para ADMIN y SUPERUSER */}
+        {!isReadOnly && (
+        <>
         <div style={{ background: '#ffffff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)', overflow: 'hidden', marginBottom: 24 }}>
           <div className="flex items-center justify-between p-4 flex-wrap gap-3" style={{ background: '#fafaf9', borderBottom: '1px solid #e2e8f0' }}>
             <div className="flex items-center gap-3">
@@ -2589,6 +2622,8 @@ function SchedulesPageContent() {
               TURNO NORMAL
             </div>
           </div>
+        </>
+        )}
 
         {/* ----------------------------------------------------------------- */}
         {/* HORARIOS INDIVIDUALES POR EMPLEADO (Filtrado por rol de usuario) */}
@@ -2612,6 +2647,172 @@ function SchedulesPageContent() {
 
           <div className="grid-2 gap-4">
             {(() => {
+              if (isReadOnly) {
+                const empDisplayName = user?.fullName || 'Empleado';
+                const normTarget = normalizeScheduleText(empDisplayName);
+                const targetTokens = normTarget.split(/\s+/).filter(t => t.length >= 2);
+
+                const backendMatch = backendIndividualSchedules.find(s => {
+                  const normS = normalizeScheduleText(s.employeeName);
+                  const sFirst = normS.split(/\s+/)[0];
+                  return (
+                    normS === normTarget ||
+                    normTarget.includes(normS) ||
+                    normS.includes(normTarget) ||
+                    (sFirst.length >= 3 && targetTokens.includes(sFirst))
+                  );
+                });
+
+                const fullDayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                const resolvedDays = daysHeader.map((d, dayIdx) => {
+                  const assignedDay = backendMatch?.days.find(bd => bd.dayIndex === dayIdx);
+                  const localRes = getEmployeeScheduleForDay(empDisplayName, dayIdx, rosterRows);
+                  const isRest = !assignedDay && (localRes.type === 'DESCANSO' || localRes.shiftTime === 'Descanso' || localRes.area === 'Descanso');
+
+                  return {
+                    dayIdx,
+                    shortDay: d.day,
+                    fullDay: fullDayNames[dayIdx] || d.day,
+                    date: d.date,
+                    isRest,
+                    area: assignedDay ? assignedDay.area : (isRest ? 'Descanso' : localRes.area),
+                    shiftTime: assignedDay ? assignedDay.shiftTime : (isRest ? 'Descanso' : localRes.shiftTime),
+                  };
+                });
+
+                const workDaysCount = resolvedDays.filter(d => !d.isRest).length;
+                const primaryArea = backendMatch?.primaryArea || resolvedDays.find(d => !d.isRest)?.area || (user?.branchName || 'General');
+
+                return (
+                  <div
+                    className="p-5 rounded-2xl"
+                    style={{
+                      gridColumn: '1 / -1',
+                      background: '#ffffff',
+                      border: '2px solid #e11d48',
+                      boxShadow: '0 8px 24px rgba(225, 29, 72, 0.12)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <div className="flex items-center gap-3">
+                        <div
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 12,
+                            background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                            color: '#fff',
+                            fontWeight: 900,
+                            fontSize: '0.95rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)',
+                          }}
+                        >
+                          {empDisplayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.05rem' }}>{empDisplayName}</span>
+                            <span className="badge badge-primary" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>TÚ</span>
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
+                            Área: {primaryArea} · {workDaysCount} {workDaysCount === 1 ? 'día asignado' : 'días asignados'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => exportIndividualPDF(empDisplayName)}
+                        style={{
+                          padding: '10px 16px',
+                          borderRadius: 10,
+                          background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                          color: '#ffffff',
+                          border: 'none',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)',
+                        }}
+                      >
+                        <Download size={15} />
+                        <span>Descargar Horario PDF</span>
+                      </button>
+                    </div>
+
+                    {/* Resumen compacto de 7 días */}
+                    <div className="grid-7 gap-1.5 mb-4 text-center" style={{ background: '#f8fafc', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      {resolvedDays.map(d => (
+                        <div key={d.dayIdx} className="flex flex-col items-center">
+                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b' }}>
+                            {d.shortDay} {d.date}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              marginTop: '4px',
+                              padding: '4px 4px',
+                              borderRadius: '6px',
+                              width: '100%',
+                              background: d.isRest ? '#ecfdf5' : '#fff7ed',
+                              color: d.isRest ? '#047857' : '#c2410c',
+                              border: `1px solid ${d.isRest ? '#a7f3d0' : '#ffedd5'}`,
+                            }}
+                          >
+                            {d.isRest ? 'Desc' : d.shiftTime}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Desglose diario detallado para lectura cómoda en móvil */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {resolvedDays.map(d => (
+                        <div
+                          key={d.dayIdx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 14px',
+                            borderRadius: 10,
+                            background: d.isRest ? '#f8fafc' : '#fff7ed',
+                            border: `1px solid ${d.isRest ? '#e2e8f0' : '#fed7aa'}`,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.86rem', minWidth: 95 }}>
+                              {d.fullDay} {d.date}
+                            </span>
+                            {!d.isRest && (
+                              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#9a3412', background: '#ffedd5', padding: '2px 8px', borderRadius: 6 }}>
+                                {d.area}
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '0.82rem',
+                              fontWeight: 800,
+                              color: d.isRest ? '#059669' : '#c2410c',
+                            }}
+                          >
+                            {d.isRest ? 'Descanso' : d.shiftTime}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
               if (backendIndividualSchedules.length > 0) {
                 const list = user?.role === 'EMPLOYEE'
                   ? backendIndividualSchedules.filter(s =>
